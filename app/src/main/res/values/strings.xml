@@ -1,0 +1,43 @@
+<resources>
+    <string name="app_name">Berpod</string>
+    <string name="empty_state_title">Zatím žádné podcasty</string>
+    <string name="empty_state_subtitle">Přidejte první podcast tlačítkem +</string>
+    <string name="add_feed_dialog_title">Přidat podcast</string>
+    <string name="add_feed_url_label">RSS adresa feedu</string>
+    <string name="add_feed_url_placeholder">https://example.com/feed.xml</string>
+    <string name="action_add">Přidat</string>
+    <string name="action_cancel">Zrušit</string>
+    <string name="fab_add_podcast">Přidat podcast</string>
+    <string name="error_invalid_url">Zadejte platnou URL adresu (musí začínat http:// nebo https://)</string>
+    <string name="error_duplicate_feed">Tento podcast už je přidaný</string>
+    <string name="error_fetch_failed">Nepodařilo se načíst RSS feed. Zkontrolujte adresu a připojení.</string>
+
+    <string name="nav_podcasts">Podcasty</string>
+    <string name="nav_queue">Fronta</string>
+    <string name="nav_new_episodes">Nové</string>
+    <string name="nav_playlists">Playlisty</string>
+
+    <string name="queue_empty_title">Fronta je prázdná</string>
+    <string name="queue_empty_subtitle">Přidejte epizody z Nových přes nabídku ⋮</string>
+    <string name="action_remove_from_queue">Odebrat z fronty</string>
+    <string name="action_move_up">Posunout nahoru</string>
+    <string name="action_move_down">Posunout dolů</string>
+
+    <string name="new_episodes_title">Nové</string>
+    <string name="action_refresh">Aktualizovat</string>
+    <string name="new_episodes_empty">Zatím žádné nové epizody</string>
+
+    <string name="action_add_to_queue">Přidat do fronty</string>
+    <string name="action_add_to_playlist">Přidat do playlistu</string>
+    <string name="playlists_title">Playlisty</string>
+    <string name="playlists_empty">Zatím žádné playlisty</string>
+    <string name="playlist_detail_empty">Tento playlist je zatím prázdný</string>
+    <string name="fab_add_playlist">Vytvořit playlist</string>
+    <string name="create_playlist_dialog_title">Nový playlist</string>
+    <string name="create_playlist_name_label">Název playlistu</string>
+    <string name="add_to_playlist_dialog_title">Přidat do playlistu</string>
+    <string name="action_new_playlist_inline">+ Nový playlist</string>
+    <string name="action_remove_from_playlist">Odebrat z playlistu</string>
+
+    <string name="podcast_episodes_empty">Zatím žádné epizody</string>
+</resources>
