@@ -25,12 +25,19 @@ fun formatPlaybackTime(millis: Long): String {
 
 fun formatDuration(seconds: Int?): String? {
     if (seconds == null || seconds <= 0) return null
-    val hours = seconds / 3600
-    val minutes = (seconds % 3600) / 60
-    val secs = seconds % 60
-    return if (hours > 0) {
-        "%d:%02d:%02d".format(hours, minutes, secs)
-    } else {
-        "%d:%02d".format(minutes, secs)
+    val totalMinutes = seconds / 60
+    val hours = totalMinutes / 60
+    val minutes = totalMinutes % 60
+    return when {
+        hours > 0 -> "$hours h $minutes min"
+        totalMinutes > 0 -> "$minutes min"
+        else -> "<1 min"
     }
+}
+
+fun episodeProgressFraction(lastPositionMs: Long, durationSeconds: Int?): Float? {
+    if (lastPositionMs <= 0L) return null
+    if (durationSeconds == null || durationSeconds <= 0) return null
+    val durationMs = durationSeconds.toLong() * 1000L
+    return (lastPositionMs.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f)
 }
