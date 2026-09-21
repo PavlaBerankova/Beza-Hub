@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.berpod.app.data.local.AppDatabase
 import com.berpod.app.data.local.MIGRATION_1_2
+import com.berpod.app.data.local.MIGRATION_2_3
 import com.berpod.app.data.remote.FeedParser
 import com.berpod.app.data.repository.EpisodeRepository
 import com.berpod.app.data.repository.PlaybackRepository
@@ -25,7 +26,7 @@ class DefaultAppContainer(context: Context) : AppContainer {
 
     private val database: AppDatabase by lazy {
         Room.databaseBuilder(appContext, AppDatabase::class.java, "berpod.db")
-            .addMigrations(MIGRATION_1_2)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
             .build()
     }
 

@@ -31,5 +31,6 @@ data class EpisodeEntity(
     val durationSeconds: Int?,
     val description: String?,
     val imageUrl: String?,
-    val dateFetched: Long
+    val dateFetched: Long,
+    val lastPositionMs: Long = 0L
 )

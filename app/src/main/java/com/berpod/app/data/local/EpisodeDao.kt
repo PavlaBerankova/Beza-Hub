@@ -24,4 +24,7 @@ interface EpisodeDao {
 
     @Query("SELECT * FROM episodes WHERE feedId = :feedId ORDER BY pubDateMillis IS NULL, pubDateMillis DESC")
     fun observeEpisodesForFeed(feedId: Long): Flow<List<EpisodeEntity>>
+
+    @Query("UPDATE episodes SET lastPositionMs = :positionMs WHERE id = :episodeId")
+    suspend fun updatePosition(episodeId: Long, positionMs: Long)
 }
