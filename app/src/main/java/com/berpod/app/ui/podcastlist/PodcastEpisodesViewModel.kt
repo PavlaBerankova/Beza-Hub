@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.berpod.app.data.local.EpisodeEntity
 import com.berpod.app.data.local.PlaylistEntity
 import com.berpod.app.data.repository.EpisodeRepository
+import com.berpod.app.data.repository.PlaybackRepository
 import com.berpod.app.data.repository.PlaylistRepository
 import com.berpod.app.data.repository.PodcastRepository
 import com.berpod.app.data.repository.QueueRepository
@@ -26,7 +27,9 @@ data class PodcastEpisodesUiState(
     val playlists: List<PlaylistEntity> = emptyList(),
     val playlistPickerEpisodeId: Long? = null,
     val isCreatingPlaylist: Boolean = false,
-    val playlistPickerError: String? = null
+    val playlistPickerError: String? = null,
+    val currentlyPlayingEpisodeId: Long? = null,
+    val isPlaying: Boolean = false
 )
 
 class PodcastEpisodesViewModel(
@@ -34,6 +37,7 @@ class PodcastEpisodesViewModel(
     private val episodeRepository: EpisodeRepository,
     private val queueRepository: QueueRepository,
     private val playlistRepository: PlaylistRepository,
+    private val playbackRepository: PlaybackRepository,
     private val feedId: Long
 ) : ViewModel() {
 
@@ -51,6 +55,18 @@ class PodcastEpisodesViewModel(
         playlistRepository.observePlaylists()
             .onEach { playlists -> _uiState.update { it.copy(playlists = playlists) } }
             .launchIn(viewModelScope)
+        playbackRepository.uiState
+            .onEach { playback ->
+                _uiState.update {
+                    it.copy(currentlyPlayingEpisodeId = playback.currentEpisodeId, isPlaying = playback.isPlaying)
+                }
+            }
+            .launchIn(viewModelScope)
+    }
+
+    fun onPlay(episode: EpisodeEntity) {
+        val state = _uiState.value
+        playbackRepository.play(episode, state.feedTitle, state.feedImageUrl)
     }
 
     fun onRefresh() {
@@ -127,6 +143,7 @@ class PodcastEpisodesViewModel(
             episodeRepository: EpisodeRepository,
             queueRepository: QueueRepository,
             playlistRepository: PlaylistRepository,
+            playbackRepository: PlaybackRepository,
             feedId: Long
         ) = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
@@ -136,6 +153,7 @@ class PodcastEpisodesViewModel(
                     episodeRepository,
                     queueRepository,
                     playlistRepository,
+                    playbackRepository,
                     feedId
                 ) as T
             }

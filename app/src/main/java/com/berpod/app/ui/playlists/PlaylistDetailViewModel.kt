@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.berpod.app.data.local.PlaylistEpisodeWithEpisode
+import com.berpod.app.data.repository.PlaybackRepository
 import com.berpod.app.data.repository.PlaylistRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,11 +16,14 @@ import kotlinx.coroutines.launch
 
 data class PlaylistDetailUiState(
     val playlistName: String = "",
-    val episodes: List<PlaylistEpisodeWithEpisode> = emptyList()
+    val episodes: List<PlaylistEpisodeWithEpisode> = emptyList(),
+    val currentlyPlayingEpisodeId: Long? = null,
+    val isPlaying: Boolean = false
 )
 
 class PlaylistDetailViewModel(
     private val repository: PlaylistRepository,
+    private val playbackRepository: PlaybackRepository,
     private val playlistId: Long
 ) : ViewModel() {
 
@@ -33,6 +37,13 @@ class PlaylistDetailViewModel(
         }
         repository.observePlaylistEpisodes(playlistId)
             .onEach { episodes -> _uiState.update { it.copy(episodes = episodes) } }
+            .launchIn(viewModelScope)
+        playbackRepository.uiState
+            .onEach { playback ->
+                _uiState.update {
+                    it.copy(currentlyPlayingEpisodeId = playback.currentEpisodeId, isPlaying = playback.isPlaying)
+                }
+            }
             .launchIn(viewModelScope)
     }
 
@@ -48,12 +59,17 @@ class PlaylistDetailViewModel(
         viewModelScope.launch { repository.removeEpisode(playlistId, episodeId) }
     }
 
+    fun onPlay(item: PlaylistEpisodeWithEpisode) {
+        playbackRepository.play(item.episode, item.podcastTitle, item.podcastImageUrl)
+    }
+
     companion object {
-        fun factory(repository: PlaylistRepository, playlistId: Long) = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return PlaylistDetailViewModel(repository, playlistId) as T
+        fun factory(repository: PlaylistRepository, playbackRepository: PlaybackRepository, playlistId: Long) =
+            object : ViewModelProvider.Factory {
+                @Suppress("UNCHECKED_CAST")
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                    return PlaylistDetailViewModel(repository, playbackRepository, playlistId) as T
+                }
             }
-        }
     }
 }

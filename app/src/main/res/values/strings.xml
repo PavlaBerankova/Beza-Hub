@@ -40,4 +40,7 @@
     <string name="action_remove_from_playlist">Odebrat z playlistu</string>
 
     <string name="podcast_episodes_empty">Zatím žádné epizody</string>
+
+    <string name="action_play">Přehrát</string>
+    <string name="action_pause">Pozastavit</string>
 </resources>

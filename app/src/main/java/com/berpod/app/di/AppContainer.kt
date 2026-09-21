@@ -6,6 +6,7 @@ import com.berpod.app.data.local.AppDatabase
 import com.berpod.app.data.local.MIGRATION_1_2
 import com.berpod.app.data.remote.FeedParser
 import com.berpod.app.data.repository.EpisodeRepository
+import com.berpod.app.data.repository.PlaybackRepository
 import com.berpod.app.data.repository.PlaylistRepository
 import com.berpod.app.data.repository.PodcastRepository
 import com.berpod.app.data.repository.QueueRepository
@@ -15,12 +16,15 @@ interface AppContainer {
     val episodeRepository: EpisodeRepository
     val queueRepository: QueueRepository
     val playlistRepository: PlaylistRepository
+    val playbackRepository: PlaybackRepository
 }
 
 class DefaultAppContainer(context: Context) : AppContainer {
 
+    private val appContext = context.applicationContext
+
     private val database: AppDatabase by lazy {
-        Room.databaseBuilder(context, AppDatabase::class.java, "berpod.db")
+        Room.databaseBuilder(appContext, AppDatabase::class.java, "berpod.db")
             .addMigrations(MIGRATION_1_2)
             .build()
     }
@@ -41,5 +45,9 @@ class DefaultAppContainer(context: Context) : AppContainer {
 
     override val playlistRepository: PlaylistRepository by lazy {
         PlaylistRepository(database.playlistDao())
+    }
+
+    override val playbackRepository: PlaybackRepository by lazy {
+        PlaybackRepository(appContext)
     }
 }

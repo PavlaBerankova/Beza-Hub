@@ -61,6 +61,8 @@ fun PlaylistDetailScreen(viewModelFactory: ViewModelProvider.Factory, onBack: ()
                             episode = item.episode,
                             podcastTitle = item.podcastTitle,
                             podcastImageUrl = item.podcastImageUrl,
+                            onPlay = { viewModel.onPlay(item) },
+                            isCurrentlyPlaying = uiState.currentlyPlayingEpisodeId == item.episode.id && uiState.isPlaying,
                             trailingContent = {
                                 Row {
                                     IconButton(onClick = { viewModel.onMoveUp(index) }, enabled = index > 0) {

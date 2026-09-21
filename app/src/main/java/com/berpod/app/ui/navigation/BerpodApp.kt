@@ -1,5 +1,7 @@
 package com.berpod.app.ui.navigation
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
@@ -11,11 +13,12 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -26,6 +29,9 @@ import com.berpod.app.R
 import com.berpod.app.di.AppContainer
 import com.berpod.app.ui.newepisodes.NewEpisodesScreen
 import com.berpod.app.ui.newepisodes.NewEpisodesViewModel
+import com.berpod.app.ui.player.MiniPlayerBar
+import com.berpod.app.ui.player.PlayerScreen
+import com.berpod.app.ui.player.PlayerViewModel
 import com.berpod.app.ui.playlists.PlaylistDetailScreen
 import com.berpod.app.ui.playlists.PlaylistDetailViewModel
 import com.berpod.app.ui.playlists.PlaylistsScreen
@@ -61,23 +67,37 @@ fun BerpodApp(container: AppContainer) {
     val navController = rememberNavController()
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
 
+    // Built once here (above the NavHost) so the mini-player and the full PlayerScreen
+    // observe the exact same instance, instead of each screen creating its own via a factory.
+    val playerViewModel: PlayerViewModel = viewModel(factory = PlayerViewModel.factory(container.playbackRepository))
+    val playbackState by playerViewModel.uiState.collectAsState()
+
     Scaffold(
         bottomBar = {
-            if (bottomTabs.any { it.route == currentRoute }) {
-                NavigationBar {
-                    bottomTabs.forEach { screen ->
-                        NavigationBarItem(
-                            selected = currentRoute == screen.route,
-                            onClick = {
-                                navController.navigate(screen.route) {
-                                    popUpTo(navController.graph.startDestinationId) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
-                            icon = { Icon(iconFor(screen), contentDescription = null) },
-                            label = { Text(labelFor(screen)) }
-                        )
+            Column {
+                if (playbackState.currentEpisodeId != null) {
+                    MiniPlayerBar(
+                        state = playbackState,
+                        onClick = { navController.navigate(Screen.Player.route) { launchSingleTop = true } },
+                        onPlayPauseClick = playerViewModel::togglePlayPause
+                    )
+                }
+                if (bottomTabs.any { it.route == currentRoute }) {
+                    NavigationBar {
+                        bottomTabs.forEach { screen ->
+                            NavigationBarItem(
+                                selected = currentRoute == screen.route,
+                                onClick = {
+                                    navController.navigate(screen.route) {
+                                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                },
+                                icon = { Icon(iconFor(screen), contentDescription = null) },
+                                label = { Text(labelFor(screen)) }
+                            )
+                        }
                     }
                 }
             }
@@ -95,14 +115,15 @@ fun BerpodApp(container: AppContainer) {
                 )
             }
             composable(Screen.Queue.route) {
-                QueueScreen(viewModelFactory = QueueViewModel.factory(container.queueRepository))
+                QueueScreen(viewModelFactory = QueueViewModel.factory(container.queueRepository, container.playbackRepository))
             }
             composable(Screen.NewEpisodes.route) {
                 NewEpisodesScreen(
                     viewModelFactory = NewEpisodesViewModel.factory(
                         container.episodeRepository,
                         container.queueRepository,
-                        container.playlistRepository
+                        container.playlistRepository,
+                        container.playbackRepository
                     )
                 )
             }
@@ -118,7 +139,11 @@ fun BerpodApp(container: AppContainer) {
             ) { backStackEntry ->
                 val playlistId = backStackEntry.arguments?.getLong(Screen.PlaylistDetail.ARG_PLAYLIST_ID) ?: return@composable
                 PlaylistDetailScreen(
-                    viewModelFactory = PlaylistDetailViewModel.factory(container.playlistRepository, playlistId),
+                    viewModelFactory = PlaylistDetailViewModel.factory(
+                        container.playlistRepository,
+                        container.playbackRepository,
+                        playlistId
+                    ),
                     onBack = { navController.popBackStack() }
                 )
             }
@@ -133,10 +158,14 @@ fun BerpodApp(container: AppContainer) {
                         container.episodeRepository,
                         container.queueRepository,
                         container.playlistRepository,
+                        container.playbackRepository,
                         feedId
                     ),
                     onBack = { navController.popBackStack() }
                 )
+            }
+            composable(Screen.Player.route) {
+                PlayerScreen(viewModel = playerViewModel, onBack = { navController.popBackStack() })
             }
         }
     }

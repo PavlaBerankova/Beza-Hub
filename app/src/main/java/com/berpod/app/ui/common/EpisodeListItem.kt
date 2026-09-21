@@ -8,10 +8,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,7 +39,9 @@ fun EpisodeListItem(
     podcastImageUrl: String?,
     onAddToQueue: (() -> Unit)? = null,
     onAddToPlaylist: (() -> Unit)? = null,
-    trailingContent: @Composable (() -> Unit)? = null
+    trailingContent: @Composable (() -> Unit)? = null,
+    onPlay: (() -> Unit)? = null,
+    isCurrentlyPlaying: Boolean = false
 ) {
     var isMenuExpanded by remember { mutableStateOf(false) }
     val subtitleParts = listOfNotNull(formatPubDate(episode.pubDateMillis), formatDuration(episode.durationSeconds))
@@ -72,6 +77,18 @@ fun EpisodeListItem(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 2.dp)
+                )
+            }
+        }
+
+        if (onPlay != null) {
+            IconButton(onClick = onPlay) {
+                Icon(
+                    imageVector = if (isCurrentlyPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                    contentDescription = stringResource(
+                        if (isCurrentlyPlaying) R.string.action_pause else R.string.action_play
+                    ),
+                    tint = if (isCurrentlyPlaying) MaterialTheme.colorScheme.primary else LocalContentColor.current
                 )
             }
         }

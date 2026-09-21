@@ -79,7 +79,9 @@ fun NewEpisodesScreen(viewModelFactory: ViewModelProvider.Factory) {
                             podcastTitle = item.podcastTitle,
                             podcastImageUrl = item.podcastImageUrl,
                             onAddToQueue = { viewModel.onAddToQueue(item.episode.id) },
-                            onAddToPlaylist = { viewModel.onOpenPlaylistPicker(item.episode.id) }
+                            onAddToPlaylist = { viewModel.onOpenPlaylistPicker(item.episode.id) },
+                            onPlay = { viewModel.onPlay(item) },
+                            isCurrentlyPlaying = uiState.currentlyPlayingEpisodeId == item.episode.id && uiState.isPlaying
                         )
                     }
                 }

@@ -85,7 +85,9 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                             podcastTitle = null,
                             podcastImageUrl = uiState.feedImageUrl,
                             onAddToQueue = { viewModel.onAddToQueue(episode.id) },
-                            onAddToPlaylist = { viewModel.onOpenPlaylistPicker(episode.id) }
+                            onAddToPlaylist = { viewModel.onOpenPlaylistPicker(episode.id) },
+                            onPlay = { viewModel.onPlay(episode) },
+                            isCurrentlyPlaying = uiState.currentlyPlayingEpisodeId == episode.id && uiState.isPlaying
                         )
                     }
                 }
