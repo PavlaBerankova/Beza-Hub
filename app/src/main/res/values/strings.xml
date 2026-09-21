@@ -29,6 +29,7 @@
 
     <string name="action_add_to_queue">Přidat do fronty</string>
     <string name="action_add_to_playlist">Přidat do playlistu</string>
+    <string name="action_download">Stáhnout</string>
     <string name="playlists_title">Playlisty</string>
     <string name="playlists_empty">Zatím žádné playlisty</string>
     <string name="playlist_detail_empty">Tento playlist je zatím prázdný</string>
