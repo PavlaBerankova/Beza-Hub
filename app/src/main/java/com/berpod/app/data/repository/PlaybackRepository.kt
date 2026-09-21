@@ -10,6 +10,7 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import com.berpod.app.data.local.EpisodeDao
 import com.berpod.app.data.local.EpisodeEntity
 import com.berpod.app.playback.PlaybackService
 import kotlinx.coroutines.CoroutineScope
@@ -34,7 +35,10 @@ data class PlaybackUiState(
     val durationMs: Long = 0L
 )
 
-class PlaybackRepository(context: Context) {
+internal fun shouldPersistPosition(lastPersistedAtMs: Long, nowMs: Long, intervalMs: Long = 5_000L): Boolean =
+    nowMs - lastPersistedAtMs >= intervalMs
+
+class PlaybackRepository(context: Context, private val episodeDao: EpisodeDao) {
 
     private val appContext = context.applicationContext
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -45,14 +49,25 @@ class PlaybackRepository(context: Context) {
     private var controller: MediaController? = null
     private var pendingAction: (() -> Unit)? = null
     private var positionPollJob: Job? = null
+    private var lastPersistedAtMs = 0L
 
     private val playerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             _uiState.update { it.copy(isPlaying = isPlaying) }
             restartPositionPolling(isPlaying)
+            if (!isPlaying) {
+                val episodeId = _uiState.value.currentEpisodeId
+                val position = controller?.currentPosition ?: _uiState.value.positionMs
+                if (episodeId != null) persistPosition(episodeId, position)
+            }
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            val previousEpisodeId = _uiState.value.currentEpisodeId
+            val previousPosition = _uiState.value.positionMs
+            if (previousEpisodeId != null) {
+                persistPosition(previousEpisodeId, previousPosition)
+            }
             val metadata = mediaItem?.mediaMetadata
             _uiState.update {
                 it.copy(
@@ -126,9 +141,20 @@ class PlaybackRepository(context: Context) {
         if (!isPlaying) return
         positionPollJob = scope.launch {
             while (isActive) {
-                controller?.let { c -> _uiState.update { it.copy(positionMs = c.currentPosition) } }
+                controller?.let { c ->
+                    _uiState.update { it.copy(positionMs = c.currentPosition) }
+                    val episodeId = _uiState.value.currentEpisodeId
+                    if (episodeId != null && shouldPersistPosition(lastPersistedAtMs, System.currentTimeMillis())) {
+                        persistPosition(episodeId, c.currentPosition)
+                    }
+                }
                 delay(500)
             }
         }
+    }
+
+    private fun persistPosition(episodeId: Long, positionMs: Long) {
+        lastPersistedAtMs = System.currentTimeMillis()
+        scope.launch { episodeDao.updatePosition(episodeId, positionMs) }
     }
 }

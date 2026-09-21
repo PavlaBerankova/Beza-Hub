@@ -49,6 +49,6 @@ class DefaultAppContainer(context: Context) : AppContainer {
     }
 
     override val playbackRepository: PlaybackRepository by lazy {
-        PlaybackRepository(appContext)
+        PlaybackRepository(appContext, database.episodeDao())
     }
 }
