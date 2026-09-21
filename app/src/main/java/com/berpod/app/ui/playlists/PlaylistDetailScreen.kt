@@ -28,6 +28,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.berpod.app.R
 import com.berpod.app.ui.common.EmptyState
 import com.berpod.app.ui.common.EpisodeListItem
+import com.berpod.app.ui.common.episodeProgressFraction
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,6 +64,7 @@ fun PlaylistDetailScreen(viewModelFactory: ViewModelProvider.Factory, onBack: ()
                             podcastImageUrl = item.podcastImageUrl,
                             onPlay = { viewModel.onPlay(item) },
                             isCurrentlyPlaying = uiState.currentlyPlayingEpisodeId == item.episode.id && uiState.isPlaying,
+                            progressFraction = episodeProgressFraction(item.episode.lastPositionMs, item.episode.durationSeconds),
                             trailingContent = {
                                 Row {
                                     IconButton(onClick = { viewModel.onMoveUp(index) }, enabled = index > 0) {

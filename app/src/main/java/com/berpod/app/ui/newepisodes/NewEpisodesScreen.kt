@@ -32,6 +32,7 @@ import com.berpod.app.R
 import com.berpod.app.ui.common.AddToPlaylistDialog
 import com.berpod.app.ui.common.EmptyState
 import com.berpod.app.ui.common.EpisodeListItem
+import com.berpod.app.ui.common.episodeProgressFraction
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,7 +82,9 @@ fun NewEpisodesScreen(viewModelFactory: ViewModelProvider.Factory) {
                             onAddToQueue = { viewModel.onAddToQueue(item.episode.id) },
                             onAddToPlaylist = { viewModel.onOpenPlaylistPicker(item.episode.id) },
                             onPlay = { viewModel.onPlay(item) },
-                            isCurrentlyPlaying = uiState.currentlyPlayingEpisodeId == item.episode.id && uiState.isPlaying
+                            isCurrentlyPlaying = uiState.currentlyPlayingEpisodeId == item.episode.id && uiState.isPlaying,
+                            onDownload = {},
+                            progressFraction = episodeProgressFraction(item.episode.lastPositionMs, item.episode.durationSeconds),
                         )
                     }
                 }
