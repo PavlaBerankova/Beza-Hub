@@ -26,7 +26,7 @@ import com.berpod.app.data.repository.PlaybackUiState
 
 @Composable
 fun MiniPlayerBar(state: PlaybackUiState, onClick: () -> Unit, onPlayPauseClick: () -> Unit) {
-    Surface(onClick = onClick, tonalElevation = 3.dp) {
+    Surface(onClick = onClick, color = MaterialTheme.colorScheme.primary.copy(alpha = 0.03f)) {
         Row(
             modifier = Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically
