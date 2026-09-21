@@ -121,6 +121,9 @@ class PlaybackRepository(context: Context, private val episodeDao: EpisodeDao) {
                     .build()
                 c.setMediaItem(mediaItem)
                 c.prepare()
+                if (episode.lastPositionMs > 0L) {
+                    c.seekTo(episode.lastPositionMs)
+                }
                 c.play()
             }
         }
@@ -155,6 +158,6 @@ class PlaybackRepository(context: Context, private val episodeDao: EpisodeDao) {
 
     private fun persistPosition(episodeId: Long, positionMs: Long) {
         lastPersistedAtMs = System.currentTimeMillis()
-        scope.launch { episodeDao.updatePosition(episodeId, positionMs) }
+        scope.launch { runCatching { episodeDao.updatePosition(episodeId, positionMs) } }
     }
 }

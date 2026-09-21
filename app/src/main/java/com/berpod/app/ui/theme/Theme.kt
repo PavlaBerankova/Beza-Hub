@@ -11,7 +11,13 @@ private val LightColorScheme = lightColorScheme(
     surface = SurfaceWhite,
     onBackground = TextPrimary,
     onSurface = TextPrimary,
-    onSurfaceVariant = TextSecondary
+    onSurfaceVariant = TextSecondary,
+    primaryContainer = AccentPurple,
+    onPrimaryContainer = SurfaceWhite,
+    surfaceContainer = SurfaceWhite,
+    surfaceContainerHigh = SurfaceWhite,
+    surfaceContainerLow = SurfaceWhite,
+    surfaceVariant = SurfaceWhite
 )
 
 @Composable

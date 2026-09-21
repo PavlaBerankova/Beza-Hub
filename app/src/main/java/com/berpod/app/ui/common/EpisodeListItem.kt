@@ -1,5 +1,6 @@
 package com.berpod.app.ui.common
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -83,31 +84,37 @@ fun EpisodeListItem(
                 )
             }
             if (onDownload != null || onAddToQueue != null || onAddToPlaylist != null) {
-                Row(modifier = Modifier.padding(top = 6.dp)) {
+                Row(
+                    modifier = Modifier.padding(top = 6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
                     if (onDownload != null) {
-                        IconButton(onClick = onDownload, modifier = Modifier.size(32.dp)) {
+                        IconButton(onClick = onDownload, modifier = Modifier.size(48.dp)) {
                             Icon(
                                 Icons.Filled.Download,
                                 contentDescription = stringResource(R.string.action_download),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp)
                             )
                         }
                     }
                     if (onAddToQueue != null) {
-                        IconButton(onClick = onAddToQueue, modifier = Modifier.size(32.dp)) {
+                        IconButton(onClick = onAddToQueue, modifier = Modifier.size(48.dp)) {
                             Icon(
                                 Icons.AutoMirrored.Filled.QueueMusic,
                                 contentDescription = stringResource(R.string.action_add_to_queue),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp)
                             )
                         }
                     }
                     if (onAddToPlaylist != null) {
-                        IconButton(onClick = onAddToPlaylist, modifier = Modifier.size(32.dp)) {
+                        IconButton(onClick = onAddToPlaylist, modifier = Modifier.size(48.dp)) {
                             Icon(
                                 Icons.AutoMirrored.Filled.PlaylistAdd,
                                 contentDescription = stringResource(R.string.action_add_to_playlist),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp)
                             )
                         }
                     }
