@@ -30,15 +30,28 @@ Material 3's light color scheme only; `dynamicColor` is turned off in
 `BerpodTheme` so Android 12+ Material You wallpaper colors don't override the
 brand purple.
 
-**Episode row (B1 + progress):** no artwork. Top line is
-`<pub date> · <duration>` (duration now formatted as "1 h 7 min" / "34 min"
-instead of the current "1:07:00" colon style). Below that, the episode title
-(bold, up to 2 lines). Below the title, a thin purple progress bar — shown
+**Episode row (B1 + progress):** no artwork. When `podcastTitle` is non-null
+(Queue, New Episodes, Playlist Detail — screens that mix episodes from
+different podcasts), a small gray line with the podcast name sits above
+everything else in the row; Podcast Episodes passes `podcastTitle = null`
+today and keeps doing so, since the podcast is already clear from the
+screen's context. Next is `<pub date> · <duration>` (duration now formatted
+as "1 h 7 min" / "34 min" instead of the current "1:07:00" colon style).
+Below that, the episode title (bold, up to 2 lines). Below the title, a thin purple progress bar — shown
 only when the episode has a saved playback position greater than zero.
 Below the progress bar (or directly below the title when there's no
-progress), two small icon buttons: **Download** (visual-only, no-op) and
-**Add to queue**. The play/pause button stays where it is today: a circular
-purple-outline button on the far right of the row, vertically centered.
+progress), three small icon buttons, always visible (replacing today's "⋮"
+overflow menu): **Download** (visual-only, no-op — the app has no download
+feature yet), **Add to queue**, **Add to playlist** (opens the existing
+playlist-picker dialog). The play/pause button stays where it is today: a
+circular purple-outline button on the far right of the row, vertically
+centered.
+
+These three inline buttons only render where the row is already given
+`onAddToQueue`/`onAddToPlaylist` callbacks today — New Episodes and Podcast
+Episodes. Queue and Playlist Detail keep their own `trailingContent`
+(reorder/remove controls) unchanged; they never showed add-to-queue/playlist
+actions and this redesign doesn't add them there.
 
 **Navigation:** bottom nav keeps its 4 tabs (Podcasts, Queue, New Episodes,
 Playlists). The active tab's icon gets a soft purple pill background
@@ -101,7 +114,9 @@ shown in either case).
 - `ui/common/EpisodeListItem.kt` — full layout rewrite per the B1+progress
   spec above; new params `onDownload: (() -> Unit)? = null` and
   `progressFraction: Float? = null`; drop the artwork `AsyncImage` and the
-  `⋮` dropdown menu (replaced by the two inline icon buttons)
+  `⋮` dropdown menu (replaced by three inline icon buttons — download, the
+  existing `onAddToQueue`, the existing `onAddToPlaylist` — shown whenever
+  at least one of the three callbacks is non-null)
 - `data/local/EpisodeEntity.kt`, `EpisodeDao.kt`, `Migrations.kt`,
   `AppDatabase.kt` — schema change described above
 - `data/repository/PlaybackRepository.kt` — periodic + event-driven position
