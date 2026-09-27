@@ -66,4 +66,9 @@ class TagAssignmentController(
                 .onFailure { error -> _state.update { it?.copy(errorMessage = error.message) } }
         }
     }
+
+    /** Deletes the tag everywhere (all podcasts lose it); the open dialog updates from the tag flow. */
+    fun deleteTag(tagId: Long) {
+        scope.launch { tagRepository.delete(tagId) }
+    }
 }

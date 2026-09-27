@@ -8,8 +8,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -26,15 +30,18 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.berpod.app.R
+import com.berpod.app.data.local.TagEntity
 
 @Composable
 fun TagAssignDialog(
     state: TagAssignState,
     onToggle: (tagId: Long, assigned: Boolean) -> Unit,
     onCreate: (name: String) -> Unit,
+    onDelete: (tagId: Long) -> Unit,
     onDismiss: () -> Unit
 ) {
     var newName by remember(state.podcastId) { mutableStateOf("") }
+    var deleting by remember { mutableStateOf<TagEntity?>(null) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -51,7 +58,14 @@ fun TagAssignDialog(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Checkbox(checked = checked, onCheckedChange = null)
-                        Text(tag.name, modifier = Modifier.padding(start = 12.dp))
+                        Text(tag.name, modifier = Modifier.weight(1f).padding(start = 12.dp))
+                        IconButton(onClick = { deleting = tag }) {
+                            Icon(
+                                Icons.Outlined.Delete,
+                                contentDescription = stringResource(R.string.action_delete_tag, tag.name),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
                 Row(
@@ -88,4 +102,14 @@ fun TagAssignDialog(
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_done)) }
         }
     )
+    deleting?.let { tag ->
+        DeleteTagDialog(
+            tag = tag,
+            onConfirm = {
+                onDelete(tag.id)
+                deleting = null
+            },
+            onDismiss = { deleting = null }
+        )
+    }
 }

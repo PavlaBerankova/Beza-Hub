@@ -124,6 +124,7 @@ fun PodcastListScreen(viewModelFactory: ViewModelProvider.Factory, onPodcastClic
                 state = state,
                 onToggle = viewModel.tagAssignment::setAssigned,
                 onCreate = viewModel.tagAssignment::createAndAssign,
+                onDelete = viewModel.tagAssignment::deleteTag,
                 onDismiss = viewModel.tagAssignment::dismiss
             )
         }

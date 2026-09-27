@@ -68,4 +68,17 @@ class TagAssignmentControllerTest {
             repository.setAssigned(1, tagDao.findByName("News")!!.id, false)
             assertEquals(2L, controller.state.value!!.podcastId)
         }
+
+    @Test
+    fun `deleting a tag drops it from the open dialog`() = runTest(UnconfinedTestDispatcher()) {
+        repository.createAndAssign(2, "Health")
+        repository.createAndAssign(2, "News")
+        val controller = TagAssignmentController(repository, backgroundScope)
+        controller.open(1, "Podcast 1")
+
+        controller.deleteTag(tagDao.findByName("Health")!!.id)
+
+        assertEquals(listOf("News"), controller.state.value!!.tags.map { it.name })
+        assertNull(tagDao.findByName("Health"))
+    }
 }

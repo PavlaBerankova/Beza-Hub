@@ -177,6 +177,7 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                 state = state,
                 onToggle = viewModel.tagAssignment::setAssigned,
                 onCreate = viewModel.tagAssignment::createAndAssign,
+                onDelete = viewModel.tagAssignment::deleteTag,
                 onDismiss = viewModel.tagAssignment::dismiss
             )
         }

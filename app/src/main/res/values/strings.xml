@@ -45,6 +45,7 @@
     <string name="action_delete">Smazat</string>
     <string name="rename_tag_title">Přejmenovat štítek</string>
     <string name="delete_tag_title">Smazat štítek</string>
+    <string name="action_delete_tag">Smazat štítek %1$s</string>
     <string name="delete_tag_message">Štítek „%1$s“ zmizí u všech podcastů. Podcasty zůstanou.</string>
     <string name="queue_tag_filter_empty">Ve frontě nejsou epizody s tímto štítkem</string>
     <string name="queue_tag_filter_empty_subtitle">Vyberte jiný štítek nebo Všechny</string>
