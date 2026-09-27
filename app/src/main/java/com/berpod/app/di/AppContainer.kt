@@ -5,12 +5,14 @@ import androidx.room.Room
 import com.berpod.app.data.local.AppDatabase
 import com.berpod.app.data.local.MIGRATION_1_2
 import com.berpod.app.data.local.MIGRATION_2_3
+import com.berpod.app.data.local.MIGRATION_3_4
 import com.berpod.app.data.remote.FeedParser
 import com.berpod.app.data.repository.EpisodeRepository
 import com.berpod.app.data.repository.PlaybackRepository
 import com.berpod.app.data.repository.PlaylistRepository
 import com.berpod.app.data.repository.PodcastRepository
 import com.berpod.app.data.repository.QueueRepository
+import com.berpod.app.data.repository.TagRepository
 
 interface AppContainer {
     val podcastRepository: PodcastRepository
@@ -18,6 +20,7 @@ interface AppContainer {
     val queueRepository: QueueRepository
     val playlistRepository: PlaylistRepository
     val playbackRepository: PlaybackRepository
+    val tagRepository: TagRepository
 }
 
 class DefaultAppContainer(context: Context) : AppContainer {
@@ -26,7 +29,7 @@ class DefaultAppContainer(context: Context) : AppContainer {
 
     private val database: AppDatabase by lazy {
         Room.databaseBuilder(appContext, AppDatabase::class.java, "berpod.db")
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
             .build()
     }
 
@@ -50,5 +53,9 @@ class DefaultAppContainer(context: Context) : AppContainer {
 
     override val playbackRepository: PlaybackRepository by lazy {
         PlaybackRepository(appContext, database.episodeDao())
+    }
+
+    override val tagRepository: TagRepository by lazy {
+        TagRepository(database.tagDao(), database.podcastFeedDao())
     }
 }
