@@ -6,8 +6,8 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -32,6 +32,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -43,6 +45,10 @@ import com.berpod.app.ui.common.EmptyState
 import com.berpod.app.ui.common.RenameTagDialog
 import com.berpod.app.ui.common.TagAssignDialog
 import com.berpod.app.ui.common.TagChipRow
+import com.berpod.app.ui.dot.CoverImage
+import com.berpod.app.ui.dot.DotIconButton
+import com.berpod.app.ui.dot.DotIcons
+import com.berpod.app.ui.theme.DotTheme
 
 private val CoverShape = RoundedCornerShape(12.dp)
 
@@ -56,10 +62,17 @@ fun PodcastListScreen(viewModelFactory: ViewModelProvider.Factory, onPodcastClic
     Scaffold(
         // Embedded in the Podcasts tab, which draws the title and the section switcher.
         contentWindowInsets = WindowInsets(0),
+        containerColor = DotTheme.colors.background,
         floatingActionButton = {
-            FloatingActionButton(onClick = viewModel::onFabClick) {
-                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.fab_add_podcast))
-            }
+            DotIconButton(
+                icon = DotIcons.AddOnAccent,
+                contentDescription = stringResource(R.string.fab_add_podcast),
+                onClick = viewModel::onFabClick,
+                size = 56.dp,
+                radius = 16.dp,
+                iconSize = 24.dp,
+                filled = DotTheme.colors.accent
+            )
         }
     ) { paddingValues ->
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
@@ -74,18 +87,18 @@ fun PodcastListScreen(viewModelFactory: ViewModelProvider.Factory, onPodcastClic
             }
             when {
                 !uiState.hasAnyPodcasts -> EmptyState(
-                    icon = Icons.Filled.Podcasts,
+                    icon = DotIcons.Podcasts,
                     title = stringResource(R.string.empty_state_title),
                     subtitle = stringResource(R.string.empty_state_subtitle)
                 )
                 uiState.feeds.isEmpty() -> EmptyState(
-                    icon = Icons.AutoMirrored.Outlined.Label,
+                    icon = DotIcons.Tag,
                     title = stringResource(R.string.tag_filter_empty),
                     subtitle = stringResource(R.string.tag_filter_empty_subtitle)
                 )
                 else -> LazyVerticalGrid(
                     columns = GridCells.Fixed(4),
-                    contentPadding = PaddingValues(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 88.dp),
+                    contentPadding = PaddingValues(start = 20.dp, top = 16.dp, end = 20.dp, bottom = 96.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
@@ -137,14 +150,13 @@ fun PodcastListScreen(viewModelFactory: ViewModelProvider.Factory, onPodcastClic
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun PodcastGridItem(feed: PodcastFeedEntity, onClick: () -> Unit, onLongClick: () -> Unit) {
-    AsyncImage(
-        model = feed.imageUrl,
-        contentDescription = feed.title,
-        contentScale = ContentScale.Crop,
+    CoverImage(
+        url = feed.imageUrl,
+        size = null,
+        radius = 14.dp,
         modifier = Modifier
-            .aspectRatio(1f)
-            .clip(CoverShape)
-            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .clip(RoundedCornerShape(14.dp))
             .combinedClickable(onClick = onClick, onLongClick = onLongClick)
+            .semantics { contentDescription = feed.title }
     )
 }

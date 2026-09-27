@@ -122,7 +122,8 @@ fun DotIconButton(
             .size(size)
             .clip(shape)
             .then(if (filled != null) Modifier.background(filled) else Modifier)
-            .border(if (accentBorder) 1.5.dp else 1.dp, if (accentBorder) c.accent else c.outline, shape)
+            // Filled buttons (the accent "+") have no outline unless an accent border is asked for.
+            .then(if (filled != null && !accentBorder) Modifier else Modifier.border(if (accentBorder) 1.5.dp else 1.dp, if (accentBorder) c.accent else c.outline, shape))
             .clickable(role = Role.Button, onClick = onClick)
             .semantics { this.contentDescription = contentDescription },
         contentAlignment = Alignment.Center

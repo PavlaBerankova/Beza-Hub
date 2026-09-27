@@ -33,6 +33,7 @@ import com.berpod.app.R
 import com.berpod.app.ui.common.EmptyState
 import com.berpod.app.ui.common.EpisodeListItem
 import com.berpod.app.ui.common.episodeProgressFraction
+import com.berpod.app.ui.dot.DotIcons
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,7 +57,7 @@ fun NewEpisodesScreen(viewModelFactory: ViewModelProvider.Factory) {
         Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
             if (uiState.episodes.isEmpty()) {
                 EmptyState(
-                    icon = Icons.Filled.FiberNew,
+                    icon = DotIcons.Refresh,
                     title = stringResource(R.string.new_episodes_empty),
                     subtitle = stringResource(R.string.action_refresh)
                 )

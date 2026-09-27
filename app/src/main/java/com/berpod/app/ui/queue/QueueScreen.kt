@@ -71,6 +71,7 @@ import com.berpod.app.data.local.stepAnchors
 import com.berpod.app.ui.common.EmptyState
 import com.berpod.app.ui.common.TagChipRow
 import com.berpod.app.ui.common.formatPubDate
+import com.berpod.app.ui.dot.DotIcons
 import com.berpod.app.ui.podcastlist.remainingText
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -118,12 +119,12 @@ fun QueueScreen(viewModelFactory: ViewModelProvider.Factory) {
             }
             when {
                 uiState.items.isEmpty() -> EmptyState(
-                    icon = Icons.AutoMirrored.Filled.QueueMusic,
+                    icon = DotIcons.Queue,
                     title = stringResource(R.string.queue_empty_title),
                     subtitle = stringResource(R.string.queue_empty_subtitle)
                 )
                 uiState.visibleItems.isEmpty() -> EmptyState(
-                    icon = Icons.AutoMirrored.Outlined.Label,
+                    icon = DotIcons.Tag,
                     title = stringResource(R.string.queue_tag_filter_empty),
                     subtitle = stringResource(R.string.queue_tag_filter_empty_subtitle)
                 )

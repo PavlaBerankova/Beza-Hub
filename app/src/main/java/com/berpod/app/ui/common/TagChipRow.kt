@@ -41,6 +41,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.berpod.app.R
 import com.berpod.app.data.local.TagEntity
+import com.berpod.app.ui.dot.DotChip
 
 private val ChipShape = RoundedCornerShape(8.dp)
 
@@ -58,21 +59,20 @@ fun TagChipRow(
 ) {
     val hasMenu = onRenameRequest != null || onDeleteRequest != null
     LazyRow(
-        contentPadding = PaddingValues(horizontal = 12.dp),
+        contentPadding = PaddingValues(horizontal = 20.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         item(key = "all") {
-            TagChip(
+            DotChip(
                 label = stringResource(R.string.filter_all),
                 selected = selectedTagId == null,
-                onClick = { onSelect(null) },
-                onLongClick = null
+                onClick = { onSelect(null) }
             )
         }
         items(tags, key = { it.id }) { tag ->
             var isMenuOpen by remember { mutableStateOf(false) }
             Box {
-                TagChip(
+                DotChip(
                     label = tag.name,
                     selected = selectedTagId == tag.id,
                     onClick = { onSelect(tag.id) },
@@ -101,34 +101,6 @@ fun TagChipRow(
                     }
                 }
             }
-        }
-    }
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-private fun TagChip(label: String, selected: Boolean, onClick: () -> Unit, onLongClick: (() -> Unit)?) {
-    val colors = MaterialTheme.colorScheme
-    Surface(
-        shape = ChipShape,
-        color = if (selected) colors.primary else colors.surface,
-        contentColor = if (selected) colors.onPrimary else colors.onSurface,
-        border = if (selected) null else BorderStroke(1.dp, colors.outline),
-        modifier = Modifier
-            .minimumInteractiveComponentSize()
-            .height(40.dp)
-            .clip(ChipShape)
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (selected) {
-                Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(8.dp))
-            }
-            Text(label, style = MaterialTheme.typography.labelLarge)
         }
     }
 }

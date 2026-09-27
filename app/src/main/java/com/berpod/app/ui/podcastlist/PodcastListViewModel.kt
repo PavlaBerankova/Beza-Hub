@@ -25,6 +25,8 @@ data class PodcastListUiState(
     val feeds: List<PodcastFeedEntity> = emptyList(),
     /** Whether any podcast exists at all, independent of the filter. */
     val hasAnyPodcasts: Boolean = false,
+    /** Number of subscribed podcasts, independent of the filter. */
+    val podcastCount: Int = 0,
     val tags: List<TagEntity> = emptyList(),
     /** null = "Všechny". */
     val selectedTagId: Long? = null,
@@ -52,7 +54,7 @@ class PodcastListViewModel(
 
     init {
         repository.observeFeeds()
-            .onEach { feeds -> _uiState.update { it.copy(hasAnyPodcasts = feeds.isNotEmpty()) } }
+            .onEach { feeds -> _uiState.update { it.copy(hasAnyPodcasts = feeds.isNotEmpty(), podcastCount = feeds.size) } }
             .launchIn(viewModelScope)
         selectedTagId
             .flatMapLatest { tagId -> tagRepository.observeFeeds(tagId) }
