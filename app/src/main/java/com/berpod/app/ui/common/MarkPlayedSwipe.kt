@@ -48,14 +48,18 @@ fun MarkPlayedSwipe(onToggle: () -> Unit, content: @Composable () -> Unit) {
         state = state,
         enableDismissFromEndToStart = false,
         backgroundContent = {
-            if (state.dismissDirection == SwipeToDismissBoxValue.StartToEnd) {
-                Box(
-                    modifier = Modifier.fillMaxSize().background(c.accent).padding(horizontal = 24.dp),
-                    contentAlignment = Alignment.CenterStart
-                ) { DotIcon(DotIcons.Check, 28.dp) }
-            }
+            if (state.dismissDirection == SwipeToDismissBoxValue.StartToEnd) MarkPlayedBackground()
         }
     ) {
         Box(Modifier.background(c.background)) { content() }
     }
+}
+
+/** Accent background with a check, shown behind a row being swiped right to mark it played. */
+@Composable
+fun MarkPlayedBackground() {
+    Box(
+        modifier = Modifier.fillMaxSize().background(DotTheme.colors.accent).padding(horizontal = 24.dp),
+        contentAlignment = Alignment.CenterStart
+    ) { DotIcon(DotIcons.Check, 28.dp) }
 }

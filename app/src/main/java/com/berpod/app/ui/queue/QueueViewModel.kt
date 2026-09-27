@@ -6,10 +6,14 @@ import androidx.lifecycle.viewModelScope
 import com.berpod.app.data.local.QueueItemWithEpisode
 import com.berpod.app.data.local.RemovedQueueEntry
 import com.berpod.app.data.local.TagEntity
+import com.berpod.app.data.repository.EpisodeRepository
 import com.berpod.app.data.repository.PlaybackRepository
 import com.berpod.app.data.repository.QueueRepository
 import com.berpod.app.data.repository.TagRepository
+import com.berpod.app.ui.common.PlayedUndo
+import com.berpod.app.ui.common.markPlayed
 import com.berpod.app.ui.common.resolveSelectedTagId
+import com.berpod.app.ui.common.undoMarkPlayed
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,14 +38,17 @@ data class QueueUiState(
     val currentlyPlayingEpisodeId: Long? = null,
     val isPlaying: Boolean = false,
     /** The last swiped-away entry, while its "Zpět" snackbar can still restore it. */
-    val removedEntry: RemovedQueueEntry? = null
+    val removedEntry: RemovedQueueEntry? = null,
+    /** The last episode swiped to "played", while its "Zpět" snackbar can still undo it. */
+    val playedUndo: PlayedUndo? = null
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class QueueViewModel(
     private val repository: QueueRepository,
     private val playbackRepository: PlaybackRepository,
-    private val tagRepository: TagRepository
+    private val tagRepository: TagRepository,
+    private val episodeRepository: EpisodeRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(QueueUiState())
@@ -99,6 +106,23 @@ class QueueViewModel(
         _uiState.update { it.copy(removedEntry = null) }
     }
 
+    fun onMarkPlayed(episodeId: Long) {
+        viewModelScope.launch {
+            val undo = markPlayed(episodeId, episodeRepository, repository)
+            _uiState.update { it.copy(playedUndo = undo) }
+        }
+    }
+
+    fun onUndoMarkPlayed() {
+        val undo = _uiState.value.playedUndo ?: return
+        _uiState.update { it.copy(playedUndo = null) }
+        viewModelScope.launch { undoMarkPlayed(undo, episodeRepository, repository) }
+    }
+
+    fun onPlayedMessageDismissed() {
+        _uiState.update { it.copy(playedUndo = null) }
+    }
+
     fun onPlay(item: QueueItemWithEpisode) {
         playbackRepository.play(item.episode, item.podcastTitle, item.podcastImageUrl)
     }
@@ -112,11 +136,12 @@ class QueueViewModel(
         fun factory(
             repository: QueueRepository,
             playbackRepository: PlaybackRepository,
-            tagRepository: TagRepository
+            tagRepository: TagRepository,
+            episodeRepository: EpisodeRepository
         ) = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return QueueViewModel(repository, playbackRepository, tagRepository) as T
+                return QueueViewModel(repository, playbackRepository, tagRepository, episodeRepository) as T
             }
         }
     }

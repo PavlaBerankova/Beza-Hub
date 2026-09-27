@@ -61,6 +61,7 @@ import com.berpod.app.data.local.QueueItemWithEpisode
 import com.berpod.app.data.local.moveAfterDrag
 import com.berpod.app.data.local.stepAnchors
 import com.berpod.app.ui.common.EmptyState
+import com.berpod.app.ui.common.MarkPlayedBackground
 import com.berpod.app.ui.common.TagChipRow
 import com.berpod.app.ui.common.episodeProgressFraction
 import com.berpod.app.ui.dot.CoverImage
@@ -94,6 +95,12 @@ fun QueueScreen(viewModelFactory: ViewModelProvider.Factory) {
             duration = SnackbarDuration.Long
         )
         if (result == SnackbarResult.ActionPerformed) viewModel.onUndoRemove() else viewModel.onRemovedMessageDismissed()
+    }
+    val playedMessage = stringResource(R.string.marked_played)
+    LaunchedEffect(uiState.playedUndo) {
+        if (uiState.playedUndo == null) return@LaunchedEffect
+        val result = snackbarHostState.showSnackbar(playedMessage, actionLabel = undoLabel, duration = SnackbarDuration.Long)
+        if (result == SnackbarResult.ActionPerformed) viewModel.onUndoMarkPlayed() else viewModel.onPlayedMessageDismissed()
     }
 
     Scaffold(
@@ -169,16 +176,25 @@ private fun ReorderableQueueList(uiState: QueueUiState, viewModel: QueueViewMode
         items(localItems, key = { it.queueEntryId }) { item ->
             ReorderableItem(reorderState, key = item.queueEntryId) { isDragging ->
                 val elevation by animateDpAsState(if (isDragging) 6.dp else 0.dp, label = "dragElevation")
-                // Swipe left to remove; the row stays swiped until the queue emission drops it.
+                // Swipe left to remove, right to mark played (which also takes it out of the queue);
+                // the row stays swiped until the queue emission drops it.
                 val swipeState = rememberSwipeToDismissBoxState()
                 SwipeToDismissBox(
                     // Same shape as the row, so the red remove background never shows in its corners.
                     modifier = Modifier.clip(RoundedCornerShape(16.dp)),
                     state = swipeState,
-                    enableDismissFromStartToEnd = false,
                     gesturesEnabled = !isDragging,
-                    onDismiss = { viewModel.onRemove(item.queueEntryId) },
-                    backgroundContent = { if (swipeState.dismissDirection == SwipeToDismissBoxValue.EndToStart) RemoveBackground() }
+                    onDismiss = { direction ->
+                        if (direction == SwipeToDismissBoxValue.StartToEnd) viewModel.onMarkPlayed(item.episode.id)
+                        else viewModel.onRemove(item.queueEntryId)
+                    },
+                    backgroundContent = {
+                        when (swipeState.dismissDirection) {
+                            SwipeToDismissBoxValue.EndToStart -> RemoveBackground()
+                            SwipeToDismissBoxValue.StartToEnd -> MarkPlayedBackground()
+                            SwipeToDismissBoxValue.Settled -> Unit
+                        }
+                    }
                 ) {
                     Surface(
                         shadowElevation = elevation,
