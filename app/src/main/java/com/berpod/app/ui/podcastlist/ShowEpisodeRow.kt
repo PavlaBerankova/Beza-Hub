@@ -1,97 +1,87 @@
 package com.berpod.app.ui.podcastlist
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.QueueMusic
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.berpod.app.R
 import com.berpod.app.data.local.EpisodeEntity
-import com.berpod.app.ui.common.formatPubDate
+import com.berpod.app.ui.dot.DotIconButton
+import com.berpod.app.ui.dot.DotIcons
+import com.berpod.app.ui.dot.formatDayMonth
+import com.berpod.app.ui.dot.formatYear
+import com.berpod.app.ui.dot.isRecentEpisode
+import com.berpod.app.ui.dot.upperCs
+import com.berpod.app.ui.theme.DotTheme
+import com.berpod.app.ui.theme.DotType
 
-/** Apple Podcasts-style episode row: date, bold title, two-line description, then actions left and time + play right. */
+/** Dot Matrix episode row: date (accent + "NOVÁ" when recent), title, description, queue/download, time and play. */
 @Composable
 fun ShowEpisodeRow(
     episode: EpisodeEntity,
     isCurrentlyPlaying: Boolean,
     onPlayOrPause: () -> Unit,
-    onAddToQueue: () -> Unit
+    onAddToQueue: () -> Unit,
+    nowMillis: Long
 ) {
-    Column(modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 4.dp)) {
-        formatPubDate(episode.pubDateMillis)?.let { date ->
-            Text(date, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        Text(
-            text = episode.title,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            maxLines = 3,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(top = 2.dp, end = 8.dp)
-        )
-        descriptionSnippet(episode.description)?.let { description ->
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(top = 4.dp, end = 8.dp)
-            )
-        }
-        Row(modifier = Modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onAddToQueue, modifier = Modifier.offset(x = (-12).dp)) {
-                Icon(
-                    Icons.AutoMirrored.Filled.QueueMusic,
-                    contentDescription = stringResource(R.string.action_add_to_queue),
-                    tint = MaterialTheme.colorScheme.primary
-                )
+    val c = DotTheme.colors
+    val recent = isRecentEpisode(episode.pubDateMillis, nowMillis)
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(top = 16.dp, bottom = 18.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            formatDayMonth(episode.pubDateMillis)?.let {
+                Text(it, style = DotType.rowTitle.copy(fontWeight = FontWeight.W700, letterSpacing = 1.sp), color = if (recent) c.accent else c.text)
             }
-            IconButton(onClick = {}, modifier = Modifier.offset(x = (-12).dp)) {
-                Icon(
-                    Icons.Filled.Download,
-                    contentDescription = stringResource(R.string.action_download),
-                    tint = MaterialTheme.colorScheme.primary
-                )
+            formatYear(episode.pubDateMillis)?.let {
+                Text(it, style = DotType.meta.copy(fontSize = 12.sp), color = c.textMuted)
             }
             Spacer(Modifier.weight(1f))
-            remainingText(episode)?.let { time ->
+            if (recent) {
                 Text(
-                    text = time,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(end = 2.dp)
-                )
-            }
-            // Nudged so the circle sits 16dp from the edge, mirroring the icons on the left.
-            FilledTonalIconButton(onClick = onPlayOrPause, modifier = Modifier.offset(x = (-4).dp)) {
-                Icon(
-                    imageVector = if (isCurrentlyPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                    contentDescription = stringResource(if (isCurrentlyPlaying) R.string.action_pause else R.string.action_play),
-                    modifier = Modifier.size(20.dp)
+                    stringResource(R.string.badge_new).upperCs(),
+                    style = DotType.label.copy(fontSize = 10.sp, fontWeight = FontWeight.W700, letterSpacing = 1.sp),
+                    color = c.onAccent,
+                    modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(c.accent).padding(horizontal = 8.dp, vertical = 3.dp)
                 )
             }
         }
+        Text(episode.title, style = DotType.title, color = c.text)
+        descriptionSnippet(episode.description)?.let {
+            Text(it, style = DotType.body, color = c.textMuted, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        }
+        Row(modifier = Modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            DotIconButton(DotIcons.Queue, stringResource(R.string.action_add_to_queue), onAddToQueue, radius = 12.dp, iconSize = 22.dp)
+            DotIconButton(DotIcons.Download, stringResource(R.string.action_download), {}, radius = 12.dp, iconSize = 22.dp)
+            Spacer(Modifier.weight(1f))
+            remainingText(episode)?.let {
+                Text(it.upperCs(), style = DotType.rowTitle.copy(letterSpacing = 1.sp), color = c.text, maxLines = 1)
+            }
+            DotIconButton(
+                if (isCurrentlyPlaying) DotIcons.Equalizer else DotIcons.Play,
+                stringResource(if (isCurrentlyPlaying) R.string.action_pause else R.string.action_play),
+                onPlayOrPause,
+                size = 50.dp,
+                iconSize = 22.dp,
+                accentBorder = recent || isCurrentlyPlaying
+            )
+        }
     }
-    HorizontalDivider(modifier = Modifier.padding(start = 16.dp), color = MaterialTheme.colorScheme.outlineVariant)
+    HorizontalDivider(modifier = Modifier.padding(horizontal = 20.dp), color = c.divider)
 }

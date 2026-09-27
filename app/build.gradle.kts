@@ -57,7 +57,6 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.reorderable)
-    implementation(libs.androidx.palette)
     debugImplementation(libs.androidx.ui.tooling)
 
     implementation(libs.androidx.room.runtime)

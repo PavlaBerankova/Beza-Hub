@@ -1,171 +1,114 @@
 package com.berpod.app.ui.podcastlist
 
-import android.graphics.Bitmap
-import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Podcasts
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.palette.graphics.Palette
-import coil3.compose.AsyncImage
-import coil3.request.ImageRequest
-import coil3.request.allowHardware
-import coil3.toBitmap
-
-/**
- * Whether the transparent top bar still has header behind it: the header is the first list item and at least
- * the bar's height of it is left on screen. Otherwise episode rows would slide under white icons.
- */
-fun isBarOverHeader(firstVisibleIndex: Int, scrollOffsetPx: Int, headerHeightPx: Int, barHeightPx: Int): Boolean =
-    firstVisibleIndex == 0 && scrollOffsetPx <= headerHeightPx - barHeightPx
-
-private val CoverShape = RoundedCornerShape(12.dp)
-private val CoverSize = 120.dp
-private val TagShape = RoundedCornerShape(50)
-
+import androidx.compose.ui.unit.sp
+import com.berpod.app.R
+import com.berpod.app.ui.dot.CoverImage
+import com.berpod.app.ui.dot.DotChip
+import com.berpod.app.ui.dot.DotIconButton
+import com.berpod.app.ui.dot.DotIconSpec
+import com.berpod.app.ui.dot.DotIcons
+import com.berpod.app.ui.dot.DotPrimaryButton
+import com.berpod.app.ui.dot.SectionSeparator
+import com.berpod.app.ui.dot.upperCs
+import com.berpod.app.ui.theme.DotTheme
+import com.berpod.app.ui.theme.DotType
 
 /** The play button in the header: its label, icon and action. */
-data class HeaderPlayButton(val label: String, val icon: ImageVector, val onClick: () -> Unit)
+data class HeaderPlayButton(val label: String, val icon: DotIconSpec, val onClick: () -> Unit)
+
+/** Round-the-header action row: back, the podcast's tags, tag and refresh buttons. */
+@Composable
+fun PodcastActionsRow(
+    tags: List<String>,
+    isRefreshing: Boolean,
+    onBack: () -> Unit,
+    onTagClick: () -> Unit,
+    onRefresh: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val c = DotTheme.colors
+    Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        DotIconButton(DotIcons.Back, stringResource(R.string.action_back), onBack)
+        Row(
+            modifier = Modifier.weight(1f).horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
+        ) {
+            tags.forEach { DotChip(it, selected = true, onClick = onTagClick) }
+        }
+        DotIconButton(DotIcons.Tag, stringResource(R.string.action_manage_tags), onTagClick)
+        if (isRefreshing) {
+            Box(Modifier.size(44.dp), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(Modifier.size(22.dp), color = c.accent, strokeWidth = 2.dp)
+            }
+        } else {
+            DotIconButton(DotIcons.Refresh, stringResource(R.string.action_refresh), onRefresh)
+        }
+    }
+}
 
 /**
- * Apple Podcasts-style show header: a compact block in the cover's colour with the cover on the left and the
- * title, author and play button beside it. [topPadding] keeps the content below the transparent top app bar drawn over it.
- * [onColorExtracted] reports the cover's average colour once the image has loaded.
+ * Dot Matrix show header: actions row, 150 dp cover with "PODCAST · TAG", title and author beside it,
+ * the primary play button and the "EPIZODY ——— NEJNOVĚJŠÍ" separator.
  */
 @Composable
 fun PodcastHeader(
     title: String,
     author: String?,
     imageUrl: String?,
-    topPadding: Dp,
-    background: Color,
-    contentColor: Color,
+    tags: List<String>,
     playButton: HeaderPlayButton?,
-    onColorExtracted: (Color) -> Unit,
-    modifier: Modifier = Modifier
+    isRefreshing: Boolean,
+    onBack: () -> Unit,
+    onTagClick: () -> Unit,
+    onRefresh: () -> Unit
 ) {
-    val context = LocalContext.current
+    val c = DotTheme.colors
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(background)
-            .padding(start = 16.dp, end = 16.dp, top = topPadding, bottom = 16.dp)
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(top = 16.dp, bottom = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(22.dp)
     ) {
-        Row {
-            Box(
-                modifier = Modifier
-                    .size(CoverSize)
-                    .shadow(elevation = 8.dp, shape = CoverShape)
-                    .clip(CoverShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.Filled.Podcasts,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(40.dp)
-                )
-                if (imageUrl != null) {
-                    AsyncImage(
-                        // Software bitmap so its pixels can be read for the header colour.
-                        model = ImageRequest.Builder(context).data(imageUrl).allowHardware(false).build(),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        onSuccess = { state -> coverColor(state.result.image.toBitmap())?.let(onColorExtracted) },
-                        modifier = Modifier.matchParentSize()
-                    )
-                }
-            }
-            Spacer(Modifier.width(16.dp))
-            // As tall as the cover, so the play button lines up with the cover's bottom edge.
-            Column(modifier = Modifier.weight(1f).height(CoverSize)) {
+        PodcastActionsRow(tags, isRefreshing, onBack, onTagClick, onRefresh)
+        Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(18.dp)) {
+            CoverImage(imageUrl, 150.dp, 20.dp)
+            Column(modifier = Modifier.weight(1f).padding(bottom = 4.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = contentColor,
-                    maxLines = 2,
+                    listOfNotNull("Podcast", tags.firstOrNull()).joinToString(" · ").upperCs(),
+                    style = DotType.label.copy(letterSpacing = 2.sp),
+                    color = c.textMuted,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+                Text(title.upperCs(), style = DotType.showTitle, color = c.text, maxLines = 4, overflow = TextOverflow.Ellipsis)
                 if (author != null) {
                     Text(
-                        text = author,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = contentColor.copy(alpha = 0.75f),
+                        author,
+                        style = DotType.body.copy(fontWeight = FontWeight.W500),
+                        color = c.textMuted,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(top = 2.dp)
+                        overflow = TextOverflow.Ellipsis
                     )
-                }
-                Spacer(Modifier.weight(1f))
-                if (playButton != null) {
-                    Button(
-                        onClick = playButton.onClick,
-                        colors = ButtonDefaults.buttonColors(containerColor = contentColor, contentColor = background),
-                        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 8.dp),
-                        modifier = Modifier.height(40.dp)
-                    ) {
-                        Icon(playButton.icon, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text(playButton.label, style = MaterialTheme.typography.labelLarge)
-                    }
                 }
             }
         }
+        if (playButton != null) DotPrimaryButton(playButton.label, playButton.icon, playButton.onClick)
+        SectionSeparator(stringResource(R.string.section_episodes), stringResource(R.string.section_newest))
     }
-}
-
-/** A podcast tag shown on the coloured header area (used in the top bar over the header). */
-@Composable
-fun HeaderTagChip(name: String, contentColor: Color) {
-    Text(
-        text = name,
-        style = MaterialTheme.typography.labelMedium,
-        color = contentColor,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-        modifier = Modifier
-            .clip(TagShape)
-            .background(contentColor.copy(alpha = 0.18f))
-            .padding(horizontal = 10.dp, vertical = 4.dp)
-    )
-}
-
-private fun coverColor(bitmap: Bitmap): Color? {
-    val palette = Palette.from(bitmap).generate()
-    return pickHeaderColor(
-        vibrant = palette.vibrantSwatch?.rgb,
-        darkVibrant = palette.darkVibrantSwatch?.rgb,
-        muted = palette.mutedSwatch?.rgb,
-        dominant = palette.dominantSwatch?.rgb
-    )?.let(::Color)
 }

@@ -38,6 +38,8 @@ object DotIcons {
         IconPart(roundRect(20f, 7f, 5f, 18f, 2f), IconRole.Primary, 3f),
         px(15f, 10f), px(15f, 15f), px(15f, 20f)
     ))
+    /** Solid play triangle for filled (accent) buttons. */
+    val PlaySolid = DotIconSpec(24f, 24f, listOf(IconPart("M8 5v14l11-7z", IconRole.OnAccent)))
     val PlayLarge = DotIconSpec(32f, 32f, listOf(
         IconPart("M10 6.5v19L26 16z", IconRole.Primary, 3f),
         px(12f, 11f), px(14f, 13f), px(16f, 15f), px(14f, 17f), px(12f, 19f)

@@ -59,4 +59,8 @@
     <string name="section_subscriptions">Odběry</string>
     <string name="coming_soon_title">Připravujeme</string>
     <string name="coming_soon_subtitle">Tahle část aplikace zatím není hotová</string>
+    <string name="action_back">Zpět</string>
+    <string name="section_episodes">Epizody</string>
+    <string name="section_newest">Nejnovější</string>
+    <string name="badge_new">Nová</string>
 </resources>

@@ -57,21 +57,6 @@ class ShowPageTest {
     }
 
     @Test
-    fun `light colours get dark content`() {
-        assertTrue(isLightColor(0xFFF5E6C8.toInt()))
-        assertFalse(isLightColor(0xFF5B0F12.toInt()))
-    }
-
-    @Test
-    fun `header colour prefers vibrant, then dark vibrant, muted and dominant`() {
-        assertEquals(1, pickHeaderColor(vibrant = 1, darkVibrant = 2, muted = 3, dominant = 4))
-        assertEquals(2, pickHeaderColor(vibrant = null, darkVibrant = 2, muted = 3, dominant = 4))
-        assertEquals(3, pickHeaderColor(vibrant = null, darkVibrant = null, muted = 3, dominant = 4))
-        assertEquals(4, pickHeaderColor(vibrant = null, darkVibrant = null, muted = null, dominant = 4))
-        assertNull(pickHeaderColor(vibrant = null, darkVibrant = null, muted = null, dominant = null))
-    }
-
-    @Test
     fun `tag names of the podcast in the tags' order, none when untagged`() {
         val tags = listOf(TagEntity(1, "Health"), TagEntity(2, "IT Tech"), TagEntity(3, "News"))
         assertEquals(listOf("Health", "News"), tagNamesFor(tags, assignedIds = setOf(3L, 1L)))
