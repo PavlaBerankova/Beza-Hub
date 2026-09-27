@@ -2,8 +2,10 @@ package com.berpod.app.ui.queue
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -61,6 +63,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
@@ -70,9 +73,19 @@ import com.berpod.app.data.local.moveAfterDrag
 import com.berpod.app.data.local.stepAnchors
 import com.berpod.app.ui.common.EmptyState
 import com.berpod.app.ui.common.TagChipRow
+import com.berpod.app.ui.common.episodeProgressFraction
 import com.berpod.app.ui.common.formatPubDate
+import com.berpod.app.ui.dot.CoverImage
+import com.berpod.app.ui.dot.DotIcon
+import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIcons
+import com.berpod.app.ui.dot.DotProgress
+import com.berpod.app.ui.dot.SectionSeparator
+import com.berpod.app.ui.dot.formatDotDate
+import com.berpod.app.ui.dot.upperCs
 import com.berpod.app.ui.podcastlist.remainingText
+import com.berpod.app.ui.theme.DotTheme
+import com.berpod.app.ui.theme.DotType
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
@@ -99,15 +112,15 @@ fun QueueScreen(viewModelFactory: ViewModelProvider.Factory) {
     Scaffold(
         // Embedded in the Podcasts tab, which draws the title and the section switcher.
         contentWindowInsets = WindowInsets(0),
+        containerColor = DotTheme.colors.background,
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            queueSummary(uiState.visibleItems)?.let { summary ->
-                Text(
-                    text = summary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
+            if (uiState.visibleItems.isNotEmpty()) {
+                SectionSeparator(
+                    left = episodeCountText(uiState.visibleItems.size),
+                    right = queueTotalText(uiState.visibleItems)?.let { "celkem $it" },
+                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 16.dp)
                 )
             }
             if (uiState.tags.isNotEmpty()) {
@@ -163,7 +176,10 @@ private fun ReorderableQueueList(uiState: QueueUiState, viewModel: QueueViewMode
         return true
     }
 
-    LazyColumn(state = lazyListState) {
+    LazyColumn(
+        state = lazyListState,
+        contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 16.dp)
+    ) {
         items(localItems, key = { it.queueEntryId }) { item ->
             ReorderableItem(reorderState, key = item.queueEntryId) { isDragging ->
                 val elevation by animateDpAsState(if (isDragging) 6.dp else 0.dp, label = "dragElevation")
@@ -233,9 +249,7 @@ private fun RemoveBackground() {
     }
 }
 
-private val RowArtworkShape = RoundedCornerShape(10.dp)
-
-/** Queue row in the podcast-detail style: handle, cover, date, bold title, remaining time and a round play button. */
+/** Queue row in the Dot Matrix style: handle, cover, meta, title, time with dot progress, square play button. */
 @Composable
 private fun QueueRow(
     item: QueueItemWithEpisode,
@@ -243,62 +257,51 @@ private fun QueueRow(
     viewModel: QueueViewModel,
     handleModifier: Modifier
 ) {
+    val c = DotTheme.colors
     val episode = item.episode
-    val isPlaying = uiState.currentlyPlayingEpisodeId == episode.id && uiState.isPlaying
+    val isCurrent = uiState.currentlyPlayingEpisodeId == episode.id
+    val isPlaying = isCurrent && uiState.isPlaying
+    val fraction = episodeProgressFraction(episode.lastPositionMs, episode.durationSeconds)
     Column {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(start = 4.dp, end = 12.dp, top = 12.dp, bottom = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .background(if (isCurrent) c.surface else c.background)
+                .padding(start = 4.dp, end = 10.dp, top = 12.dp, bottom = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             // Not a button: the handle only drags (and offers move/remove actions to screen readers).
-            Box(modifier = handleModifier.size(48.dp), contentAlignment = Alignment.Center) {
-                Icon(Icons.Filled.DragIndicator, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            Box(modifier = handleModifier.size(width = 28.dp, height = 44.dp), contentAlignment = Alignment.Center) {
+                DotIcon(DotIcons.Drag, 22.dp)
             }
-            Box(
-                modifier = Modifier
-                    .size(64.dp)
-                    .clip(RowArtworkShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Filled.Podcasts, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                if (item.podcastImageUrl != null) {
-                    AsyncImage(
-                        model = item.podcastImageUrl,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.matchParentSize()
-                    )
-                }
-            }
-            Column(modifier = Modifier.weight(1f).padding(horizontal = 12.dp)) {
-                formatPubDate(episode.pubDateMillis)?.let { date ->
-                    Text(date, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
+            CoverImage(item.podcastImageUrl, 64.dp, 12.dp)
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
-                    text = episode.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 2,
+                    listOfNotNull(item.podcastTitle, formatDotDate(episode.pubDateMillis)).joinToString(" · ").upperCs(),
+                    style = DotType.meta.copy(fontSize = 10.sp, fontWeight = FontWeight.W600),
+                    color = c.textMuted,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                remainingText(episode)?.let { time ->
-                    Text(
-                        text = time,
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(top = 2.dp)
-                    )
+                Text(episode.title, style = DotType.rowTitle, color = c.text, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    remainingText(episode)?.let {
+                        Text(it.upperCs(), style = DotType.chip.copy(fontWeight = FontWeight.W700), color = c.accent, maxLines = 1)
+                    }
+                    if (fraction != null) DotProgress(fraction, cells = 16, modifier = Modifier.weight(1f))
                 }
             }
-            FilledTonalIconButton(onClick = { viewModel.onPlayOrPause(item) }) {
-                Icon(
-                    imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                    contentDescription = stringResource(if (isPlaying) R.string.action_pause else R.string.action_play),
-                    modifier = Modifier.size(20.dp)
-                )
-            }
+            DotIconButton(
+                icon = if (isPlaying) DotIcons.Equalizer else DotIcons.Play,
+                contentDescription = stringResource(if (isPlaying) R.string.action_pause else R.string.action_play),
+                onClick = { viewModel.onPlayOrPause(item) },
+                size = 48.dp,
+                iconSize = 22.dp,
+                accentBorder = isCurrent
+            )
         }
-        HorizontalDivider(modifier = Modifier.padding(start = 16.dp), color = MaterialTheme.colorScheme.outlineVariant)
+        if (!isCurrent) HorizontalDivider(modifier = Modifier.padding(horizontal = 8.dp), color = c.divider)
     }
 }

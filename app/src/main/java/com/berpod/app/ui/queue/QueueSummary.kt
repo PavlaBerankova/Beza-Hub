@@ -18,3 +18,7 @@ fun queueSummary(items: List<QueueItemWithEpisode>): String? {
     val totalText = formatDuration(total)
     return episodeCountText(items.size) + (totalText?.let { " · celkem $it" } ?: "")
 }
+
+/** Total time left to listen across [items], e.g. "1 h 1 min"; null when nothing is known. */
+fun queueTotalText(items: List<QueueItemWithEpisode>): String? =
+    formatDuration(items.sumOf { remainingSeconds(it.episode) ?: 0 })
