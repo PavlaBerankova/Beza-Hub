@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Berpod</string>
+    <string name="app_name">BEZA Hub</string>
     <string name="empty_state_title">Zatím žádné podcasty</string>
     <string name="empty_state_subtitle">Přidejte první podcast tlačítkem +</string>
     <string name="add_feed_dialog_title">Přidat podcast</string>
