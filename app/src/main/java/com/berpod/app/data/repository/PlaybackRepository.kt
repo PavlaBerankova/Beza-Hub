@@ -35,6 +35,13 @@ data class PlaybackUiState(
     val durationMs: Long = 0L
 )
 
+/** Where to start an episode: its stored position, or 0 when it was (nearly) finished or never started. */
+fun resumeStartMs(lastPositionMs: Long, durationSeconds: Int?): Long {
+    if (lastPositionMs <= 0L) return 0L
+    val durationMs = (durationSeconds ?: return lastPositionMs).toLong() * 1000L
+    return if (durationMs > 0 && lastPositionMs >= durationMs * 98 / 100) 0L else lastPositionMs
+}
+
 internal fun shouldPersistPosition(lastPersistedAtMs: Long, nowMs: Long, intervalMs: Long = 5_000L): Boolean =
     nowMs - lastPersistedAtMs >= intervalMs
 
@@ -75,7 +82,9 @@ class PlaybackRepository(context: Context, private val episodeDao: EpisodeDao) {
                     title = metadata?.title?.toString().orEmpty(),
                     podcastTitle = metadata?.artist?.toString().orEmpty(),
                     artworkUrl = metadata?.artworkUri?.toString(),
-                    positionMs = 0L
+                    positionMs = 0L,
+                    // The new item's duration arrives with STATE_READY; never keep the previous episode's.
+                    durationMs = 0L
                 )
             }
         }
@@ -121,7 +130,7 @@ class PlaybackRepository(context: Context, private val episodeDao: EpisodeDao) {
                     .build()
                 // Start position goes with the item: a seekTo() issued right after setMediaItem() over the
                 // controller was dropped, so resumed episodes restarted from 0.
-                c.setMediaItem(mediaItem, episode.lastPositionMs.coerceAtLeast(0L))
+                c.setMediaItem(mediaItem, resumeStartMs(episode.lastPositionMs, episode.durationSeconds))
                 c.prepare()
                 c.play()
             }

@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -76,15 +78,25 @@ fun PodcastsHubScreen(
             when (section) {
                 PodcastsSection.Subscriptions -> {
                     val tagName = listState.tags.firstOrNull { it.id == listState.selectedTagId }?.name
-                    Text(
-                        buildString {
-                            append("%02d ODBĚRY".format(listState.podcastCount))
-                            if (tagName != null) append("\nFILTR: ").append(tagName.upperCs())
-                        },
-                        style = DotType.meta.copy(lineHeight = 1.5.em),
-                        color = c.textMuted,
-                        textAlign = TextAlign.End
-                    )
+                    // Bounded so a long tag name can't squeeze the title.
+                    Column(modifier = Modifier.widthIn(max = 150.dp), horizontalAlignment = Alignment.End) {
+                        Text(
+                            "%02d ODBĚRY".format(listState.podcastCount),
+                            style = DotType.meta.copy(lineHeight = 1.5.em),
+                            color = c.textMuted,
+                            maxLines = 1
+                        )
+                        if (tagName != null) {
+                            Text(
+                                "FILTR: " + tagName.upperCs(),
+                                style = DotType.meta.copy(lineHeight = 1.5.em),
+                                color = c.textMuted,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                textAlign = TextAlign.End
+                            )
+                        }
+                    }
                 }
                 PodcastsSection.New -> if (newEpisodesState.isRefreshing) {
                     Box(Modifier.size(44.dp), contentAlignment = Alignment.Center) {

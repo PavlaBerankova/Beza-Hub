@@ -25,6 +25,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,7 +36,10 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.progressBarRangeInfo
+import androidx.compose.ui.semantics.setProgress
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -62,8 +66,11 @@ fun PlayerScreen(viewModel: PlayerViewModel, onBack: () -> Unit) {
     val state by viewModel.uiState.collectAsState()
     val c = DotTheme.colors
     var draggingFraction by remember { mutableStateOf<Float?>(null) }
+    val known = state.durationMs > 0L
     val duration = state.durationMs.coerceAtLeast(1L)
-    val fraction = draggingFraction ?: (state.positionMs.toFloat() / duration).coerceIn(0f, 1f)
+    // Gesture handlers are installed once; they read the latest duration through this.
+    val currentDuration by rememberUpdatedState(state.durationMs)
+    val fraction = draggingFraction ?: if (known) (state.positionMs.toFloat() / duration).coerceIn(0f, 1f) else 0f
     val heights = remember(state.currentEpisodeId) { waveHeights(state.currentEpisodeId ?: 0L) }
 
     Column(
@@ -104,13 +111,26 @@ fun PlayerScreen(viewModel: PlayerViewModel, onBack: () -> Unit) {
                 .padding(top = 20.dp)
                 .fillMaxWidth()
                 .aspectRatio(36f / 9f)
-                .semantics { contentDescription = seekLabel }
+                .semantics {
+                    contentDescription = seekLabel
+                    progressBarRangeInfo = ProgressBarRangeInfo(fraction, 0f..1f)
+                    setProgress { target ->
+                        if (currentDuration <= 0L) return@setProgress false
+                        viewModel.seekTo((target.coerceIn(0f, 1f) * currentDuration).toLong())
+                        true
+                    }
+                }
                 .pointerInput(Unit) {
-                    detectTapGestures { viewModel.seekTo((waveSeekFraction(it.x, size.width.toFloat()) * duration).toLong()) }
+                    detectTapGestures {
+                        if (currentDuration > 0L) viewModel.seekTo((waveSeekFraction(it.x, size.width.toFloat()) * currentDuration).toLong())
+                    }
                 }
                 .pointerInput(Unit) {
                     detectHorizontalDragGestures(
-                        onDragEnd = { draggingFraction?.let { viewModel.seekTo((it * duration).toLong()) }; draggingFraction = null },
+                        onDragEnd = {
+                            draggingFraction?.let { if (currentDuration > 0L) viewModel.seekTo((it * currentDuration).toLong()) }
+                            draggingFraction = null
+                        },
                         onDragCancel = { draggingFraction = null }
                     ) { change, _ -> draggingFraction = waveSeekFraction(change.position.x, size.width.toFloat()) }
                 }
@@ -131,7 +151,7 @@ fun PlayerScreen(viewModel: PlayerViewModel, onBack: () -> Unit) {
         Row(Modifier.fillMaxWidth().padding(top = 8.dp)) {
             Text(formatPlaybackTime((fraction * duration).toLong()), style = DotType.rowTitle.copy(letterSpacing = 1.sp), color = c.text)
             Spacer(Modifier.weight(1f))
-            Text("−" + formatPlaybackTime(duration - (fraction * duration).toLong()), style = DotType.rowTitle.copy(letterSpacing = 1.sp), color = c.textMuted)
+                        if (known) Text("−" + formatPlaybackTime(duration - (fraction * duration).toLong()), style = DotType.rowTitle.copy(letterSpacing = 1.sp), color = c.textMuted)
         }
         DotIconButton(
             if (state.isPlaying) DotIcons.PauseLarge else DotIcons.PlayLarge,
