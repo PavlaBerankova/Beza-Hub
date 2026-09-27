@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import com.berpod.app.R
 import com.berpod.app.data.local.EpisodeEntity
 import com.berpod.app.ui.dot.CoverImage
+import com.berpod.app.ui.dot.DotIcon
 import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIcons
 import com.berpod.app.ui.dot.formatDayMonth
@@ -44,7 +45,9 @@ fun ShowEpisodeRow(
     podcastImageUrl: String? = null
 ) {
     val c = DotTheme.colors
-    val recent = isRecentEpisode(episode.pubDateMillis, nowMillis)
+    val played = episode.playedAtMs != null
+    // A played episode isn't "new" any more, whatever its date.
+    val recent = !played && isRecentEpisode(episode.pubDateMillis, nowMillis)
     Column(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(top = 16.dp, bottom = 18.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -66,7 +69,7 @@ fun ShowEpisodeRow(
         } else {
             EpisodeDateLine(episode, recent)
         }
-        Text(episode.title, style = DotType.title, color = c.text)
+        Text(episode.title, style = DotType.title, color = if (played) c.textMuted else c.text)
         descriptionSnippet(episode.description)?.let {
             Text(it, style = DotType.body, color = c.textMuted, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
@@ -74,8 +77,13 @@ fun ShowEpisodeRow(
             DotIconButton(DotIcons.Queue, stringResource(R.string.action_add_to_queue), onAddToQueue, radius = 12.dp, iconSize = 22.dp)
             DotIconButton(DotIcons.Download, stringResource(R.string.action_download), {}, radius = 12.dp, iconSize = 22.dp)
             Spacer(Modifier.weight(1f))
-            remainingText(episode)?.let {
-                Text(it.upperCs(), style = DotType.rowTitle.copy(letterSpacing = 1.sp), color = c.text, maxLines = 1)
+            if (played) {
+                DotIcon(DotIcons.Check, 16.dp, monochrome = c.textMuted)
+                Text(stringResource(R.string.status_played).upperCs(), style = DotType.rowTitle.copy(letterSpacing = 1.sp), color = c.textMuted, maxLines = 1)
+            } else {
+                remainingText(episode)?.let {
+                    Text(it.upperCs(), style = DotType.rowTitle.copy(letterSpacing = 1.sp), color = c.text, maxLines = 1)
+                }
             }
             DotIconButton(
                 if (isCurrentlyPlaying) DotIcons.Equalizer else DotIcons.Play,

@@ -9,7 +9,10 @@ import com.berpod.app.data.repository.PlaybackRepository
 import com.berpod.app.data.repository.PodcastRepository
 import com.berpod.app.data.repository.QueueRepository
 import com.berpod.app.data.repository.TagRepository
+import com.berpod.app.ui.common.PlayedUndo
 import com.berpod.app.ui.common.TagAssignmentController
+import com.berpod.app.ui.common.markPlayed
+import com.berpod.app.ui.common.undoMarkPlayed
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,6 +31,8 @@ data class PodcastEpisodesUiState(
     val episodes: List<EpisodeEntity> = emptyList(),
     val isRefreshing: Boolean = false,
     val snackbarMessage: String? = null,
+    /** Set right after swiping an episode to played, while "Zpět" can undo it. */
+    val playedUndo: PlayedUndo? = null,
     val currentlyPlayingEpisodeId: Long? = null,
     val isPlaying: Boolean = false
 )
@@ -95,6 +100,28 @@ class PodcastEpisodesViewModel(
     }
 
     fun onOpenTagDialog() = tagAssignment.open(feedId, _uiState.value.feedTitle)
+
+    /** Swipe right: marks an unplayed episode played (with undo), or a played one unplayed again. */
+    fun onTogglePlayed(episode: EpisodeEntity) {
+        viewModelScope.launch {
+            if (episode.playedAtMs != null) {
+                episodeRepository.setPlayed(episode.id, played = false)
+            } else {
+                val undo = markPlayed(episode.id, episodeRepository, queueRepository)
+                _uiState.update { it.copy(playedUndo = undo) }
+            }
+        }
+    }
+
+    fun onUndoMarkPlayed() {
+        val undo = _uiState.value.playedUndo ?: return
+        _uiState.update { it.copy(playedUndo = null) }
+        viewModelScope.launch { undoMarkPlayed(undo, episodeRepository, queueRepository) }
+    }
+
+    fun onPlayedMessageDismissed() {
+        _uiState.update { it.copy(playedUndo = null) }
+    }
 
     fun onAddToQueue(episodeId: Long) {
         viewModelScope.launch {

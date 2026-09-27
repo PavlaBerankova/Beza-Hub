@@ -8,6 +8,15 @@ import com.berpod.app.ui.common.formatDuration
 /** Below this share played, an episode counts as "in progress"; at or above it, as finished. */
 private const val FINISHED_FRACTION = 0.98f
 
+enum class EpisodeStatus { Unplayed, InProgress, Played }
+
+/** Played wins over a stored position; otherwise started-but-unfinished counts as in progress. */
+fun episodeStatus(episode: EpisodeEntity): EpisodeStatus = when {
+    episode.playedAtMs != null -> EpisodeStatus.Played
+    episode.isInProgress() -> EpisodeStatus.InProgress
+    else -> EpisodeStatus.Unplayed
+}
+
 /** The episode behind the header's play button and whether it's a resume ("Pokračovat"). */
 data class HeaderEpisode(val episode: EpisodeEntity, val isResume: Boolean)
 
@@ -16,9 +25,10 @@ data class HeaderEpisode(val episode: EpisodeEntity, val isResume: Boolean)
  * [episodes] is expected newest first, as the detail screen lists them.
  */
 fun pickHeaderEpisode(episodes: List<EpisodeEntity>): HeaderEpisode? {
-    val inProgress = episodes.firstOrNull { it.isInProgress() }
+    val unplayed = episodes.filter { it.playedAtMs == null }
+    val inProgress = unplayed.firstOrNull { it.isInProgress() }
     if (inProgress != null) return HeaderEpisode(inProgress, isResume = true)
-    return episodes.firstOrNull()?.let { HeaderEpisode(it, isResume = false) }
+    return (unplayed.firstOrNull() ?: episodes.firstOrNull())?.let { HeaderEpisode(it, isResume = false) }
 }
 
 private fun EpisodeEntity.isInProgress(): Boolean {

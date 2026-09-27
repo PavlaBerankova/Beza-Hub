@@ -21,8 +21,10 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,6 +41,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.berpod.app.R
 import com.berpod.app.ui.common.EmptyState
+import com.berpod.app.ui.common.MarkPlayedSwipe
 import com.berpod.app.ui.common.TagAssignDialog
 import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIcons
@@ -54,6 +57,14 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
     val tagAssignState by viewModel.tagAssignment.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val c = DotTheme.colors
+
+    val playedMessage = stringResource(R.string.marked_played)
+    val undoLabel = stringResource(R.string.action_undo)
+    LaunchedEffect(uiState.playedUndo) {
+        if (uiState.playedUndo == null) return@LaunchedEffect
+        val result = snackbarHostState.showSnackbar(playedMessage, actionLabel = undoLabel, duration = SnackbarDuration.Long)
+        if (result == SnackbarResult.ActionPerformed) viewModel.onUndoMarkPlayed() else viewModel.onPlayedMessageDismissed()
+    }
 
     LaunchedEffect(uiState.snackbarMessage) {
         uiState.snackbarMessage?.let { message ->
@@ -117,13 +128,15 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                     }
                 } else {
                     items(uiState.episodes, key = { it.id }) { episode ->
-                        ShowEpisodeRow(
-                            episode = episode,
-                            isCurrentlyPlaying = uiState.currentlyPlayingEpisodeId == episode.id && uiState.isPlaying,
-                            onPlayOrPause = { viewModel.onPlayOrPause(episode) },
-                            onAddToQueue = { viewModel.onAddToQueue(episode.id) },
-                            nowMillis = now
-                        )
+                        MarkPlayedSwipe(onToggle = { viewModel.onTogglePlayed(episode) }) {
+                            ShowEpisodeRow(
+                                episode = episode,
+                                isCurrentlyPlaying = uiState.currentlyPlayingEpisodeId == episode.id && uiState.isPlaying,
+                                onPlayOrPause = { viewModel.onPlayOrPause(episode) },
+                                onAddToQueue = { viewModel.onAddToQueue(episode.id) },
+                                nowMillis = now
+                            )
+                        }
                     }
                 }
             }

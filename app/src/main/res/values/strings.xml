@@ -82,4 +82,6 @@
     <string name="sleep_end_short">Konec</string>
     <string name="sleep_running">Spánek, časovač běží</string>
     <string name="new_episodes_tag_empty">Žádné nové epizody s tímto štítkem</string>
+    <string name="status_played">Přehráno</string>
+    <string name="marked_played">Označeno jako přehrané</string>
 </resources>

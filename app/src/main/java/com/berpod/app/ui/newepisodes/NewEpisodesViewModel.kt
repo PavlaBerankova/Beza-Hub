@@ -9,8 +9,11 @@ import com.berpod.app.data.repository.EpisodeRepository
 import com.berpod.app.data.repository.PlaybackRepository
 import com.berpod.app.data.repository.QueueRepository
 import com.berpod.app.data.repository.TagRepository
+import com.berpod.app.ui.common.PlayedUndo
 import com.berpod.app.ui.common.filterByPodcastIds
+import com.berpod.app.ui.common.markPlayed
 import com.berpod.app.ui.common.resolveSelectedTagId
+import com.berpod.app.ui.common.undoMarkPlayed
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -36,6 +39,8 @@ data class NewEpisodesUiState(
     val selectedTagId: Long? = null,
     val isRefreshing: Boolean = false,
     val snackbarMessage: String? = null,
+    /** Set right after swiping an episode to played, while "Zpět" can undo it. */
+    val playedUndo: PlayedUndo? = null,
     val currentlyPlayingEpisodeId: Long? = null,
     val isPlaying: Boolean = false
 )
@@ -84,6 +89,23 @@ class NewEpisodesViewModel(
     /** Pauses/resumes the episode that is already loaded; starts any other one. */
     fun onPlayOrPause(item: EpisodeWithFeed) {
         if (_uiState.value.currentlyPlayingEpisodeId == item.episode.id) playbackRepository.togglePlayPause() else onPlay(item)
+    }
+
+    fun onMarkPlayed(episodeId: Long) {
+        viewModelScope.launch {
+            val undo = markPlayed(episodeId, episodeRepository, queueRepository)
+            _uiState.update { it.copy(playedUndo = undo) }
+        }
+    }
+
+    fun onUndoMarkPlayed() {
+        val undo = _uiState.value.playedUndo ?: return
+        _uiState.update { it.copy(playedUndo = null) }
+        viewModelScope.launch { undoMarkPlayed(undo, episodeRepository, queueRepository) }
+    }
+
+    fun onPlayedMessageDismissed() {
+        _uiState.update { it.copy(playedUndo = null) }
     }
 
     fun onSelectTag(tagId: Long?) {

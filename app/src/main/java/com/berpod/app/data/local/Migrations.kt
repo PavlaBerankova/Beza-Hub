@@ -108,3 +108,9 @@ val MIGRATION_5_6 = object : Migration(5, 6) {
         db.execSQL("ALTER TABLE podcast_feeds ADD COLUMN author TEXT")
     }
 }
+
+val MIGRATION_6_7 = object : Migration(6, 7) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE episodes ADD COLUMN playedAtMs INTEGER")
+    }
+}

@@ -32,5 +32,7 @@ data class EpisodeEntity(
     val description: String?,
     val imageUrl: String?,
     val dateFetched: Long,
-    val lastPositionMs: Long = 0L
+    val lastPositionMs: Long = 0L,
+    /** When the episode was finished or marked as played; null = not played. */
+    val playedAtMs: Long? = null
 )

@@ -38,6 +38,8 @@ private class RecordingQueueDao(initial: Map<Long, Int>) : QueueDao {
             QueueEntryEntity(queueEntryId, episodeIds.getValue(queueEntryId), pos, datesAdded[queueEntryId] ?: 0L)
         }
 
+    override suspend fun findIdByEpisode(episodeId: Long): Long? = episodeIds.entries.firstOrNull { it.value == episodeId }?.key
+
     fun order(): List<Long> = positions.entries.sortedBy { it.value }.map { it.key }
     fun episodeOrder(): List<Long> = order().map { episodeIds.getValue(it) }
 }
@@ -151,5 +153,17 @@ class QueueRepositoryTest {
         val dao = RecordingQueueDao(emptyMap())
         QueueRepository(dao).queueAtFront(episodeId = 7)
         assertEquals(listOf(7L), dao.episodeOrder())
+    }
+
+    @Test
+    fun `removing by episode can be undone`() = runTest {
+        val dao = queueOf(1, 2, 3)
+        val repository = QueueRepository(dao)
+
+        val removed = repository.removeEpisode(1002)!!
+        assertEquals(listOf(1001L, 1003L), dao.episodeOrder())
+        repository.restore(removed)
+        assertEquals(listOf(1001L, 1002L, 1003L), dao.episodeOrder())
+        assertEquals(null, repository.removeEpisode(9999))
     }
 }

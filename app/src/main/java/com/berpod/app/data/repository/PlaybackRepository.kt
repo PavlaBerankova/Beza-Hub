@@ -148,6 +148,8 @@ class PlaybackRepository(
 
     fun play(episode: EpisodeEntity, podcastTitle: String, podcastImageUrl: String?) {
         if (episode.id == endedEpisodeId) endedEpisodeId = null
+        // Listening again makes it unplayed until it's finished again.
+        if (episode.playedAtMs != null) scope.launch { runCatching { episodeDao.setPlayed(episode.id, null) } }
         // Playing from outside the queue puts the episode first, so next/auto-advance continue with the rest.
         scope.launch { runCatching { queueDao.queueAtFront(episode.id) } }
         val action: () -> Unit = {
@@ -270,7 +272,7 @@ class PlaybackRepository(
         val next = nextInQueue(order, endedId)?.let { id -> latestQueue.firstOrNull { it.episode.id == id } }
         val entry = latestQueue.firstOrNull { it.episode.id == endedId }
         scope.launch {
-            runCatching { episodeDao.updatePosition(endedId, 0L) }
+            runCatching { episodeDao.setPlayed(endedId, System.currentTimeMillis()) }
             if (entry != null) runCatching { queueDao.removeEntry(entry.queueEntryId) }
         }
         if (_uiState.value.sleepTimer == SleepTimer.EndOfEpisode) {

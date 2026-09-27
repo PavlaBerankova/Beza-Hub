@@ -8,16 +8,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -25,6 +30,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.berpod.app.R
 import com.berpod.app.ui.common.EmptyState
+import com.berpod.app.ui.common.MarkPlayedSwipe
 import com.berpod.app.ui.common.TagChipRow
 import com.berpod.app.ui.dot.DotIcons
 import com.berpod.app.ui.dot.SectionSeparator
@@ -38,6 +44,31 @@ fun NewEpisodesScreen(viewModelFactory: ViewModelProvider.Factory) {
     val viewModel: NewEpisodesViewModel = viewModel(factory = viewModelFactory)
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val listState = rememberLazyListState()
+    var revealEpisodeId by remember { mutableStateOf<Long?>(null) }
+
+    val playedMessage = stringResource(R.string.marked_played)
+    val undoLabel = stringResource(R.string.action_undo)
+    LaunchedEffect(uiState.playedUndo) {
+        if (uiState.playedUndo == null) return@LaunchedEffect
+        val undoneId = uiState.playedUndo?.episodeId
+        val result = snackbarHostState.showSnackbar(playedMessage, actionLabel = undoLabel, duration = SnackbarDuration.Long)
+        if (result == SnackbarResult.ActionPerformed) {
+            revealEpisodeId = undoneId
+            viewModel.onUndoMarkPlayed()
+        } else {
+            viewModel.onPlayedMessageDismissed()
+        }
+    }
+
+    // The list keeps its scroll anchor, so an episode restored by "Zpět" can land above the viewport; bring it back.
+    LaunchedEffect(revealEpisodeId, uiState.episodes) {
+        val id = revealEpisodeId ?: return@LaunchedEffect
+        val index = uiState.episodes.indexOfFirst { it.episode.id == id }
+        if (index < 0) return@LaunchedEffect
+        if (index < listState.firstVisibleItemIndex) listState.animateScrollToItem(index)
+        revealEpisodeId = null
+    }
 
     LaunchedEffect(uiState.snackbarMessage) {
         uiState.snackbarMessage?.let { message ->
@@ -77,17 +108,19 @@ fun NewEpisodesScreen(viewModelFactory: ViewModelProvider.Factory) {
                 )
                 else -> {
                     val now = rememberNowMillis()
-                    LazyColumn(contentPadding = PaddingValues(top = 4.dp, bottom = 16.dp)) {
+                    LazyColumn(state = listState, contentPadding = PaddingValues(top = 4.dp, bottom = 16.dp)) {
                         items(uiState.episodes, key = { it.episode.id }) { item ->
-                            ShowEpisodeRow(
-                                episode = item.episode,
-                                isCurrentlyPlaying = uiState.currentlyPlayingEpisodeId == item.episode.id && uiState.isPlaying,
-                                onPlayOrPause = { viewModel.onPlayOrPause(item) },
-                                onAddToQueue = { viewModel.onAddToQueue(item.episode.id) },
-                                nowMillis = now,
-                                podcastTitle = item.podcastTitle,
-                                podcastImageUrl = item.podcastImageUrl
-                            )
+                            MarkPlayedSwipe(onToggle = { viewModel.onMarkPlayed(item.episode.id) }) {
+                                ShowEpisodeRow(
+                                    episode = item.episode,
+                                    isCurrentlyPlaying = uiState.currentlyPlayingEpisodeId == item.episode.id && uiState.isPlaying,
+                                    onPlayOrPause = { viewModel.onPlayOrPause(item) },
+                                    onAddToQueue = { viewModel.onAddToQueue(item.episode.id) },
+                                    nowMillis = now,
+                                    podcastTitle = item.podcastTitle,
+                                    podcastImageUrl = item.podcastImageUrl
+                                )
+                            }
                         }
                     }
                 }

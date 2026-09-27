@@ -30,6 +30,9 @@ interface QueueDao {
     @Insert
     suspend fun insert(entry: QueueEntryEntity): Long
 
+    @Query("SELECT id FROM queue_entries WHERE episodeId = :episodeId LIMIT 1")
+    suspend fun findIdByEpisode(episodeId: Long): Long?
+
     @Query("DELETE FROM queue_entries WHERE id = :queueEntryId")
     suspend fun deleteById(queueEntryId: Long)
 
@@ -78,5 +81,12 @@ interface QueueDao {
         val firstId = getOrderedIds().firstOrNull()
         val newId = insert(QueueEntryEntity(episodeId = episodeId, position = getMaxPosition() + 1, dateAdded = System.currentTimeMillis()))
         if (firstId != null) moveEntry(newId, afterId = null, beforeId = firstId)
+    }
+
+    /** Removes the episode's queue entry, if any, returning what restoreEntry needs to put it back. */
+    @Transaction
+    suspend fun removeEpisode(episodeId: Long): RemovedQueueEntry? {
+        val id = findIdByEpisode(episodeId) ?: return null
+        return removeEntry(id)
     }
 }

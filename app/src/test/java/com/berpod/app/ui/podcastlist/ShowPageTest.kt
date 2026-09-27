@@ -62,4 +62,19 @@ class ShowPageTest {
         assertEquals(listOf("Health", "News"), tagNamesFor(tags, assignedIds = setOf(3L, 1L)))
         assertEquals(emptyList<String>(), tagNamesFor(tags, assignedIds = emptySet()))
     }
+
+    @Test
+    fun `episode status is played, in progress or unplayed`() {
+        assertEquals(EpisodeStatus.Unplayed, episodeStatus(ep(1)))
+        assertEquals(EpisodeStatus.InProgress, episodeStatus(ep(1, positionMs = 60_000)))
+        assertEquals(EpisodeStatus.Played, episodeStatus(ep(1).copy(playedAtMs = 5L)))
+        // A played episode stays played even if a stale position is stored.
+        assertEquals(EpisodeStatus.Played, episodeStatus(ep(1, positionMs = 60_000).copy(playedAtMs = 5L)))
+    }
+
+    @Test
+    fun `header skips played episodes when picking the latest`() {
+        val result = pickHeaderEpisode(listOf(ep(3).copy(playedAtMs = 1L), ep(2), ep(1)))
+        assertEquals(2L, result?.episode?.id)
+    }
 }
