@@ -34,6 +34,8 @@ import com.berpod.app.ui.common.EmptyState
 import com.berpod.app.ui.common.RenameTagDialog
 import com.berpod.app.ui.common.TagAssignDialog
 import com.berpod.app.ui.common.TagChipRow
+import com.berpod.app.ui.dot.SectionSeparator
+import com.berpod.app.ui.dot.subscriptionCountText
 import com.berpod.app.ui.dot.CoverImage
 import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIcons
@@ -64,6 +66,14 @@ fun PodcastListScreen(viewModelFactory: ViewModelProvider.Factory, onPodcastClic
         }
     ) { paddingValues ->
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+            if (uiState.hasAnyPodcasts) {
+                val tagName = uiState.tags.firstOrNull { it.id == uiState.selectedTagId }?.name
+                SectionSeparator(
+                    left = subscriptionCountText(uiState.feeds.size),
+                    right = tagName,
+                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 16.dp)
+                )
+            }
             if (uiState.tags.isNotEmpty()) {
                 TagChipRow(
                     tags = uiState.tags,

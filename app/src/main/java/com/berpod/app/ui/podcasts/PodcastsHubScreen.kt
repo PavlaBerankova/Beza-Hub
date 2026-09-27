@@ -11,9 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -21,10 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.em
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.berpod.app.R
@@ -32,15 +27,12 @@ import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIcons
 import com.berpod.app.ui.dot.DotSegmented
 import com.berpod.app.ui.dot.DotTitle
-import com.berpod.app.ui.dot.subscriptionCountText
-import com.berpod.app.ui.dot.upperCs
 import com.berpod.app.ui.newepisodes.NewEpisodesScreen
 import com.berpod.app.ui.newepisodes.NewEpisodesViewModel
 import com.berpod.app.ui.podcastlist.PodcastListScreen
 import com.berpod.app.ui.podcastlist.PodcastListViewModel
 import com.berpod.app.ui.queue.QueueScreen
 import com.berpod.app.ui.theme.DotTheme
-import com.berpod.app.ui.theme.DotType
 
 /** The sections of the Podcasts tab, in switcher order. */
 enum class PodcastsSection(val labelRes: Int) {
@@ -76,28 +68,7 @@ fun PodcastsHubScreen(
         ) {
             DotTitle(stringResource(R.string.nav_podcasts), Modifier.weight(1f))
             when (section) {
-                PodcastsSection.Subscriptions -> {
-                    val tagName = listState.tags.firstOrNull { it.id == listState.selectedTagId }?.name
-                    // Bounded so a long tag name can't squeeze the title.
-                    Column(modifier = Modifier.widthIn(max = 150.dp), horizontalAlignment = Alignment.End) {
-                        Text(
-                            subscriptionCountText(listState.podcastCount),
-                            style = DotType.meta.copy(lineHeight = 1.5.em),
-                            color = c.textMuted,
-                            maxLines = 1
-                        )
-                        if (tagName != null) {
-                            Text(
-                                stringResource(R.string.filter_label, tagName).upperCs(),
-                                style = DotType.meta.copy(lineHeight = 1.5.em),
-                                color = c.textMuted,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                textAlign = TextAlign.End
-                            )
-                        }
-                    }
-                }
+                PodcastsSection.Subscriptions -> Unit
                 PodcastsSection.New -> if (newEpisodesState.isRefreshing) {
                     Box(Modifier.size(44.dp), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(Modifier.size(22.dp), color = c.accent, strokeWidth = 2.dp)
