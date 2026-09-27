@@ -44,4 +44,18 @@
 
     <string name="action_play">Přehrát</string>
     <string name="action_pause">Pozastavit</string>
+
+    <string name="filter_all">Všechny</string>
+    <string name="tag_filter_empty">Žádné podcasty s tímto štítkem</string>
+    <string name="tag_filter_empty_subtitle">Štítek přiřadíte dlouhým stiskem obálky</string>
+    <string name="tag_dialog_new_label">Nový štítek</string>
+    <string name="tag_name_label">Název štítku</string>
+    <string name="action_manage_tags">Štítky</string>
+    <string name="action_done">Hotovo</string>
+    <string name="action_save">Uložit</string>
+    <string name="action_rename">Přejmenovat</string>
+    <string name="action_delete">Smazat</string>
+    <string name="rename_tag_title">Přejmenovat štítek</string>
+    <string name="delete_tag_title">Smazat štítek</string>
+    <string name="delete_tag_message">Štítek „%1$s“ zmizí u všech podcastů. Podcasty zůstanou.</string>
 </resources>
