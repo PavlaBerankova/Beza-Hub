@@ -1,4 +1,4 @@
-package com.berpod.app.ui.podcastlist
+package com.berpod.app.ui.common
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -44,14 +44,19 @@ import com.berpod.app.data.local.TagEntity
 
 private val ChipShape = RoundedCornerShape(8.dp)
 
+/**
+ * Single-select tag filter row. Pass [onRenameRequest]/[onDeleteRequest] to offer a long-press
+ * menu on tag chips; leave both null for a filter-only row.
+ */
 @Composable
 fun TagChipRow(
     tags: List<TagEntity>,
     selectedTagId: Long?,
     onSelect: (Long?) -> Unit,
-    onRenameRequest: (TagEntity) -> Unit,
-    onDeleteRequest: (TagEntity) -> Unit
+    onRenameRequest: ((TagEntity) -> Unit)? = null,
+    onDeleteRequest: ((TagEntity) -> Unit)? = null
 ) {
+    val hasMenu = onRenameRequest != null || onDeleteRequest != null
     LazyRow(
         contentPadding = PaddingValues(horizontal = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -71,23 +76,29 @@ fun TagChipRow(
                     label = tag.name,
                     selected = selectedTagId == tag.id,
                     onClick = { onSelect(tag.id) },
-                    onLongClick = { isMenuOpen = true }
+                    onLongClick = if (hasMenu) ({ isMenuOpen = true }) else null
                 )
-                DropdownMenu(expanded = isMenuOpen, onDismissRequest = { isMenuOpen = false }) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.action_rename)) },
-                        onClick = {
-                            isMenuOpen = false
-                            onRenameRequest(tag)
+                if (hasMenu) {
+                    DropdownMenu(expanded = isMenuOpen, onDismissRequest = { isMenuOpen = false }) {
+                        if (onRenameRequest != null) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.action_rename)) },
+                                onClick = {
+                                    isMenuOpen = false
+                                    onRenameRequest(tag)
+                                }
+                            )
                         }
-                    )
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.action_delete)) },
-                        onClick = {
-                            isMenuOpen = false
-                            onDeleteRequest(tag)
+                        if (onDeleteRequest != null) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.action_delete)) },
+                                onClick = {
+                                    isMenuOpen = false
+                                    onDeleteRequest(tag)
+                                }
+                            )
                         }
-                    )
+                    }
                 }
             }
         }

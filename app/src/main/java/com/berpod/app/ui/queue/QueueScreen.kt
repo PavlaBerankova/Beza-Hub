@@ -1,6 +1,6 @@
 package com.berpod.app.ui.queue
 
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
+import androidx.compose.material.icons.automirrored.outlined.Label
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -27,6 +28,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.berpod.app.R
 import com.berpod.app.ui.common.EmptyState
 import com.berpod.app.ui.common.EpisodeListItem
+import com.berpod.app.ui.common.TagChipRow
 import com.berpod.app.ui.common.episodeProgressFraction
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,16 +40,27 @@ fun QueueScreen(viewModelFactory: ViewModelProvider.Factory) {
     Scaffold(
         topBar = { TopAppBar(title = { Text(stringResource(R.string.nav_queue)) }) }
     ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            if (uiState.items.isEmpty()) {
-                EmptyState(
+        Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+            if (uiState.tags.isNotEmpty()) {
+                TagChipRow(
+                    tags = uiState.tags,
+                    selectedTagId = uiState.selectedTagId,
+                    onSelect = viewModel::onSelectTag
+                )
+            }
+            when {
+                uiState.items.isEmpty() -> EmptyState(
                     icon = Icons.AutoMirrored.Filled.QueueMusic,
                     title = stringResource(R.string.queue_empty_title),
                     subtitle = stringResource(R.string.queue_empty_subtitle)
                 )
-            } else {
-                LazyColumn {
-                    itemsIndexed(uiState.items, key = { _, item -> item.queueEntryId }) { index, item ->
+                uiState.visibleItems.isEmpty() -> EmptyState(
+                    icon = Icons.AutoMirrored.Outlined.Label,
+                    title = stringResource(R.string.queue_tag_filter_empty),
+                    subtitle = stringResource(R.string.queue_tag_filter_empty_subtitle)
+                )
+                else -> LazyColumn {
+                    itemsIndexed(uiState.visibleItems, key = { _, item -> item.queueEntryId }) { index, item ->
                         EpisodeListItem(
                             episode = item.episode,
                             podcastTitle = item.podcastTitle,
@@ -65,7 +78,7 @@ fun QueueScreen(viewModelFactory: ViewModelProvider.Factory) {
                                     }
                                     IconButton(
                                         onClick = { viewModel.onMoveDown(index) },
-                                        enabled = index < uiState.items.lastIndex
+                                        enabled = index < uiState.visibleItems.lastIndex
                                     ) {
                                         Icon(
                                             Icons.Filled.KeyboardArrowDown,
