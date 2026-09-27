@@ -45,8 +45,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.progressBarRangeInfo
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.setProgress
 import androidx.compose.ui.text.font.FontWeight
@@ -71,7 +74,7 @@ import com.berpod.app.ui.theme.DotTheme
 import com.berpod.app.ui.theme.DotType
 import kotlin.math.abs
 
-/** Dot Matrix player (step 1): dot ring around the cover, seekable decorative wave, times and play/pause. */
+/** Dot Matrix player: dot ring around the cover, seekable decorative wave, times and play/pause. */
 @Composable
 fun PlayerScreen(viewModel: PlayerViewModel, onBack: () -> Unit, onOpenQueue: () -> Unit) {
     val state by viewModel.uiState.collectAsState()
@@ -202,6 +205,7 @@ fun PlayerScreen(viewModel: PlayerViewModel, onBack: () -> Unit, onOpenQueue: ()
             OptionButton(
                 icon = DotIcons.Speed,
                 label = formatSpeed(state.speed),
+                description = stringResource(R.string.speed) + " " + formatSpeed(state.speed),
                 active = abs(state.speed - 1f) > 0.01f,
                 onClick = viewModel::cycleSpeed,
                 modifier = Modifier.weight(1f)
@@ -212,8 +216,14 @@ fun PlayerScreen(viewModel: PlayerViewModel, onBack: () -> Unit, onOpenQueue: ()
                     icon = DotIcons.Sleep,
                     label = when (val t = state.sleepTimer) {
                         null -> stringResource(R.string.sleep)
-                        SleepTimer.EndOfEpisode -> stringResource(R.string.sleep_end_of_episode)
+                        SleepTimer.EndOfEpisode -> stringResource(R.string.sleep_end_short)
                         is SleepTimer.At -> formatPlaybackTime(state.sleepRemainingMs ?: 0L)
+                    },
+                    // Stable for screen readers; the visible countdown changes every second.
+                    description = when (state.sleepTimer) {
+                        null -> stringResource(R.string.sleep)
+                        SleepTimer.EndOfEpisode -> stringResource(R.string.sleep) + ", " + stringResource(R.string.sleep_end_of_episode)
+                        is SleepTimer.At -> stringResource(R.string.sleep_running)
                     },
                     active = state.sleepTimer != null,
                     onClick = { menuOpen = true },
@@ -229,7 +239,7 @@ fun PlayerScreen(viewModel: PlayerViewModel, onBack: () -> Unit, onOpenQueue: ()
                     }
                 }
             }
-            OptionButton(DotIcons.Queue, stringResource(R.string.queue), active = false, onClick = onOpenQueue, modifier = Modifier.weight(1f))
+            OptionButton(DotIcons.Queue, stringResource(R.string.queue), active = false, onClick = onOpenQueue, modifier = Modifier.weight(1f), description = stringResource(R.string.queue))
         }
     }
 }
@@ -239,7 +249,8 @@ private fun SkipButton(icon: DotIconSpec, seconds: String, description: String, 
     DotIconButton(icon, description, onClick, size = 52.dp, radius = 16.dp) {
         Box(contentAlignment = Alignment.Center) {
             DotIcon(icon, 30.dp)
-            Text(seconds, style = DotType.chip.copy(fontSize = 9.sp, fontWeight = FontWeight.W700), color = DotTheme.colors.text)
+            // Already in the button's description; keep TalkBack from reading it twice.
+            Text(seconds, style = DotType.chip.copy(fontSize = 9.sp, fontWeight = FontWeight.W700), color = DotTheme.colors.text, modifier = Modifier.clearAndSetSemantics {})
         }
     }
 }
@@ -260,7 +271,7 @@ private fun TransportButton(icon: DotIconSpec, description: String, enabled: Boo
 }
 
 @Composable
-private fun OptionButton(icon: DotIconSpec, label: String, active: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun OptionButton(icon: DotIconSpec, label: String, active: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier, description: String = label) {
     val c = DotTheme.colors
     val shape = RoundedCornerShape(12.dp)
     Row(
@@ -268,7 +279,8 @@ private fun OptionButton(icon: DotIconSpec, label: String, active: Boolean, onCl
             .height(44.dp)
             .clip(shape)
             .border(1.dp, if (active) c.accent else c.outline, shape)
-            .clickable(role = Role.Button, onClick = onClick),
+            .clickable(role = Role.Button, onClick = onClick)
+            .clearAndSetSemantics { contentDescription = description; role = Role.Button; onClick { onClick(); true } },
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -278,7 +290,8 @@ private fun OptionButton(icon: DotIconSpec, label: String, active: Boolean, onCl
             label.upperCs(),
             style = DotType.segment.copy(fontWeight = if (active) FontWeight.W700 else FontWeight.W600, letterSpacing = 1.sp),
             color = if (active) c.accent else c.textStrong,
-            maxLines = 1
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }

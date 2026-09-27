@@ -79,4 +79,6 @@
     <string name="sleep_cancel">Zrušit časovač</string>
     <string name="sleep_minutes">%1$d min</string>
     <string name="queue">Fronta</string>
+    <string name="sleep_end_short">Konec</string>
+    <string name="sleep_running">Spánek, časovač běží</string>
 </resources>

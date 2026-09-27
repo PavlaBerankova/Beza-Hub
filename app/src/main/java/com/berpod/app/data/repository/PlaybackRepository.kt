@@ -107,6 +107,8 @@ class PlaybackRepository(
                     durationMs = 0L
                 )
             }
+            // The ended item's final position was skipped above; from here on positions are saved normally.
+            endedEpisodeId = null
             updateHasNext()
         }
 
@@ -176,6 +178,8 @@ class PlaybackRepository(
     }
 
     fun seekTo(positionMs: Long) {
+        // Replaying the ended episode in place (seek / previous) should save its position again.
+        if (_uiState.value.currentEpisodeId == endedEpisodeId) endedEpisodeId = null
         controller?.seekTo(positionMs)
         _uiState.update { it.copy(positionMs = positionMs) }
     }
@@ -260,6 +264,8 @@ class PlaybackRepository(
     private fun onEpisodeEnded() {
         val endedId = _uiState.value.currentEpisodeId ?: return
         endedEpisodeId = endedId
+        // Stopped at the end with nothing after it: "next" shouldn't jump back to the start of the queue.
+        _uiState.update { it.copy(hasNext = false) }
         val order = latestQueue.map { it.episode.id }
         val next = nextInQueue(order, endedId)?.let { id -> latestQueue.firstOrNull { it.episode.id == id } }
         val entry = latestQueue.firstOrNull { it.episode.id == endedId }
@@ -275,7 +281,10 @@ class PlaybackRepository(
     }
 
     private fun updateHasNext() {
-        _uiState.update { it.copy(hasNext = nextInQueue(latestQueue.map { q -> q.episode.id }, it.currentEpisodeId) != null) }
+        _uiState.update {
+            val stoppedAtEnd = it.currentEpisodeId != null && it.currentEpisodeId == endedEpisodeId
+            it.copy(hasNext = !stoppedAtEnd && nextInQueue(latestQueue.map { q -> q.episode.id }, it.currentEpisodeId) != null)
+        }
     }
 
     private fun restartPositionPolling(isPlaying: Boolean) {
