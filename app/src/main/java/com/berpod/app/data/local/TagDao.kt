@@ -12,6 +12,10 @@ interface TagDao {
     @Query("SELECT * FROM tags ORDER BY name")
     fun observeAll(): Flow<List<TagEntity>>
 
+    /** Tags assigned to at least one podcast: the filter chips skip empty ones. */
+    @Query("SELECT * FROM tags WHERE id IN (SELECT tagId FROM podcast_tags) ORDER BY name")
+    fun observeInUse(): Flow<List<TagEntity>>
+
     @Query("SELECT tagId FROM podcast_tags WHERE podcastId = :podcastId")
     fun observeTagIdsForPodcast(podcastId: Long): Flow<List<Long>>
 

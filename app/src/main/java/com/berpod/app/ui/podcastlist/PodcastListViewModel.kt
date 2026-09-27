@@ -58,7 +58,7 @@ class PodcastListViewModel(
             .flatMapLatest { tagId -> tagRepository.observeFeeds(tagId) }
             .onEach { feeds -> _uiState.update { it.copy(feeds = feeds) } }
             .launchIn(viewModelScope)
-        tagRepository.observeTags()
+        tagRepository.observeTagsInUse()
             .onEach { tags ->
                 selectedTagId.value = resolveSelectedTagId(selectedTagId.value, tags)
                 _uiState.update { it.copy(tags = tags, selectedTagId = selectedTagId.value) }

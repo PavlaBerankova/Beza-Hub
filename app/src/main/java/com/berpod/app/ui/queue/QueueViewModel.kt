@@ -65,7 +65,7 @@ class QueueViewModel(
         }
             .onEach { (items, visible) -> _uiState.update { it.copy(items = items, visibleItems = visible) } }
             .launchIn(viewModelScope)
-        tagRepository.observeTags()
+        tagRepository.observeTagsInUse()
             .onEach { tags ->
                 selectedTagId.value = resolveSelectedTagId(selectedTagId.value, tags)
                 _uiState.update { it.copy(tags = tags, selectedTagId = selectedTagId.value) }

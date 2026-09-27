@@ -17,6 +17,8 @@ class TagRepository(
 
     fun observeTags(): Flow<List<TagEntity>> = tagDao.observeAll()
 
+    fun observeTagsInUse(): Flow<List<TagEntity>> = tagDao.observeInUse()
+
     fun observeTagIdsForPodcast(podcastId: Long): Flow<List<Long>> = tagDao.observeTagIdsForPodcast(podcastId)
 
     fun observePodcastIdsWithTag(tagId: Long): Flow<List<Long>> = tagDao.observePodcastIdsWithTag(tagId)

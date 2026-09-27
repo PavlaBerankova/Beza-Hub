@@ -78,6 +78,12 @@ class FakeTagDao(private val feeds: StateFlow<List<PodcastFeedEntity>>) : TagDao
     override fun observeAll(): Flow<List<TagEntity>> =
         _tags.map { list -> list.sortedBy { it.name.lowercase() } }
 
+    override fun observeInUse(): Flow<List<TagEntity>> =
+        combine(_tags, _links) { tags, links ->
+            val used = links.map { it.tagId }.toSet()
+            tags.filter { it.id in used }.sortedBy { it.name.lowercase() }
+        }
+
     override fun observeTagIdsForPodcast(podcastId: Long): Flow<List<Long>> =
         _links.map { links -> links.filter { it.podcastId == podcastId }.map { it.tagId } }
 

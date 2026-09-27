@@ -69,7 +69,7 @@ class NewEpisodesViewModel(
         }
             .onEach { (all, visible) -> _uiState.update { it.copy(episodes = visible, hasAnyEpisodes = all.isNotEmpty()) } }
             .launchIn(viewModelScope)
-        tagRepository.observeTags()
+        tagRepository.observeTagsInUse()
             .onEach { tags ->
                 selectedTagId.value = resolveSelectedTagId(selectedTagId.value, tags)
                 _uiState.update { it.copy(tags = tags, selectedTagId = selectedTagId.value) }
