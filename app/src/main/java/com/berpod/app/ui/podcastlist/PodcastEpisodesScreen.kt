@@ -1,6 +1,10 @@
 package com.berpod.app.ui.podcastlist
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
@@ -98,7 +102,19 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
         topBar = {
             TopAppBar(
                 modifier = Modifier.onSizeChanged { barHeightPx = it.height },
-                title = { if (!isHeaderVisible) Text(uiState.feedTitle, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                title = {
+                    if (!isHeaderVisible) {
+                        Text(uiState.feedTitle, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    } else if (uiState.feedTags.isNotEmpty()) {
+                        // Over the header the bar has no title, so the podcast's tags sit here instead.
+                        Row(
+                            modifier = Modifier.horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            uiState.feedTags.forEach { name -> HeaderTagChip(name, headerContent) }
+                        }
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = if (isHeaderVisible) Color.Transparent else MaterialTheme.colorScheme.surface,
                     navigationIconContentColor = barContentColor,
@@ -144,7 +160,6 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                     topPadding = paddingValues.calculateTopPadding(),
                     background = headerBackground,
                     contentColor = headerContent,
-                    tags = uiState.feedTags,
                     playButton = playButton,
                     onColorExtracted = { coverColor = it },
                     modifier = Modifier.onSizeChanged { headerHeightPx = it.height }

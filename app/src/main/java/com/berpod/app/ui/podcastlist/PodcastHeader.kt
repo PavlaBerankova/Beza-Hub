@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -51,15 +50,13 @@ fun isBarOverHeader(firstVisibleIndex: Int, scrollOffsetPx: Int, headerHeightPx:
 private val CoverShape = RoundedCornerShape(12.dp)
 private val TagShape = RoundedCornerShape(50)
 
-/** Height of the header's play button. */
-private val ActionHeight = 48.dp
 
 /** The play button in the header: its label, icon and action. */
 data class HeaderPlayButton(val label: String, val icon: ImageVector, val onClick: () -> Unit)
 
 /**
  * Apple Podcasts-style show header: a compact block in the cover's colour with the cover on the left and the
- * title, author and tags beside it, and a centred play button below. [topPadding] keeps the content below the transparent top app bar drawn over it.
+ * title, author and play button beside it. [topPadding] keeps the content below the transparent top app bar drawn over it.
  * [onColorExtracted] reports the cover's average colour once the image has loaded.
  */
 @Composable
@@ -70,7 +67,6 @@ fun PodcastHeader(
     topPadding: Dp,
     background: Color,
     contentColor: Color,
-    tags: List<String>,
     playButton: HeaderPlayButton?,
     onColorExtracted: (Color) -> Unit,
     modifier: Modifier = Modifier
@@ -128,45 +124,37 @@ fun PodcastHeader(
                         modifier = Modifier.padding(top = 2.dp)
                     )
                 }
-                if (tags.isNotEmpty()) {
-                    FlowRow(
-                        modifier = Modifier.padding(top = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                if (playButton != null) {
+                    Button(
+                        onClick = playButton.onClick,
+                        colors = ButtonDefaults.buttonColors(containerColor = contentColor, contentColor = background),
+                        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 8.dp),
+                        modifier = Modifier.padding(top = 10.dp).height(40.dp)
                     ) {
-                        tags.forEach { name ->
-                            Text(
-                                text = name,
-                                style = MaterialTheme.typography.labelMedium,
-                                color = contentColor,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier
-                                    .clip(TagShape)
-                                    .background(contentColor.copy(alpha = 0.18f))
-                                    .padding(horizontal = 10.dp, vertical = 4.dp)
-                            )
-                        }
+                        Icon(playButton.icon, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(playButton.label, style = MaterialTheme.typography.labelLarge)
                     }
                 }
             }
         }
-        if (playButton != null) {
-            Button(
-                onClick = playButton.onClick,
-                colors = ButtonDefaults.buttonColors(containerColor = contentColor, contentColor = background),
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .fillMaxWidth(0.6f)
-                    .padding(top = 16.dp)
-                    .height(ActionHeight)
-            ) {
-                Icon(playButton.icon, contentDescription = null, modifier = Modifier.size(20.dp))
-                Spacer(Modifier.width(8.dp))
-                Text(playButton.label, style = MaterialTheme.typography.titleSmall)
-            }
-        }
     }
+}
+
+/** A podcast tag shown on the coloured header area (used in the top bar over the header). */
+@Composable
+fun HeaderTagChip(name: String, contentColor: Color) {
+    Text(
+        text = name,
+        style = MaterialTheme.typography.labelMedium,
+        color = contentColor,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier
+            .clip(TagShape)
+            .background(contentColor.copy(alpha = 0.18f))
+            .padding(horizontal = 10.dp, vertical = 4.dp)
+    )
 }
 
 private fun coverColor(bitmap: Bitmap): Color? {
