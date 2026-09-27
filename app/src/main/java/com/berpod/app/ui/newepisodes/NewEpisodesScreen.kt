@@ -15,19 +15,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FiberNew
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -51,6 +45,7 @@ import com.berpod.app.ui.dot.DotIcons
 import com.berpod.app.ui.dot.SectionSeparator
 import com.berpod.app.ui.dot.formatDotDate
 import com.berpod.app.ui.dot.isPublishedToday
+import com.berpod.app.ui.dot.rememberNowMillis
 import com.berpod.app.ui.dot.upperCs
 import com.berpod.app.ui.theme.DotTheme
 import com.berpod.app.ui.theme.DotType
@@ -84,9 +79,9 @@ fun NewEpisodesScreen(viewModelFactory: ViewModelProvider.Factory) {
                 )
             } else {
                 val c = DotTheme.colors
-                val now = remember { System.currentTimeMillis() }
+                val now = rememberNowMillis()
                 LazyColumn(contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 16.dp)) {
-                    item(key = "separator") { SectionSeparator("Dnes", "Nejnovější", leadingSquare = true) }
+                    item(key = "separator") { SectionSeparator(stringResource(R.string.section_today), stringResource(R.string.section_newest), leadingSquare = true) }
                     items(uiState.episodes, key = { it.episode.id }) { item ->
                         val episode = item.episode
                         val today = isPublishedToday(episode.pubDateMillis, now)

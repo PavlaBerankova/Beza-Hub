@@ -17,19 +17,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.automirrored.outlined.Label
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.DragIndicator
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Podcasts
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -38,8 +31,8 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -53,7 +46,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
@@ -66,7 +58,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil3.compose.AsyncImage
 import com.berpod.app.R
 import com.berpod.app.data.local.QueueItemWithEpisode
 import com.berpod.app.data.local.moveAfterDrag
@@ -74,7 +65,6 @@ import com.berpod.app.data.local.stepAnchors
 import com.berpod.app.ui.common.EmptyState
 import com.berpod.app.ui.common.TagChipRow
 import com.berpod.app.ui.common.episodeProgressFraction
-import com.berpod.app.ui.common.formatPubDate
 import com.berpod.app.ui.dot.CoverImage
 import com.berpod.app.ui.dot.DotIcon
 import com.berpod.app.ui.dot.DotIconButton
@@ -119,7 +109,7 @@ fun QueueScreen(viewModelFactory: ViewModelProvider.Factory) {
             if (uiState.visibleItems.isNotEmpty()) {
                 SectionSeparator(
                     left = episodeCountText(uiState.visibleItems.size),
-                    right = queueTotalText(uiState.visibleItems)?.let { "celkem $it" },
+                    right = queueTotalText(uiState.visibleItems)?.let { stringResource(R.string.queue_total, it) },
                     modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 16.dp)
                 )
             }
@@ -184,14 +174,17 @@ private fun ReorderableQueueList(uiState: QueueUiState, viewModel: QueueViewMode
             ReorderableItem(reorderState, key = item.queueEntryId) { isDragging ->
                 val elevation by animateDpAsState(if (isDragging) 6.dp else 0.dp, label = "dragElevation")
                 // Swipe left to remove; the row stays swiped until the queue emission drops it.
+                val swipeState = rememberSwipeToDismissBoxState()
                 SwipeToDismissBox(
-                    state = rememberSwipeToDismissBoxState(),
+                    // Same shape as the row, so the red remove background never shows in its corners.
+                    modifier = Modifier.clip(RoundedCornerShape(16.dp)),
+                    state = swipeState,
                     enableDismissFromStartToEnd = false,
                     gesturesEnabled = !isDragging,
                     onDismiss = { viewModel.onRemove(item.queueEntryId) },
-                    backgroundContent = { RemoveBackground() }
+                    backgroundContent = { if (swipeState.dismissDirection == SwipeToDismissBoxValue.EndToStart) RemoveBackground() }
                 ) {
-                    Surface(shadowElevation = elevation) {
+                    Surface(shadowElevation = elevation, shape = RoundedCornerShape(16.dp), color = DotTheme.colors.background) {
                         QueueRow(
                             item = item,
                             uiState = uiState,

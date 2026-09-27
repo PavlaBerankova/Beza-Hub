@@ -73,3 +73,10 @@ fun isRecentEpisode(millis: Long?, nowMillis: Long, days: Long = 7): Boolean =
 private val czech = Locale.forLanguageTag("cs")
 
 fun String.upperCs(): String = uppercase(czech)
+
+/** "1 ODBĚR", "3 ODBĚRY", "5 ODBĚRŮ". */
+fun subscriptionCountText(count: Int): String = when (count) {
+    1 -> "1 ODBĚR"
+    in 2..4 -> "$count ODBĚRY"
+    else -> "$count ODBĚRŮ"
+}

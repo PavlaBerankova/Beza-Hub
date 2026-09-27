@@ -102,6 +102,7 @@ object DotIcons {
 fun DotIcon(spec: DotIconSpec, size: Dp, modifier: Modifier = Modifier, monochrome: Color? = null) {
     val colors = DotTheme.colors
     val paths = remember(spec) { spec.parts.map { PathParser().parsePathString(it.d).toPath() } }
+    val strokes = remember(spec) { spec.parts.map { p -> p.stroke?.let { Stroke(width = it, cap = StrokeCap.Round, join = StrokeJoin.Round) } } }
     Canvas(modifier = modifier.size(width = size * (spec.width / spec.height), height = size)) {
         val s = this.size.height / spec.height
         scale(s, s, pivot = androidx.compose.ui.geometry.Offset.Zero) {
@@ -112,8 +113,9 @@ fun DotIcon(spec: DotIconSpec, size: Dp, modifier: Modifier = Modifier, monochro
                     IconRole.Accent -> colors.accent
                     IconRole.OnAccent -> colors.onAccent
                 }
-                if (part.stroke != null) {
-                    drawPath(paths[i], color, style = Stroke(width = part.stroke, cap = StrokeCap.Round, join = StrokeJoin.Round))
+                val stroke = strokes[i]
+                if (stroke != null) {
+                    drawPath(paths[i], color, style = stroke)
                 } else {
                     drawPath(paths[i], color)
                 }

@@ -18,7 +18,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -39,8 +41,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.progressBarRangeInfo
-import androidx.compose.ui.semantics.setProgress
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.setProgress
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -72,9 +74,19 @@ fun PlayerScreen(viewModel: PlayerViewModel, onBack: () -> Unit) {
     val currentDuration by rememberUpdatedState(state.durationMs)
     val fraction = draggingFraction ?: if (known) (state.positionMs.toFloat() / duration).coerceIn(0f, 1f) else 0f
     val heights = remember(state.currentEpisodeId) { waveHeights(state.currentEpisodeId ?: 0L) }
+    val ringStep = (fraction * 56).toInt()
+    val ring = remember(ringStep) { ringDots(56, center = 140f, radius = 132f, fraction = ringStep / 56f + 0.0001f) }
 
     Column(
-        Modifier.fillMaxSize().background(c.background).statusBarsPadding().navigationBarsPadding().padding(horizontal = 20.dp).padding(top = 16.dp),
+        Modifier
+            .fillMaxSize()
+            .background(c.background)
+            .statusBarsPadding()
+            .navigationBarsPadding()
+            // Scrolls on small screens or with large text so the play button stays reachable.
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 20.dp)
+            .padding(top = 16.dp, bottom = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -89,7 +101,7 @@ fun PlayerScreen(viewModel: PlayerViewModel, onBack: () -> Unit) {
         Box(Modifier.padding(top = 18.dp).size(280.dp), contentAlignment = Alignment.Center) {
             Canvas(Modifier.matchParentSize()) {
                 val scale = size.width / 280f
-                ringDots(56, center = 140f, radius = 132f, fraction = fraction).forEach { dot ->
+                ring.forEach { dot ->
                     drawCircle(
                         color = when (dot.role) { CellRole.Played -> c.accent; CellRole.Current -> c.text; CellRole.Rest -> c.ringIdle },
                         radius = 3f * scale,
@@ -97,10 +109,18 @@ fun PlayerScreen(viewModel: PlayerViewModel, onBack: () -> Unit) {
                     )
                 }
             }
-            AsyncImage(
-                model = state.artworkUrl, contentDescription = null, contentScale = ContentScale.Crop,
-                modifier = Modifier.size(210.dp).clip(CircleShape).border(1.dp, c.divider, CircleShape).background(c.divider)
-            )
+            Box(
+                modifier = Modifier.size(210.dp).clip(CircleShape).background(c.divider).border(1.dp, c.divider, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                DotIcon(DotIcons.Podcasts, 56.dp, monochrome = c.textMuted)
+                if (state.artworkUrl != null) {
+                    AsyncImage(
+                        model = state.artworkUrl, contentDescription = null, contentScale = ContentScale.Crop,
+                        modifier = Modifier.matchParentSize()
+                    )
+                }
+            }
         }
         Text(state.title, style = DotType.title.copy(fontSize = 20.sp), color = c.text, maxLines = 1, overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(top = 18.dp))

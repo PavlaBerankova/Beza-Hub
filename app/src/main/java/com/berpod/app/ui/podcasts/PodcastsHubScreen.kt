@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.lifecycle.ViewModelProvider
@@ -34,6 +34,7 @@ import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIcons
 import com.berpod.app.ui.dot.DotSegmented
 import com.berpod.app.ui.dot.DotTitle
+import com.berpod.app.ui.dot.subscriptionCountText
 import com.berpod.app.ui.dot.upperCs
 import com.berpod.app.ui.newepisodes.NewEpisodesScreen
 import com.berpod.app.ui.newepisodes.NewEpisodesViewModel
@@ -81,14 +82,14 @@ fun PodcastsHubScreen(
                     // Bounded so a long tag name can't squeeze the title.
                     Column(modifier = Modifier.widthIn(max = 150.dp), horizontalAlignment = Alignment.End) {
                         Text(
-                            "%02d ODBĚRY".format(listState.podcastCount),
+                            subscriptionCountText(listState.podcastCount),
                             style = DotType.meta.copy(lineHeight = 1.5.em),
                             color = c.textMuted,
                             maxLines = 1
                         )
                         if (tagName != null) {
                             Text(
-                                "FILTR: " + tagName.upperCs(),
+                                stringResource(R.string.filter_label, tagName).upperCs(),
                                 style = DotType.meta.copy(lineHeight = 1.5.em),
                                 color = c.textMuted,
                                 maxLines = 1,

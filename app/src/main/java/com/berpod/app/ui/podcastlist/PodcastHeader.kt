@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.berpod.app.R
 import com.berpod.app.ui.dot.CoverImage
-import com.berpod.app.ui.dot.DotChip
+import com.berpod.app.ui.dot.DotTagLabel
 import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIconSpec
 import com.berpod.app.ui.dot.DotIcons
@@ -47,11 +47,14 @@ fun PodcastActionsRow(
     val c = DotTheme.colors
     Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         DotIconButton(DotIcons.Back, stringResource(R.string.action_back), onBack)
-        Row(
-            modifier = Modifier.weight(1f).horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
-        ) {
-            tags.forEach { DotChip(it, selected = true, onClick = onTagClick) }
+        // Right-aligned when they fit, scrollable when they don't.
+        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
+            Row(
+                modifier = Modifier.horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                tags.forEach { DotTagLabel(it, onClick = onTagClick) }
+            }
         }
         DotIconButton(DotIcons.Tag, stringResource(R.string.action_manage_tags), onTagClick)
         if (isRefreshing) {
@@ -90,7 +93,7 @@ fun PodcastHeader(
             CoverImage(imageUrl, 150.dp, 20.dp)
             Column(modifier = Modifier.weight(1f).padding(bottom = 4.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    listOfNotNull("Podcast", tags.firstOrNull()).joinToString(" · ").upperCs(),
+                    listOfNotNull(stringResource(R.string.label_podcast), tags.firstOrNull()).joinToString(" · ").upperCs(),
                     style = DotType.label.copy(letterSpacing = 2.sp),
                     color = c.textMuted,
                     maxLines = 1,

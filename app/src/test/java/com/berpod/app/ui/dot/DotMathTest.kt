@@ -84,4 +84,12 @@ class DotMathTest {
     fun `czech uppercase`() {
         assertEquals("VINOHRADSKÁ 12 · ZBÝVÁ", "Vinohradská 12 · zbývá".upperCs())
     }
+
+    @Test
+    fun `czech plural of subscriptions`() {
+        assertEquals("1 ODBĚR", subscriptionCountText(1))
+        assertEquals("3 ODBĚRY", subscriptionCountText(3))
+        assertEquals("5 ODBĚRŮ", subscriptionCountText(5))
+        assertEquals("0 ODBĚRŮ", subscriptionCountText(0))
+    }
 }

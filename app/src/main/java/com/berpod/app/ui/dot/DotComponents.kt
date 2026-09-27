@@ -1,5 +1,6 @@
 package com.berpod.app.ui.dot
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -17,19 +18,26 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
@@ -168,26 +176,52 @@ fun SectionSeparator(left: String, right: String? = null, modifier: Modifier = M
     }
 }
 
-/** A row of square progress cells (played accent, current text colour, rest divider). */
+/** A row of square progress cells (played accent, current text colour, rest divider), drawn in one Canvas. */
 @Composable
 fun DotProgress(fraction: Float?, cells: Int, modifier: Modifier = Modifier) {
     val c = DotTheme.colors
-    Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-        dotProgressCells(fraction, cells).forEach { role ->
-            Box(
-                Modifier
-                    .weight(1f)
-                    .aspectRatio(1f)
-                    .clip(RoundedCornerShape(1.dp))
-                    .background(
-                        when (role) {
-                            CellRole.Played -> c.accent
-                            CellRole.Current -> c.text
-                            CellRole.Rest -> c.divider
-                        }
-                    )
+    val roles = remember(fraction?.let { (it.coerceIn(0f, 1f) * cells).toInt() }, cells) { dotProgressCells(fraction, cells) }
+    // As tall as one cell: the width minus the 2 dp gaps, divided by the cell count.
+    val sized = Modifier.layout { measurable, constraints ->
+        val width = constraints.maxWidth
+        val height = ((width - 2.dp.roundToPx() * (cells - 1)) / cells).coerceAtLeast(1)
+        val placeable = measurable.measure(Constraints.fixed(width, height))
+        layout(width, height) { placeable.place(0, 0) }
+    }
+    Canvas(modifier = modifier.fillMaxWidth().then(sized)) {
+        val gap = 2.dp.toPx()
+        val cell = (size.width - gap * (cells - 1)) / cells
+        val radius = CornerRadius(1.dp.toPx())
+        roles.forEachIndexed { i, role ->
+            drawRoundRect(
+                color = when (role) {
+                    CellRole.Played -> c.accent
+                    CellRole.Current -> c.text
+                    CellRole.Rest -> c.divider
+                },
+                topLeft = Offset(i * (cell + gap), 0f),
+                size = Size(cell, cell),
+                cornerRadius = radius
             )
         }
+    }
+}
+
+/** Accent tag label that opens the tag dialog (not a selectable filter chip). */
+@Composable
+fun DotTagLabel(label: String, onClick: () -> Unit) {
+    val c = DotTheme.colors
+    Box(
+        modifier = Modifier
+            .minimumInteractiveComponentSize()
+            .height(38.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .background(c.accent)
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 14.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(label.upperCs(), style = DotType.chip.copy(fontWeight = FontWeight.W700), color = c.onAccent, maxLines = 1)
     }
 }
 

@@ -22,7 +22,6 @@
     <string name="action_move_up">Posunout nahoru</string>
     <string name="action_move_down">Posunout dolů</string>
 
-    <string name="new_episodes_title">Nové</string>
     <string name="action_refresh">Aktualizovat</string>
     <string name="new_episodes_empty">Zatím žádné nové epizody</string>
 
@@ -66,4 +65,8 @@
     <string name="action_close_player">Zavřít přehrávač</string>
     <string name="now_playing">Přehrává se</string>
     <string name="action_seek">Posunout přehrávání</string>
+    <string name="section_today">Dnes</string>
+    <string name="queue_total">celkem %1$s</string>
+    <string name="label_podcast">Podcast</string>
+    <string name="filter_label">Filtr: %1$s</string>
 </resources>
