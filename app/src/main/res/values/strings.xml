@@ -49,4 +49,5 @@
     <string name="delete_tag_message">Štítek „%1$s“ zmizí u všech podcastů. Podcasty zůstanou.</string>
     <string name="queue_tag_filter_empty">Ve frontě nejsou epizody s tímto štítkem</string>
     <string name="queue_tag_filter_empty_subtitle">Vyberte jiný štítek nebo Všechny</string>
+    <string name="action_drag_to_reorder">Přesunout</string>
 </resources>
