@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.berpod.app.R
 import com.berpod.app.data.local.EpisodeEntity
+import com.berpod.app.ui.dot.CoverImage
 import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIcons
 import com.berpod.app.ui.dot.formatDayMonth
@@ -37,7 +38,10 @@ fun ShowEpisodeRow(
     isCurrentlyPlaying: Boolean,
     onPlayOrPause: () -> Unit,
     onAddToQueue: () -> Unit,
-    nowMillis: Long
+    nowMillis: Long,
+    /** Mixed lists (Nové) show which podcast the episode is from: its cover and name above the date. */
+    podcastTitle: String? = null,
+    podcastImageUrl: String? = null
 ) {
     val c = DotTheme.colors
     val recent = isRecentEpisode(episode.pubDateMillis, nowMillis)
@@ -45,22 +49,22 @@ fun ShowEpisodeRow(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(top = 16.dp, bottom = 18.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            formatDayMonth(episode.pubDateMillis)?.let {
-                Text(it, style = DotType.rowTitle.copy(fontWeight = FontWeight.W700, letterSpacing = 1.sp), color = if (recent) c.accent else c.text)
+        if (podcastTitle != null) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                CoverImage(podcastImageUrl, 48.dp, 10.dp)
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(
+                        podcastTitle.upperCs(),
+                        style = DotType.label.copy(letterSpacing = 1.sp),
+                        color = c.textMuted,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    EpisodeDateLine(episode, recent)
+                }
             }
-            formatYear(episode.pubDateMillis)?.let {
-                Text(it, style = DotType.meta.copy(fontSize = 12.sp), color = c.textMuted)
-            }
-            Spacer(Modifier.weight(1f))
-            if (recent) {
-                Text(
-                    stringResource(R.string.badge_new).upperCs(),
-                    style = DotType.label.copy(fontSize = 10.sp, fontWeight = FontWeight.W700, letterSpacing = 1.sp),
-                    color = c.onAccent,
-                    modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(c.accent).padding(horizontal = 8.dp, vertical = 3.dp)
-                )
-            }
+        } else {
+            EpisodeDateLine(episode, recent)
         }
         Text(episode.title, style = DotType.title, color = c.text)
         descriptionSnippet(episode.description)?.let {
@@ -84,4 +88,27 @@ fun ShowEpisodeRow(
         }
     }
     HorizontalDivider(modifier = Modifier.padding(horizontal = 20.dp), color = c.divider)
+}
+
+/** "27.09  2026 … [NOVÁ]": accent date and badge for episodes from the last 7 days. */
+@Composable
+private fun EpisodeDateLine(episode: EpisodeEntity, recent: Boolean) {
+    val c = DotTheme.colors
+    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        formatDayMonth(episode.pubDateMillis)?.let {
+            Text(it, style = DotType.rowTitle.copy(fontWeight = FontWeight.W700, letterSpacing = 1.sp), color = if (recent) c.accent else c.text)
+        }
+        formatYear(episode.pubDateMillis)?.let {
+            Text(it, style = DotType.meta.copy(fontSize = 12.sp), color = c.textMuted)
+        }
+        Spacer(Modifier.weight(1f))
+        if (recent) {
+            Text(
+                stringResource(R.string.badge_new).upperCs(),
+                style = DotType.label.copy(fontSize = 10.sp, fontWeight = FontWeight.W700, letterSpacing = 1.sp),
+                color = c.onAccent,
+                modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(c.accent).padding(horizontal = 8.dp, vertical = 3.dp)
+            )
+        }
+    }
 }

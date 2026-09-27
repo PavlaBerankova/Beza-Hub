@@ -153,7 +153,8 @@ fun BerpodApp(container: AppContainer) {
                     newEpisodesFactory = NewEpisodesViewModel.factory(
                         container.episodeRepository,
                         container.queueRepository,
-                        container.playbackRepository
+                        container.playbackRepository,
+                        container.tagRepository
                     ),
                     onPodcastClick = { feedId -> navController.navigate(Screen.PodcastEpisodes.createRoute(feedId)) },
                     section = podcastsSection,
