@@ -17,7 +17,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Label
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Podcasts
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -49,7 +48,6 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
-import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -66,7 +64,6 @@ import com.berpod.app.ui.common.EmptyState
 import com.berpod.app.ui.common.TagChipRow
 import com.berpod.app.ui.common.episodeProgressFraction
 import com.berpod.app.ui.dot.CoverImage
-import com.berpod.app.ui.dot.DotIcon
 import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIcons
 import com.berpod.app.ui.dot.DotProgress
@@ -157,7 +154,6 @@ private fun ReorderableQueueList(uiState: QueueUiState, viewModel: QueueViewMode
     }
     val moveUpLabel = stringResource(R.string.action_move_up)
     val moveDownLabel = stringResource(R.string.action_move_down)
-    val dragLabel = stringResource(R.string.action_drag_to_reorder)
     val removeLabel = stringResource(R.string.action_remove_from_queue)
 
     fun stepMove(movedId: Long, up: Boolean): Boolean {
@@ -184,13 +180,13 @@ private fun ReorderableQueueList(uiState: QueueUiState, viewModel: QueueViewMode
                     onDismiss = { viewModel.onRemove(item.queueEntryId) },
                     backgroundContent = { if (swipeState.dismissDirection == SwipeToDismissBoxValue.EndToStart) RemoveBackground() }
                 ) {
-                    Surface(shadowElevation = elevation, shape = RoundedCornerShape(16.dp), color = DotTheme.colors.background) {
-                        QueueRow(
-                            item = item,
-                            uiState = uiState,
-                            viewModel = viewModel,
-                            handleModifier = Modifier
-                                .draggableHandle(
+                    Surface(
+                        shadowElevation = elevation,
+                        shape = RoundedCornerShape(16.dp),
+                        color = DotTheme.colors.background,
+                        // Long-press anywhere on the row, then drag it to its new place.
+                        modifier = Modifier
+                                .longPressDraggableHandle(
                                     // Only State reads in here: this lambda is not replaced on recomposition.
                                     onDragStarted = {
                                         dragStartOrder = localItems.map { it.queueEntryId }
@@ -212,16 +208,15 @@ private fun ReorderableQueueList(uiState: QueueUiState, viewModel: QueueViewMode
                                         }
                                     }
                                 )
-                                // Label and move actions on the same node, so TalkBack offers them on the handle.
                                 .semantics {
-                                    contentDescription = dragLabel
                                     customActions = listOf(
                                         CustomAccessibilityAction(moveUpLabel) { stepMove(item.queueEntryId, up = true) },
                                         CustomAccessibilityAction(moveDownLabel) { stepMove(item.queueEntryId, up = false) },
                                         CustomAccessibilityAction(removeLabel) { viewModel.onRemove(item.queueEntryId); true }
                                     )
                                 }
-                        )
+                    ) {
+                        QueueRow(item = item, uiState = uiState, viewModel = viewModel)
                     }
                 }
             }
@@ -242,13 +237,12 @@ private fun RemoveBackground() {
     }
 }
 
-/** Queue row in the Dot Matrix style: handle, cover, meta, title, time with dot progress, square play button. */
+/** Queue row in the Dot Matrix style: cover, meta, title, time with dot progress, square play button. */
 @Composable
 private fun QueueRow(
     item: QueueItemWithEpisode,
     uiState: QueueUiState,
-    viewModel: QueueViewModel,
-    handleModifier: Modifier
+    viewModel: QueueViewModel
 ) {
     val c = DotTheme.colors
     val episode = item.episode
@@ -261,14 +255,10 @@ private fun QueueRow(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(16.dp))
                 .background(if (isCurrent) c.surface else c.background)
-                .padding(start = 4.dp, end = 10.dp, top = 12.dp, bottom = 12.dp),
+                .padding(start = 10.dp, end = 10.dp, top = 12.dp, bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // Not a button: the handle only drags (and offers move/remove actions to screen readers).
-            Box(modifier = handleModifier.size(width = 28.dp, height = 44.dp), contentAlignment = Alignment.Center) {
-                DotIcon(DotIcons.Drag, 22.dp)
-            }
             CoverImage(item.podcastImageUrl, 64.dp, 12.dp)
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
