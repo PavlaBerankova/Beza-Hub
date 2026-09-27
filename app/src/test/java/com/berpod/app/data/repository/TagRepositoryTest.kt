@@ -4,13 +4,18 @@ import com.berpod.app.data.local.PodcastTagCrossRef
 import com.berpod.app.testutil.FakePodcastFeedDao
 import com.berpod.app.testutil.FakeTagDao
 import com.berpod.app.testutil.feed
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class TagRepositoryTest {
 
     private val feedDao = FakePodcastFeedDao(listOf(feed(1), feed(2), feed(3)))
@@ -104,5 +109,28 @@ class TagRepositoryTest {
 
         assertTrue(tagDao.tags.value.isEmpty())
         assertTrue(tagDao.links.value.isEmpty())
+    }
+
+    @Test
+    fun `observePodcastIdsWithTag returns podcasts carrying the tag`() = runTest {
+        repository.createAndAssign(1, "IT")
+        repository.createAndAssign(3, "IT")
+        repository.createAndAssign(2, "News")
+        val itId = tagDao.findByName("IT")!!.id
+
+        assertEquals(setOf(1L, 3L), repository.observePodcastIdsWithTag(itId).first().toSet())
+    }
+
+    @Test
+    fun `observePodcastIdsWithTag reflects unassign live`() = runTest(UnconfinedTestDispatcher()) {
+        repository.createAndAssign(1, "IT")
+        repository.createAndAssign(3, "IT")
+        val itId = tagDao.findByName("IT")!!.id
+        var latest: Set<Long> = emptySet()
+        repository.observePodcastIdsWithTag(itId).onEach { latest = it.toSet() }.launchIn(backgroundScope)
+
+        repository.setAssigned(podcastId = 3, tagId = itId, assigned = false)
+
+        assertEquals(setOf(1L), latest)
     }
 }

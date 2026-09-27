@@ -1,8 +1,10 @@
 package com.berpod.app.testutil
 
+import com.berpod.app.data.local.EpisodeEntity
 import com.berpod.app.data.local.PodcastFeedDao
 import com.berpod.app.data.local.PodcastFeedEntity
 import com.berpod.app.data.local.PodcastTagCrossRef
+import com.berpod.app.data.local.QueueItemWithEpisode
 import com.berpod.app.data.local.TagDao
 import com.berpod.app.data.local.TagEntity
 import kotlinx.coroutines.flow.Flow
@@ -19,6 +21,27 @@ fun feed(id: Long, dateAdded: Long = id) = PodcastFeedEntity(
     description = null,
     dateAdded = dateAdded,
     lastFetchedAt = null
+)
+
+fun episode(id: Long, feedId: Long) = EpisodeEntity(
+    id = id,
+    feedId = feedId,
+    guid = "guid-$id",
+    title = "Episode $id",
+    audioUrl = "https://example.com/$id.mp3",
+    pubDateMillis = null,
+    durationSeconds = null,
+    description = null,
+    imageUrl = null,
+    dateFetched = 0L
+)
+
+fun queueItem(entryId: Long, position: Int, feedId: Long) = QueueItemWithEpisode(
+    episode = episode(id = entryId, feedId = feedId),
+    podcastTitle = "Podcast $feedId",
+    podcastImageUrl = null,
+    queueEntryId = entryId,
+    queuePosition = position
 )
 
 class FakePodcastFeedDao(initial: List<PodcastFeedEntity> = emptyList()) : PodcastFeedDao {
@@ -52,6 +75,9 @@ class FakeTagDao(private val feeds: StateFlow<List<PodcastFeedEntity>>) : TagDao
 
     override fun observeTagIdsForPodcast(podcastId: Long): Flow<List<Long>> =
         _links.map { links -> links.filter { it.podcastId == podcastId }.map { it.tagId } }
+
+    override fun observePodcastIdsWithTag(tagId: Long): Flow<List<Long>> =
+        _links.map { links -> links.filter { it.tagId == tagId }.map { it.podcastId } }
 
     override fun observeFeedsWithTag(tagId: Long): Flow<List<PodcastFeedEntity>> =
         combine(feeds, _links) { feedList, links ->

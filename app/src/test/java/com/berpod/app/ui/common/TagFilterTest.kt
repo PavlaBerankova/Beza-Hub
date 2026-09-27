@@ -1,4 +1,4 @@
-package com.berpod.app.ui.podcastlist
+package com.berpod.app.ui.common
 
 import com.berpod.app.data.local.TagEntity
 import org.junit.Assert.assertEquals

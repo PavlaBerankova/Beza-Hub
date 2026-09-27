@@ -9,6 +9,7 @@ import com.berpod.app.data.repository.EpisodeRepository
 import com.berpod.app.data.repository.PodcastRepository
 import com.berpod.app.data.repository.TagRepository
 import com.berpod.app.ui.common.TagAssignmentController
+import com.berpod.app.ui.common.resolveSelectedTagId
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,10 +35,6 @@ data class PodcastListUiState(
     val isSubmitting: Boolean = false,
     val errorMessage: String? = null
 )
-
-/** Keeps [selected] if that tag still exists, otherwise falls back to "Všechny" (null). */
-fun resolveSelectedTagId(selected: Long?, tags: List<TagEntity>): Long? =
-    selected?.takeIf { id -> tags.any { it.id == id } }
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PodcastListViewModel(

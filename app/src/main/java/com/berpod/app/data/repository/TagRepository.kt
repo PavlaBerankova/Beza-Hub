@@ -19,6 +19,8 @@ class TagRepository(
 
     fun observeTagIdsForPodcast(podcastId: Long): Flow<List<Long>> = tagDao.observeTagIdsForPodcast(podcastId)
 
+    fun observePodcastIdsWithTag(tagId: Long): Flow<List<Long>> = tagDao.observePodcastIdsWithTag(tagId)
+
     /** All feeds when [filterTagId] is null, otherwise only feeds carrying that tag. */
     fun observeFeeds(filterTagId: Long?): Flow<List<PodcastFeedEntity>> =
         if (filterTagId == null) podcastFeedDao.observeAll() else tagDao.observeFeedsWithTag(filterTagId)

@@ -121,7 +121,13 @@ fun BerpodApp(container: AppContainer) {
                 )
             }
             composable(Screen.Queue.route) {
-                QueueScreen(viewModelFactory = QueueViewModel.factory(container.queueRepository, container.playbackRepository))
+                QueueScreen(
+                    viewModelFactory = QueueViewModel.factory(
+                        container.queueRepository,
+                        container.playbackRepository,
+                        container.tagRepository
+                    )
+                )
             }
             composable(Screen.NewEpisodes.route) {
                 NewEpisodesScreen(

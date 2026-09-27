@@ -15,6 +15,9 @@ interface TagDao {
     @Query("SELECT tagId FROM podcast_tags WHERE podcastId = :podcastId")
     fun observeTagIdsForPodcast(podcastId: Long): Flow<List<Long>>
 
+    @Query("SELECT podcastId FROM podcast_tags WHERE tagId = :tagId")
+    fun observePodcastIdsWithTag(tagId: Long): Flow<List<Long>>
+
     @Query(
         """
         SELECT podcast_feeds.* FROM podcast_feeds
