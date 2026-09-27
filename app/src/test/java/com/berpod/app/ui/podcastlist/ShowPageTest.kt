@@ -1,5 +1,6 @@
 package com.berpod.app.ui.podcastlist
 
+import com.berpod.app.data.local.TagEntity
 import com.berpod.app.testutil.episode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -68,5 +69,12 @@ class ShowPageTest {
         assertEquals(3, pickHeaderColor(vibrant = null, darkVibrant = null, muted = 3, dominant = 4))
         assertEquals(4, pickHeaderColor(vibrant = null, darkVibrant = null, muted = null, dominant = 4))
         assertNull(pickHeaderColor(vibrant = null, darkVibrant = null, muted = null, dominant = null))
+    }
+
+    @Test
+    fun `tag names of the podcast in the tags' order, none when untagged`() {
+        val tags = listOf(TagEntity(1, "Health"), TagEntity(2, "IT Tech"), TagEntity(3, "News"))
+        assertEquals(listOf("Health", "News"), tagNamesFor(tags, assignedIds = setOf(3L, 1L)))
+        assertEquals(emptyList<String>(), tagNamesFor(tags, assignedIds = emptySet()))
     }
 }

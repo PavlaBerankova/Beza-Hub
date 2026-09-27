@@ -1,6 +1,7 @@
 package com.berpod.app.ui.podcastlist
 
 import com.berpod.app.data.local.EpisodeEntity
+import com.berpod.app.data.local.TagEntity
 import com.berpod.app.ui.common.episodeProgressFraction
 import com.berpod.app.ui.common.formatDuration
 
@@ -59,3 +60,7 @@ fun isLightColor(argb: Int): Boolean {
  */
 fun pickHeaderColor(vibrant: Int?, darkVibrant: Int?, muted: Int?, dominant: Int?): Int? =
     vibrant ?: darkVibrant ?: muted ?: dominant
+
+/** Names of the podcast's tags, in [tags]' (alphabetical) order; empty when it has none. */
+fun tagNamesFor(tags: List<TagEntity>, assignedIds: Set<Long>): List<String> =
+    tags.filter { it.id in assignedIds }.map { it.name }

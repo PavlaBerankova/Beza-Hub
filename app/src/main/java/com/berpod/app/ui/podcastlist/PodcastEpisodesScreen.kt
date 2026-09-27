@@ -140,6 +140,7 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                     topPadding = paddingValues.calculateTopPadding(),
                     background = headerBackground,
                     contentColor = headerContent,
+                    tags = uiState.feedTags,
                     playButton = playButton,
                     onColorExtracted = { coverColor = it },
                     modifier = Modifier.onSizeChanged { headerHeightPx = it.height }

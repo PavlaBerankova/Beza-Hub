@@ -13,6 +13,7 @@ import com.berpod.app.ui.common.TagAssignmentController
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
@@ -22,6 +23,8 @@ data class PodcastEpisodesUiState(
     val feedTitle: String = "",
     val feedImageUrl: String? = null,
     val feedAuthor: String? = null,
+    /** Names of the tags this podcast carries, alphabetical. */
+    val feedTags: List<String> = emptyList(),
     val episodes: List<EpisodeEntity> = emptyList(),
     val isRefreshing: Boolean = false,
     val snackbarMessage: String? = null,
@@ -50,6 +53,11 @@ class PodcastEpisodesViewModel(
                     it.copy(feedTitle = feed?.title.orEmpty(), feedImageUrl = feed?.imageUrl, feedAuthor = feed?.author)
                 }
             }
+            .launchIn(viewModelScope)
+        combine(tagRepository.observeTags(), tagRepository.observeTagIdsForPodcast(feedId)) { tags, ids ->
+            tagNamesFor(tags, ids.toSet())
+        }
+            .onEach { names -> _uiState.update { it.copy(feedTags = names) } }
             .launchIn(viewModelScope)
         episodeRepository.observeEpisodesForFeed(feedId)
             .onEach { episodes -> _uiState.update { it.copy(episodes = episodes) } }

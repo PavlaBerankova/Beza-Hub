@@ -2,8 +2,10 @@ package com.berpod.app.ui.podcastlist
 
 import android.graphics.Bitmap
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -47,6 +49,7 @@ fun isBarOverHeader(firstVisibleIndex: Int, scrollOffsetPx: Int, headerHeightPx:
     firstVisibleIndex == 0 && scrollOffsetPx <= headerHeightPx - barHeightPx
 
 private val CoverShape = RoundedCornerShape(12.dp)
+private val TagShape = RoundedCornerShape(50)
 
 /** The play button in the header: its label, icon and action. */
 data class HeaderPlayButton(val label: String, val icon: ImageVector, val onClick: () -> Unit)
@@ -64,6 +67,7 @@ fun PodcastHeader(
     topPadding: Dp,
     background: Color,
     contentColor: Color,
+    tags: List<String>,
     playButton: HeaderPlayButton?,
     onColorExtracted: (Color) -> Unit,
     modifier: Modifier = Modifier
@@ -121,6 +125,27 @@ fun PodcastHeader(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(top = 4.dp)
             )
+        }
+        if (tags.isNotEmpty()) {
+            FlowRow(
+                modifier = Modifier.padding(top = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                tags.forEach { name ->
+                    Text(
+                        text = name,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = contentColor,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier
+                            .clip(TagShape)
+                            .background(contentColor.copy(alpha = 0.18f))
+                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                    )
+                }
+            }
         }
         if (playButton != null) {
             Spacer(Modifier.height(20.dp))
