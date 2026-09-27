@@ -14,6 +14,22 @@ class PlayerViewModel(private val playbackRepository: PlaybackRepository) : View
 
     fun seekTo(positionMs: Long) = playbackRepository.seekTo(positionMs)
 
+    fun skipBack() = playbackRepository.skipBy(-15_000)
+
+    fun skipForward() = playbackRepository.skipBy(30_000)
+
+    fun playNext() = playbackRepository.playNext()
+
+    fun playPrevious() = playbackRepository.playPrevious()
+
+    fun cycleSpeed() = playbackRepository.cycleSpeed()
+
+    fun setSleepTimer(minutes: Int) = playbackRepository.setSleepTimer(minutes)
+
+    fun setSleepAtEndOfEpisode() = playbackRepository.setSleepAtEndOfEpisode()
+
+    fun cancelSleepTimer() = playbackRepository.cancelSleepTimer()
+
     companion object {
         fun factory(playbackRepository: PlaybackRepository) = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
