@@ -119,7 +119,11 @@ fun BerpodApp(container: AppContainer) {
         ) {
             composable(Screen.Podcasts.route) {
                 PodcastListScreen(
-                    viewModelFactory = PodcastListViewModel.factory(container.podcastRepository, container.episodeRepository),
+                    viewModelFactory = PodcastListViewModel.factory(
+                        container.podcastRepository,
+                        container.episodeRepository,
+                        container.tagRepository
+                    ),
                     onPodcastClick = { feedId -> navController.navigate(Screen.PodcastEpisodes.createRoute(feedId)) }
                 )
             }
