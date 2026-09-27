@@ -15,7 +15,6 @@
     <string name="nav_podcasts">Podcasty</string>
     <string name="nav_queue">Fronta</string>
     <string name="nav_new_episodes">Nové</string>
-    <string name="nav_playlists">Playlisty</string>
 
     <string name="queue_empty_title">Fronta je prázdná</string>
     <string name="queue_empty_subtitle">Přidejte epizody z Nových přes nabídku ⋮</string>
@@ -28,17 +27,7 @@
     <string name="new_episodes_empty">Zatím žádné nové epizody</string>
 
     <string name="action_add_to_queue">Přidat do fronty</string>
-    <string name="action_add_to_playlist">Přidat do playlistu</string>
     <string name="action_download">Stáhnout</string>
-    <string name="playlists_title">Playlisty</string>
-    <string name="playlists_empty">Zatím žádné playlisty</string>
-    <string name="playlist_detail_empty">Tento playlist je zatím prázdný</string>
-    <string name="fab_add_playlist">Vytvořit playlist</string>
-    <string name="create_playlist_dialog_title">Nový playlist</string>
-    <string name="create_playlist_name_label">Název playlistu</string>
-    <string name="add_to_playlist_dialog_title">Přidat do playlistu</string>
-    <string name="action_new_playlist_inline">+ Nový playlist</string>
-    <string name="action_remove_from_playlist">Odebrat z playlistu</string>
 
     <string name="podcast_episodes_empty">Zatím žádné epizody</string>
 

@@ -4,10 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.berpod.app.data.local.EpisodeEntity
-import com.berpod.app.data.local.PlaylistEntity
 import com.berpod.app.data.repository.EpisodeRepository
 import com.berpod.app.data.repository.PlaybackRepository
-import com.berpod.app.data.repository.PlaylistRepository
 import com.berpod.app.data.repository.PodcastRepository
 import com.berpod.app.data.repository.QueueRepository
 import com.berpod.app.data.repository.TagRepository
@@ -26,10 +24,6 @@ data class PodcastEpisodesUiState(
     val episodes: List<EpisodeEntity> = emptyList(),
     val isRefreshing: Boolean = false,
     val snackbarMessage: String? = null,
-    val playlists: List<PlaylistEntity> = emptyList(),
-    val playlistPickerEpisodeId: Long? = null,
-    val isCreatingPlaylist: Boolean = false,
-    val playlistPickerError: String? = null,
     val currentlyPlayingEpisodeId: Long? = null,
     val isPlaying: Boolean = false
 )
@@ -38,7 +32,6 @@ class PodcastEpisodesViewModel(
     private val podcastRepository: PodcastRepository,
     private val episodeRepository: EpisodeRepository,
     private val queueRepository: QueueRepository,
-    private val playlistRepository: PlaylistRepository,
     private val playbackRepository: PlaybackRepository,
     private val tagRepository: TagRepository,
     private val feedId: Long
@@ -56,9 +49,6 @@ class PodcastEpisodesViewModel(
         }
         episodeRepository.observeEpisodesForFeed(feedId)
             .onEach { episodes -> _uiState.update { it.copy(episodes = episodes) } }
-            .launchIn(viewModelScope)
-        playlistRepository.observePlaylists()
-            .onEach { playlists -> _uiState.update { it.copy(playlists = playlists) } }
             .launchIn(viewModelScope)
         playbackRepository.uiState
             .onEach { playback ->
@@ -101,55 +91,11 @@ class PodcastEpisodesViewModel(
         _uiState.update { it.copy(snackbarMessage = null) }
     }
 
-    fun onOpenPlaylistPicker(episodeId: Long) {
-        _uiState.update { it.copy(playlistPickerEpisodeId = episodeId, playlistPickerError = null) }
-    }
-
-    fun onDismissPlaylistPicker() {
-        _uiState.update { it.copy(playlistPickerEpisodeId = null, playlistPickerError = null) }
-    }
-
-    fun onAddToExistingPlaylist(playlistId: Long) {
-        val episodeId = _uiState.value.playlistPickerEpisodeId ?: return
-        viewModelScope.launch {
-            playlistRepository.addEpisode(playlistId, episodeId)
-                .onSuccess {
-                    _uiState.update {
-                        it.copy(playlistPickerEpisodeId = null, playlistPickerError = null, snackbarMessage = "Přidáno do playlistu")
-                    }
-                }
-                .onFailure { error -> _uiState.update { it.copy(playlistPickerError = error.message) } }
-        }
-    }
-
-    fun onCreatePlaylistAndAdd(name: String) {
-        val episodeId = _uiState.value.playlistPickerEpisodeId ?: return
-        _uiState.update { it.copy(isCreatingPlaylist = true, playlistPickerError = null) }
-        viewModelScope.launch {
-            playlistRepository.createPlaylist(name)
-                .onSuccess { playlistId ->
-                    playlistRepository.addEpisode(playlistId, episodeId)
-                    _uiState.update {
-                        it.copy(
-                            isCreatingPlaylist = false,
-                            playlistPickerEpisodeId = null,
-                            playlistPickerError = null,
-                            snackbarMessage = "Přidáno do playlistu"
-                        )
-                    }
-                }
-                .onFailure { error ->
-                    _uiState.update { it.copy(isCreatingPlaylist = false, playlistPickerError = error.message) }
-                }
-        }
-    }
-
     companion object {
         fun factory(
             podcastRepository: PodcastRepository,
             episodeRepository: EpisodeRepository,
             queueRepository: QueueRepository,
-            playlistRepository: PlaylistRepository,
             playbackRepository: PlaybackRepository,
             tagRepository: TagRepository,
             feedId: Long
@@ -160,7 +106,6 @@ class PodcastEpisodesViewModel(
                     podcastRepository,
                     episodeRepository,
                     queueRepository,
-                    playlistRepository,
                     playbackRepository,
                     tagRepository,
                     feedId

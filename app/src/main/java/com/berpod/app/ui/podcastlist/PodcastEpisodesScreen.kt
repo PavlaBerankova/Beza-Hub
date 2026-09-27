@@ -31,7 +31,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.berpod.app.R
-import com.berpod.app.ui.common.AddToPlaylistDialog
 import com.berpod.app.ui.common.EmptyState
 import com.berpod.app.ui.common.EpisodeListItem
 import com.berpod.app.ui.common.TagAssignDialog
@@ -95,7 +94,6 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                             podcastTitle = null,
                             podcastImageUrl = uiState.feedImageUrl,
                             onAddToQueue = { viewModel.onAddToQueue(episode.id) },
-                            onAddToPlaylist = { viewModel.onOpenPlaylistPicker(episode.id) },
                             onPlay = { viewModel.onPlay(episode) },
                             isCurrentlyPlaying = uiState.currentlyPlayingEpisodeId == episode.id && uiState.isPlaying,
                             onDownload = {},
@@ -106,16 +104,6 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
             }
         }
 
-        if (uiState.playlistPickerEpisodeId != null) {
-            AddToPlaylistDialog(
-                playlists = uiState.playlists,
-                isSubmitting = uiState.isCreatingPlaylist,
-                errorMessage = uiState.playlistPickerError,
-                onDismiss = viewModel::onDismissPlaylistPicker,
-                onAddToExisting = viewModel::onAddToExistingPlaylist,
-                onCreateNew = viewModel::onCreatePlaylistAndAdd
-            )
-        }
         tagAssignState?.let { state ->
             TagAssignDialog(
                 state = state,

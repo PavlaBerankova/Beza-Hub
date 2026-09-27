@@ -94,3 +94,11 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_podcast_tags_tagId` ON `podcast_tags` (`tagId`)")
     }
 }
+
+val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // Child table first: playlist_episodes has a foreign key to playlists.
+        db.execSQL("DROP TABLE IF EXISTS `playlist_episodes`")
+        db.execSQL("DROP TABLE IF EXISTS `playlists`")
+    }
+}

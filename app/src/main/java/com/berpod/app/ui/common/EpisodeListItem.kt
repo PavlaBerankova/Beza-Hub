@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Pause
@@ -34,7 +33,6 @@ fun EpisodeListItem(
     podcastTitle: String?,
     podcastImageUrl: String?,
     onAddToQueue: (() -> Unit)? = null,
-    onAddToPlaylist: (() -> Unit)? = null,
     trailingContent: @Composable (() -> Unit)? = null,
     onPlay: (() -> Unit)? = null,
     isCurrentlyPlaying: Boolean = false,
@@ -83,7 +81,7 @@ fun EpisodeListItem(
                     trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                 )
             }
-            if (onDownload != null || onAddToQueue != null || onAddToPlaylist != null) {
+            if (onDownload != null || onAddToQueue != null) {
                 Row(
                     modifier = Modifier.padding(top = 6.dp),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -103,16 +101,6 @@ fun EpisodeListItem(
                             Icon(
                                 Icons.AutoMirrored.Filled.QueueMusic,
                                 contentDescription = stringResource(R.string.action_add_to_queue),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                    }
-                    if (onAddToPlaylist != null) {
-                        IconButton(onClick = onAddToPlaylist, modifier = Modifier.size(48.dp)) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.PlaylistAdd,
-                                contentDescription = stringResource(R.string.action_add_to_playlist),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(20.dp)
                             )

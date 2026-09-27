@@ -29,7 +29,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.berpod.app.R
-import com.berpod.app.ui.common.AddToPlaylistDialog
 import com.berpod.app.ui.common.EmptyState
 import com.berpod.app.ui.common.EpisodeListItem
 import com.berpod.app.ui.common.episodeProgressFraction
@@ -80,7 +79,6 @@ fun NewEpisodesScreen(viewModelFactory: ViewModelProvider.Factory) {
                             podcastTitle = item.podcastTitle,
                             podcastImageUrl = item.podcastImageUrl,
                             onAddToQueue = { viewModel.onAddToQueue(item.episode.id) },
-                            onAddToPlaylist = { viewModel.onOpenPlaylistPicker(item.episode.id) },
                             onPlay = { viewModel.onPlay(item) },
                             isCurrentlyPlaying = uiState.currentlyPlayingEpisodeId == item.episode.id && uiState.isPlaying,
                             onDownload = {},
@@ -91,15 +89,5 @@ fun NewEpisodesScreen(viewModelFactory: ViewModelProvider.Factory) {
             }
         }
 
-        if (uiState.playlistPickerEpisodeId != null) {
-            AddToPlaylistDialog(
-                playlists = uiState.playlists,
-                isSubmitting = uiState.isCreatingPlaylist,
-                errorMessage = uiState.playlistPickerError,
-                onDismiss = viewModel::onDismissPlaylistPicker,
-                onAddToExisting = viewModel::onAddToExistingPlaylist,
-                onCreateNew = viewModel::onCreatePlaylistAndAdd
-            )
-        }
     }
 }

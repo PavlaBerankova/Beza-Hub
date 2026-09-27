@@ -15,11 +15,3 @@ data class QueueItemWithEpisode(
     val queueEntryId: Long,
     val queuePosition: Int
 )
-
-data class PlaylistEpisodeWithEpisode(
-    @Embedded val episode: EpisodeEntity,
-    val podcastTitle: String,
-    val podcastImageUrl: String?,
-    val playlistId: Long,
-    val playlistPosition: Int
-)

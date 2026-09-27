@@ -8,18 +8,15 @@ import androidx.room.RoomDatabase
         PodcastFeedEntity::class,
         EpisodeEntity::class,
         QueueEntryEntity::class,
-        PlaylistEntity::class,
-        PlaylistEpisodeCrossRef::class,
         TagEntity::class,
         PodcastTagCrossRef::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun podcastFeedDao(): PodcastFeedDao
     abstract fun episodeDao(): EpisodeDao
     abstract fun queueDao(): QueueDao
-    abstract fun playlistDao(): PlaylistDao
     abstract fun tagDao(): TagDao
 }
