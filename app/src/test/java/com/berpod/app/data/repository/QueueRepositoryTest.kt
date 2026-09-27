@@ -167,14 +167,4 @@ class QueueRepositoryTest {
         assertEquals(listOf(1001L, 1002L, 1003L), dao.episodeOrder())
         assertEquals(null, repository.removeEpisode(9999))
     }
-
-    @Test
-    fun `toggleQueued adds a new episode at the end and removes a queued one`() = runTest {
-        val dao = queueOf(1, 2)
-        val repository = QueueRepository(dao)
-        assertEquals(QueueToggle.Added, repository.toggleQueued(5))
-        assertEquals(listOf(1001L, 1002L, 5L), dao.episodeOrder())
-        assertEquals(QueueToggle.Removed, repository.toggleQueued(1001))
-        assertEquals(listOf(1002L, 5L), dao.episodeOrder())
-    }
 }

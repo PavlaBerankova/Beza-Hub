@@ -8,7 +8,6 @@ import com.berpod.app.data.repository.EpisodeRepository
 import com.berpod.app.data.repository.PlaybackRepository
 import com.berpod.app.data.repository.PodcastRepository
 import com.berpod.app.data.repository.QueueRepository
-import com.berpod.app.data.repository.QueueToggle
 import com.berpod.app.data.repository.TagRepository
 import com.berpod.app.ui.common.PlayedUndo
 import com.berpod.app.ui.common.TagAssignmentController
@@ -129,13 +128,10 @@ class PodcastEpisodesViewModel(
         _uiState.update { it.copy(playedUndo = null) }
     }
 
-    fun onToggleQueue(episodeId: Long) {
+    fun onAddToQueue(episodeId: Long) {
         viewModelScope.launch {
-            runCatching { queueRepository.toggleQueued(episodeId) }
-                .onSuccess { result ->
-                    val message = if (result == QueueToggle.Added) "Přidáno do fronty" else "Odebráno z fronty"
-                    _uiState.update { it.copy(snackbarMessage = message) }
-                }
+            queueRepository.addToQueue(episodeId)
+                .onSuccess { _uiState.update { it.copy(snackbarMessage = "Přidáno do fronty") } }
                 .onFailure { error -> _uiState.update { it.copy(snackbarMessage = error.message) } }
         }
     }

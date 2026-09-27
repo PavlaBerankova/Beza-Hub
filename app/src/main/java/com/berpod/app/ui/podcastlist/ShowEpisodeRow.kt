@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.berpod.app.R
 import com.berpod.app.data.local.EpisodeEntity
-import com.berpod.app.ui.common.QueueToggleButton
+import com.berpod.app.ui.common.AddToQueueButton
 import com.berpod.app.ui.dot.DotIcon
 import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIcons
@@ -32,14 +32,14 @@ import com.berpod.app.ui.dot.upperCs
 import com.berpod.app.ui.theme.DotTheme
 import com.berpod.app.ui.theme.DotType
 
-/** Dot Matrix episode row: date (accent + "NOVÁ" when recent), title, description, queue (filled when queued)/download, time and play. */
+/** Dot Matrix episode row: date (accent + "NOVÁ" when recent), title, description, queue (until queued)/download, time and play. */
 @Composable
 fun ShowEpisodeRow(
     episode: EpisodeEntity,
     isCurrentlyPlaying: Boolean,
     onPlayOrPause: () -> Unit,
     isQueued: Boolean,
-    onToggleQueue: () -> Unit,
+    onAddToQueue: () -> Unit,
     nowMillis: Long
 ) {
     val c = DotTheme.colors
@@ -56,7 +56,7 @@ fun ShowEpisodeRow(
             Text(it, style = DotType.body, color = c.textMuted, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
         Row(modifier = Modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            QueueToggleButton(isQueued, onToggleQueue)
+            AddToQueueButton(isQueued, onAddToQueue)
             DotIconButton(DotIcons.Download, stringResource(R.string.action_download), {}, radius = 12.dp, iconSize = 22.dp)
             Spacer(Modifier.weight(1f))
             if (played) {

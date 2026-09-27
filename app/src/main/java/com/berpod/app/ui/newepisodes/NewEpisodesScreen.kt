@@ -34,7 +34,7 @@ import com.berpod.app.R
 import com.berpod.app.ui.common.CompactEpisodeRow
 import com.berpod.app.ui.common.EmptyState
 import com.berpod.app.ui.common.MarkPlayedSwipe
-import com.berpod.app.ui.common.QueueToggleButton
+import com.berpod.app.ui.common.AddToQueueButton
 import com.berpod.app.ui.common.TagChipRow
 import com.berpod.app.ui.dot.DotIcons
 import com.berpod.app.ui.dot.SectionSeparator
@@ -123,7 +123,7 @@ fun NewEpisodesScreen(viewModelFactory: ViewModelProvider.Factory) {
                                     isPlaying = isCurrent && uiState.isPlaying,
                                     onPlayOrPause = { viewModel.onPlayOrPause(item) }
                                 ) {
-                                    QueueToggleButton(isQueued) { viewModel.onToggleQueue(item.episode.id) }
+                                    AddToQueueButton(isQueued) { viewModel.onAddToQueue(item.episode.id) }
                                 }
                             }
                         }
