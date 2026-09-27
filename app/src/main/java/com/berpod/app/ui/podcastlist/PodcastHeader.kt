@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.palette.graphics.Palette
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
@@ -95,7 +96,7 @@ fun PodcastHeader(
                     model = ImageRequest.Builder(context).data(imageUrl).allowHardware(false).build(),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    onSuccess = { state -> onColorExtracted(averageColor(state.result.image.toBitmap())) },
+                    onSuccess = { state -> coverColor(state.result.image.toBitmap())?.let(onColorExtracted) },
                     modifier = Modifier.matchParentSize()
                 )
             }
@@ -136,4 +137,12 @@ fun PodcastHeader(
     }
 }
 
-private fun averageColor(bitmap: Bitmap): Color = Color(Bitmap.createScaledBitmap(bitmap, 1, 1, true).getPixel(0, 0))
+private fun coverColor(bitmap: Bitmap): Color? {
+    val palette = Palette.from(bitmap).generate()
+    return pickHeaderColor(
+        vibrant = palette.vibrantSwatch?.rgb,
+        darkVibrant = palette.darkVibrantSwatch?.rgb,
+        muted = palette.mutedSwatch?.rgb,
+        dominant = palette.dominantSwatch?.rgb
+    )?.let(::Color)
+}

@@ -52,3 +52,10 @@ fun isLightColor(argb: Int): Boolean {
     val b = argb and 0xFF
     return (0.299 * r + 0.587 * g + 0.114 * b) / 255.0 > 0.6
 }
+
+/**
+ * The header colour from the cover's palette swatches (ARGB): the vivid one Apple-style headers use, falling
+ * back to darker, muted and finally the dominant colour; null if the palette found none.
+ */
+fun pickHeaderColor(vibrant: Int?, darkVibrant: Int?, muted: Int?, dominant: Int?): Int? =
+    vibrant ?: darkVibrant ?: muted ?: dominant
