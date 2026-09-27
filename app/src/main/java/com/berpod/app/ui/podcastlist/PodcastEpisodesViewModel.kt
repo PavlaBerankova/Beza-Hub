@@ -10,6 +10,8 @@ import com.berpod.app.data.repository.PlaybackRepository
 import com.berpod.app.data.repository.PlaylistRepository
 import com.berpod.app.data.repository.PodcastRepository
 import com.berpod.app.data.repository.QueueRepository
+import com.berpod.app.data.repository.TagRepository
+import com.berpod.app.ui.common.TagAssignmentController
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -38,11 +40,14 @@ class PodcastEpisodesViewModel(
     private val queueRepository: QueueRepository,
     private val playlistRepository: PlaylistRepository,
     private val playbackRepository: PlaybackRepository,
+    private val tagRepository: TagRepository,
     private val feedId: Long
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PodcastEpisodesUiState())
     val uiState: StateFlow<PodcastEpisodesUiState> = _uiState.asStateFlow()
+
+    val tagAssignment = TagAssignmentController(tagRepository, viewModelScope)
 
     init {
         viewModelScope.launch {
@@ -81,6 +86,8 @@ class PodcastEpisodesViewModel(
                 }
         }
     }
+
+    fun onOpenTagDialog() = tagAssignment.open(feedId, _uiState.value.feedTitle)
 
     fun onAddToQueue(episodeId: Long) {
         viewModelScope.launch {
@@ -144,6 +151,7 @@ class PodcastEpisodesViewModel(
             queueRepository: QueueRepository,
             playlistRepository: PlaylistRepository,
             playbackRepository: PlaybackRepository,
+            tagRepository: TagRepository,
             feedId: Long
         ) = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
@@ -154,6 +162,7 @@ class PodcastEpisodesViewModel(
                     queueRepository,
                     playlistRepository,
                     playbackRepository,
+                    tagRepository,
                     feedId
                 ) as T
             }

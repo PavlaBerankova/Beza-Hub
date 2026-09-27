@@ -172,6 +172,7 @@ fun BerpodApp(container: AppContainer) {
                         container.queueRepository,
                         container.playlistRepository,
                         container.playbackRepository,
+                        container.tagRepository,
                         feedId
                     ),
                     onBack = { navController.popBackStack() }

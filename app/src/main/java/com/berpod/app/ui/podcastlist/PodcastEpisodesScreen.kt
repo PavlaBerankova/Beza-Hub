@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.Label
 import androidx.compose.material.icons.filled.Podcasts
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.CircularProgressIndicator
@@ -33,6 +34,7 @@ import com.berpod.app.R
 import com.berpod.app.ui.common.AddToPlaylistDialog
 import com.berpod.app.ui.common.EmptyState
 import com.berpod.app.ui.common.EpisodeListItem
+import com.berpod.app.ui.common.TagAssignDialog
 import com.berpod.app.ui.common.episodeProgressFraction
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,6 +42,7 @@ import com.berpod.app.ui.common.episodeProgressFraction
 fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: () -> Unit) {
     val viewModel: PodcastEpisodesViewModel = viewModel(factory = viewModelFactory)
     val uiState by viewModel.uiState.collectAsState()
+    val tagAssignState by viewModel.tagAssignment.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(uiState.snackbarMessage) {
@@ -59,6 +62,12 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                     }
                 },
                 actions = {
+                    IconButton(onClick = viewModel::onOpenTagDialog) {
+                        Icon(
+                            Icons.AutoMirrored.Outlined.Label,
+                            contentDescription = stringResource(R.string.action_manage_tags)
+                        )
+                    }
                     if (uiState.isRefreshing) {
                         CircularProgressIndicator(modifier = Modifier.size(24.dp).padding(end = 8.dp))
                     } else {
@@ -105,6 +114,14 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                 onDismiss = viewModel::onDismissPlaylistPicker,
                 onAddToExisting = viewModel::onAddToExistingPlaylist,
                 onCreateNew = viewModel::onCreatePlaylistAndAdd
+            )
+        }
+        tagAssignState?.let { state ->
+            TagAssignDialog(
+                state = state,
+                onToggle = viewModel.tagAssignment::setAssigned,
+                onCreate = viewModel.tagAssignment::createAndAssign,
+                onDismiss = viewModel.tagAssignment::dismiss
             )
         }
     }
