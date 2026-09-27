@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,10 +26,20 @@ import coil3.compose.AsyncImage
 import com.berpod.app.data.repository.PlaybackUiState
 
 @Composable
-fun MiniPlayerBar(state: PlaybackUiState, onClick: () -> Unit, onPlayPauseClick: () -> Unit) {
+fun MiniPlayerBar(
+    state: PlaybackUiState,
+    onClick: () -> Unit,
+    onPlayPauseClick: () -> Unit,
+    // True when nothing below it (no bottom navigation) keeps it clear of the system navigation bar.
+    padForSystemBar: Boolean = false
+) {
     Surface(onClick = onClick, color = MaterialTheme.colorScheme.primary.copy(alpha = 0.03f)) {
         Row(
-            modifier = Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 12.dp),
+            modifier = Modifier
+                .then(if (padForSystemBar) Modifier.navigationBarsPadding() else Modifier)
+                .fillMaxWidth()
+                .height(64.dp)
+                .padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             AsyncImage(

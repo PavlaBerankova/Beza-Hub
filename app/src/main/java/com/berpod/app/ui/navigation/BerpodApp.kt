@@ -69,15 +69,17 @@ fun BerpodApp(container: AppContainer) {
 
     Scaffold(
         bottomBar = {
+            val showNavigation = bottomTabs.any { it.route == currentRoute }
             Column {
                 if (playbackState.currentEpisodeId != null) {
                     MiniPlayerBar(
                         state = playbackState,
                         onClick = { navController.navigate(Screen.Player.route) { launchSingleTop = true } },
-                        onPlayPauseClick = playerViewModel::togglePlayPause
+                        onPlayPauseClick = playerViewModel::togglePlayPause,
+                        padForSystemBar = !showNavigation
                     )
                 }
-                if (bottomTabs.any { it.route == currentRoute }) {
+                if (showNavigation) {
                     NavigationBar {
                         bottomTabs.forEach { screen ->
                             NavigationBarItem(
