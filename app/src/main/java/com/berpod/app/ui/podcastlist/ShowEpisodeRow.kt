@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -28,7 +29,7 @@ import com.berpod.app.R
 import com.berpod.app.data.local.EpisodeEntity
 import com.berpod.app.ui.common.formatPubDate
 
-/** Apple Podcasts-style episode row: date, bold title, two-line description, play + time and actions. */
+/** Apple Podcasts-style episode row: date, bold title, two-line description, then actions left and time + play right. */
 @Composable
 fun ShowEpisodeRow(
     episode: EpisodeEntity,
@@ -59,34 +60,35 @@ fun ShowEpisodeRow(
             )
         }
         Row(modifier = Modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            FilledTonalIconButton(onClick = onPlayOrPause) {
+            IconButton(onClick = onAddToQueue, modifier = Modifier.offset(x = (-12).dp)) {
                 Icon(
-                    imageVector = if (isCurrentlyPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                    contentDescription = stringResource(if (isCurrentlyPlaying) R.string.action_pause else R.string.action_play),
-                    modifier = Modifier.size(20.dp)
+                    Icons.AutoMirrored.Filled.QueueMusic,
+                    contentDescription = stringResource(R.string.action_add_to_queue),
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
+            IconButton(onClick = {}, modifier = Modifier.offset(x = (-12).dp)) {
+                Icon(
+                    Icons.Filled.Download,
+                    contentDescription = stringResource(R.string.action_download),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+            Spacer(Modifier.weight(1f))
             remainingText(episode)?.let { time ->
                 Text(
                     text = time,
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(start = 4.dp)
+                    modifier = Modifier.padding(end = 2.dp)
                 )
             }
-            Spacer(Modifier.weight(1f))
-            IconButton(onClick = onAddToQueue) {
+            // Nudged so the circle sits 16dp from the edge, mirroring the icons on the left.
+            FilledTonalIconButton(onClick = onPlayOrPause, modifier = Modifier.offset(x = (-4).dp)) {
                 Icon(
-                    Icons.AutoMirrored.Filled.QueueMusic,
-                    contentDescription = stringResource(R.string.action_add_to_queue),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            IconButton(onClick = {}) {
-                Icon(
-                    Icons.Filled.Download,
-                    contentDescription = stringResource(R.string.action_download),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    imageVector = if (isCurrentlyPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                    contentDescription = stringResource(if (isCurrentlyPlaying) R.string.action_pause else R.string.action_play),
+                    modifier = Modifier.size(20.dp)
                 )
             }
         }

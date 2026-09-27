@@ -107,11 +107,13 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                         Text(uiState.feedTitle, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     } else if (uiState.feedTags.isNotEmpty()) {
                         // Over the header the bar has no title, so the podcast's tags sit here instead.
-                        Row(
-                            modifier = Modifier.horizontalScroll(rememberScrollState()),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            uiState.feedTags.forEach { name -> HeaderTagChip(name, headerContent) }
+                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+                            Row(
+                                modifier = Modifier.horizontalScroll(rememberScrollState()),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                uiState.feedTags.forEach { name -> HeaderTagChip(name, headerContent) }
+                            }
                         }
                     }
                 },

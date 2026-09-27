@@ -48,6 +48,7 @@ fun isBarOverHeader(firstVisibleIndex: Int, scrollOffsetPx: Int, headerHeightPx:
     firstVisibleIndex == 0 && scrollOffsetPx <= headerHeightPx - barHeightPx
 
 private val CoverShape = RoundedCornerShape(12.dp)
+private val CoverSize = 120.dp
 private val TagShape = RoundedCornerShape(50)
 
 
@@ -78,10 +79,10 @@ fun PodcastHeader(
             .background(background)
             .padding(start = 16.dp, end = 16.dp, top = topPadding, bottom = 16.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row {
             Box(
                 modifier = Modifier
-                    .size(120.dp)
+                    .size(CoverSize)
                     .shadow(elevation = 8.dp, shape = CoverShape)
                     .clip(CoverShape)
                     .background(MaterialTheme.colorScheme.surfaceVariant),
@@ -105,7 +106,8 @@ fun PodcastHeader(
                 }
             }
             Spacer(Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
+            // As tall as the cover, so the play button lines up with the cover's bottom edge.
+            Column(modifier = Modifier.weight(1f).height(CoverSize)) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleLarge,
@@ -124,12 +126,13 @@ fun PodcastHeader(
                         modifier = Modifier.padding(top = 2.dp)
                     )
                 }
+                Spacer(Modifier.weight(1f))
                 if (playButton != null) {
                     Button(
                         onClick = playButton.onClick,
                         colors = ButtonDefaults.buttonColors(containerColor = contentColor, contentColor = background),
                         contentPadding = PaddingValues(horizontal = 18.dp, vertical = 8.dp),
-                        modifier = Modifier.padding(top = 10.dp).height(40.dp)
+                        modifier = Modifier.height(40.dp)
                     ) {
                         Icon(playButton.icon, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(6.dp))
