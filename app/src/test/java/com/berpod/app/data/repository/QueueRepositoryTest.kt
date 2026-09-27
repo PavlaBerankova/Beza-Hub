@@ -131,4 +131,25 @@ class QueueRepositoryTest {
     fun `removing an unknown entry returns null`() = runTest {
         assertEquals(null, QueueRepository(queueOf(1)).removeFromQueue(99))
     }
+
+    @Test
+    fun `queueAtFront puts a new episode first`() = runTest {
+        val dao = queueOf(1, 2)
+        QueueRepository(dao).queueAtFront(episodeId = 5005)
+        assertEquals(listOf(5005L, 1001L, 1002L), dao.episodeOrder())
+    }
+
+    @Test
+    fun `queueAtFront leaves an already queued episode where it is`() = runTest {
+        val dao = queueOf(1, 2)
+        QueueRepository(dao).queueAtFront(episodeId = 1002)
+        assertEquals(listOf(1001L, 1002L), dao.episodeOrder())
+    }
+
+    @Test
+    fun `queueAtFront on an empty queue`() = runTest {
+        val dao = RecordingQueueDao(emptyMap())
+        QueueRepository(dao).queueAtFront(episodeId = 7)
+        assertEquals(listOf(7L), dao.episodeOrder())
+    }
 }

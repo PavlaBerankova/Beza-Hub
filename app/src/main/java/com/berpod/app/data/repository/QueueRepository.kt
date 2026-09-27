@@ -22,4 +22,6 @@ class QueueRepository(private val queueDao: QueueDao) {
 
     suspend fun moveEntry(movedId: Long, afterId: Long?, beforeId: Long?) =
         queueDao.moveEntry(movedId, afterId, beforeId)
+
+    suspend fun queueAtFront(episodeId: Long) = queueDao.queueAtFront(episodeId)
 }

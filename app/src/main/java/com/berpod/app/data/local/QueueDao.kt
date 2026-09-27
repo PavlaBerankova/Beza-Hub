@@ -70,4 +70,13 @@ interface QueueDao {
         )
         moveEntry(newId, removed.afterId, removed.beforeId)
     }
+
+    /** Puts [episodeId] first in the queue unless it's already queued. */
+    @Transaction
+    suspend fun queueAtFront(episodeId: Long) {
+        if (isQueued(episodeId)) return
+        val firstId = getOrderedIds().firstOrNull()
+        val newId = insert(QueueEntryEntity(episodeId = episodeId, position = getMaxPosition() + 1, dateAdded = System.currentTimeMillis()))
+        if (firstId != null) moveEntry(newId, afterId = null, beforeId = firstId)
+    }
 }
