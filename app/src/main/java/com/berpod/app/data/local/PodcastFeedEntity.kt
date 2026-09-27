@@ -15,5 +15,6 @@ data class PodcastFeedEntity(
     val imageUrl: String?,
     val description: String?,
     val dateAdded: Long,
-    val lastFetchedAt: Long?
+    val lastFetchedAt: Long?,
+    val author: String? = null
 )

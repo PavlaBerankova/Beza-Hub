@@ -6,7 +6,9 @@ import com.berpod.app.data.remote.FeedFetcher
 import com.berpod.app.data.remote.ParsedFeedMeta
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -33,6 +35,13 @@ private class FakeDao : PodcastFeedDao {
 
     override suspend fun getById(feedId: Long): PodcastFeedEntity? =
         state.value.find { it.id == feedId }
+
+    override fun observeById(feedId: Long): Flow<PodcastFeedEntity?> =
+        state.map { list -> list.find { it.id == feedId } }
+
+    override suspend fun updateAuthor(feedId: Long, author: String) {
+        state.value = state.value.map { if (it.id == feedId) it.copy(author = author) else it }
+    }
 }
 
 private class FakeFeedFetcher(
@@ -85,5 +94,16 @@ class PodcastRepositoryTest {
         val result = repository.addFeed("https://example.com/feed.xml")
 
         assertTrue(result.isFailure)
+    }
+
+    @Test
+    fun `addFeed stores the parsed author`() = runTest {
+        val dao = FakeDao()
+        val fetcher = FakeFeedFetcher(ParsedFeedMeta("Fake Podcast", null, "A fake podcast", emptyList(), author = "Autor"))
+        val repository = PodcastRepository(dao, fetcher)
+
+        val id = repository.addFeed("https://example.com/feed.xml").getOrThrow()
+
+        assertEquals("Autor", dao.getById(id)?.author)
     }
 }

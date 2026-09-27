@@ -60,6 +60,11 @@ class FakePodcastFeedDao(initial: List<PodcastFeedEntity> = emptyList()) : Podca
     override suspend fun delete(feed: PodcastFeedEntity) {
         feeds.value = feeds.value.filterNot { it.id == feed.id }
     }
+    override fun observeById(feedId: Long): Flow<PodcastFeedEntity?> =
+        feeds.map { list -> list.find { it.id == feedId } }
+    override suspend fun updateAuthor(feedId: Long, author: String) {
+        feeds.value = feeds.value.map { if (it.id == feedId) it.copy(author = author) else it }
+    }
 }
 
 /** In-memory TagDao that mimics NOCASE lookups, IGNORE on assign, and cascade on delete. */

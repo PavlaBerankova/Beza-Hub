@@ -10,7 +10,8 @@ data class ParsedFeedMeta(
     val title: String,
     val imageUrl: String?,
     val description: String?,
-    val episodes: List<ParsedEpisode>
+    val episodes: List<ParsedEpisode>,
+    val author: String? = null
 )
 
 data class ParsedEpisode(
@@ -22,6 +23,10 @@ data class ParsedEpisode(
     val description: String?,
     val imageUrl: String?
 )
+
+/** The first non-blank of the iTunes author and the iTunes owner name, trimmed; null if neither. */
+fun pickAuthor(itunesAuthor: String?, ownerName: String?): String? =
+    listOf(itunesAuthor, ownerName).firstNotNullOfOrNull { it?.trim()?.takeIf(String::isNotEmpty) }
 
 interface FeedFetcher {
     suspend fun fetchAndParse(url: String): ParsedFeedMeta
@@ -36,7 +41,8 @@ class FeedParser(private val rssParser: RssParser = RssParser()) : FeedFetcher {
         val description = channel.description?.takeIf { it.isNotBlank() }
             ?: channel.itunesChannelData?.summary
         val episodes = channel.items.mapNotNull(::toParsedEpisode)
-        return ParsedFeedMeta(title = title, imageUrl = imageUrl, description = description, episodes = episodes)
+        val author = pickAuthor(channel.itunesChannelData?.author, channel.itunesChannelData?.owner?.name)
+        return ParsedFeedMeta(title = title, imageUrl = imageUrl, description = description, episodes = episodes, author = author)
     }
 
     private fun toParsedEpisode(item: RssItem): ParsedEpisode? {

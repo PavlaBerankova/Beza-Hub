@@ -22,6 +22,12 @@ interface PodcastFeedDao {
     @Query("SELECT * FROM podcast_feeds WHERE id = :feedId")
     suspend fun getById(feedId: Long): PodcastFeedEntity?
 
+    @Query("SELECT * FROM podcast_feeds WHERE id = :feedId")
+    fun observeById(feedId: Long): Flow<PodcastFeedEntity?>
+
+    @Query("UPDATE podcast_feeds SET author = :author WHERE id = :feedId")
+    suspend fun updateAuthor(feedId: Long, author: String)
+
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(feed: PodcastFeedEntity): Long
 

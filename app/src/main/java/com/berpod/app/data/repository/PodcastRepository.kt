@@ -12,6 +12,8 @@ class PodcastRepository(
 
     fun observeFeeds(): Flow<List<PodcastFeedEntity>> = dao.observeAll()
 
+    fun observeFeed(feedId: Long): Flow<PodcastFeedEntity?> = dao.observeById(feedId)
+
     suspend fun getFeedById(feedId: Long): PodcastFeedEntity? = dao.getById(feedId)
 
     suspend fun addFeed(rawUrl: String): Result<Long> = runCatching {
@@ -31,7 +33,8 @@ class PodcastRepository(
                 imageUrl = meta.imageUrl,
                 description = meta.description,
                 dateAdded = now,
-                lastFetchedAt = now
+                lastFetchedAt = now,
+                author = meta.author
             )
         )
     }

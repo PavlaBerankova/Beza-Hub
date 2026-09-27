@@ -20,6 +20,8 @@ class EpisodeRepository(
 
     suspend fun syncEpisodesForFeed(feed: PodcastFeedEntity): Result<Unit> = runCatching {
         val meta = feedFetcher.fetchAndParse(feed.rssUrl)
+        // Fills the author for podcasts added before it was stored; a missing author never erases one.
+        meta.author?.let { podcastFeedDao.updateAuthor(feed.id, it) }
         val now = System.currentTimeMillis()
         episodeDao.insertAll(
             meta.episodes.map { ep ->
