@@ -7,22 +7,27 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.berpod.app.data.local.QueueItemWithEpisode
-import com.berpod.app.data.local.anchorsFor
+import com.berpod.app.data.local.moveAfterDrag
+import com.berpod.app.data.local.stepAnchors
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.automirrored.outlined.Label
@@ -36,6 +41,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModelProvider
@@ -86,6 +92,9 @@ private fun ReorderableQueueList(uiState: QueueUiState, viewModel: QueueViewMode
     // Local copy reordered live while dragging; the database is written once on drop.
     var localItems by remember { mutableStateOf(uiState.visibleItems) }
     var draggingId by remember { mutableStateOf<Long?>(null) }
+    var dragStartOrder by remember { mutableStateOf<List<Long>>(emptyList()) }
+    // The drag callbacks outlive recompositions, so they must read the latest list through this.
+    val latestVisibleItems by rememberUpdatedState(uiState.visibleItems)
     // The queue re-emits during playback (position saves); never overwrite the list mid-drag.
     LaunchedEffect(uiState.visibleItems) {
         if (draggingId == null) localItems = uiState.visibleItems
@@ -97,41 +106,54 @@ private fun ReorderableQueueList(uiState: QueueUiState, viewModel: QueueViewMode
     }
     val moveUpLabel = stringResource(R.string.action_move_up)
     val moveDownLabel = stringResource(R.string.action_move_down)
+    val dragLabel = stringResource(R.string.action_drag_to_reorder)
+
+    fun stepMove(movedId: Long, up: Boolean): Boolean {
+        val anchors = stepAnchors(localItems.map { it.queueEntryId }, movedId, up) ?: return false
+        viewModel.onMoveEntry(movedId, anchors.first, anchors.second)
+        return true
+    }
 
     LazyColumn(state = lazyListState) {
-        itemsIndexed(localItems, key = { _, item -> item.queueEntryId }) { index, item ->
+        items(localItems, key = { it.queueEntryId }) { item ->
             ReorderableItem(reorderState, key = item.queueEntryId) { isDragging ->
                 val elevation by animateDpAsState(if (isDragging) 6.dp else 0.dp, label = "dragElevation")
-                Surface(
-                    shadowElevation = elevation,
-                    modifier = Modifier.semantics {
-                        customActions = buildList {
-                            if (index > 0) add(CustomAccessibilityAction(moveUpLabel) { viewModel.onMoveUp(index); true })
-                            if (index < localItems.lastIndex) {
-                                add(CustomAccessibilityAction(moveDownLabel) { viewModel.onMoveDown(index); true })
-                            }
-                        }
-                    }
-                ) {
+                Surface(shadowElevation = elevation) {
                     QueueRow(
                         item = item,
                         uiState = uiState,
                         viewModel = viewModel,
-                        handleModifier = Modifier.draggableHandle(
-                            onDragStarted = {
-                                draggingId = item.queueEntryId
-                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                            },
-                            onDragStopped = {
-                                val before = uiState.visibleItems.map { it.queueEntryId }
-                                val after = localItems.map { it.queueEntryId }
-                                draggingId = null
-                                if (before != after) {
-                                    val (afterId, beforeId) = anchorsFor(after, item.queueEntryId)
-                                    viewModel.onMoveEntry(item.queueEntryId, afterId, beforeId)
+                        handleModifier = Modifier
+                            .draggableHandle(
+                                // Only State reads in here: this lambda is not replaced on recomposition.
+                                onDragStarted = {
+                                    dragStartOrder = localItems.map { it.queueEntryId }
+                                    draggingId = item.queueEntryId
+                                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                },
+                                onDragStopped = {
+                                    draggingId = null
+                                    val move = moveAfterDrag(
+                                        startOrder = dragStartOrder,
+                                        endOrder = localItems.map { it.queueEntryId },
+                                        movedId = item.queueEntryId
+                                    )
+                                    if (move != null) {
+                                        viewModel.onMoveEntry(item.queueEntryId, move.first, move.second)
+                                    } else {
+                                        // Nothing to store, so no emission will follow: apply any skipped update now.
+                                        localItems = latestVisibleItems
+                                    }
                                 }
+                            )
+                            // Label and move actions on the same node, so TalkBack offers them on the handle.
+                            .semantics {
+                                contentDescription = dragLabel
+                                customActions = listOf(
+                                    CustomAccessibilityAction(moveUpLabel) { stepMove(item.queueEntryId, up = true) },
+                                    CustomAccessibilityAction(moveDownLabel) { stepMove(item.queueEntryId, up = false) }
+                                )
                             }
-                        )
                     )
                 }
             }
@@ -155,11 +177,9 @@ private fun QueueRow(
         progressFraction = episodeProgressFraction(item.episode.lastPositionMs, item.episode.durationSeconds),
         showArtwork = true,
         leadingContent = {
-            IconButton(onClick = {}, modifier = handleModifier) {
-                Icon(
-                    Icons.Filled.DragIndicator,
-                    contentDescription = stringResource(R.string.action_drag_to_reorder)
-                )
+            // Not a button: the handle only drags (and offers move actions to screen readers).
+            Box(modifier = handleModifier.size(48.dp), contentAlignment = Alignment.Center) {
+                Icon(Icons.Filled.DragIndicator, contentDescription = null)
             }
         },
         trailingContent = {

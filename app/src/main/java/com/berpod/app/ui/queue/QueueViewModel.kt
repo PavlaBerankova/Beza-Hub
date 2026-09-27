@@ -79,21 +79,6 @@ class QueueViewModel(
         viewModelScope.launch { repository.moveEntry(movedId, afterId, beforeId) }
     }
 
-    // One step within the visible list (used by accessibility actions); hidden entries keep their positions.
-    fun onMoveUp(index: Int) {
-        val visible = _uiState.value.visibleItems
-        val moved = visible.getOrNull(index) ?: return
-        val above = visible.getOrNull(index - 1) ?: return
-        onMoveEntry(moved.queueEntryId, afterId = null, beforeId = above.queueEntryId)
-    }
-
-    fun onMoveDown(index: Int) {
-        val visible = _uiState.value.visibleItems
-        val moved = visible.getOrNull(index) ?: return
-        val below = visible.getOrNull(index + 1) ?: return
-        onMoveEntry(moved.queueEntryId, afterId = below.queueEntryId, beforeId = null)
-    }
-
     fun onRemove(queueEntryId: Long) {
         viewModelScope.launch { repository.removeFromQueue(queueEntryId) }
     }

@@ -49,4 +49,25 @@ class QueueOrderTest {
         assertEquals(1L to null, anchorsFor(listOf(1L, 2L), movedId = 2))
         assertEquals(null to null, anchorsFor(listOf(1L, 2L), movedId = 9))
     }
+
+    @Test
+    fun `moveAfterDrag stores a drag back to the original place`() {
+        // First drag stored B,C,A; the second drag moves A back to the top.
+        assertEquals(null to 2L, moveAfterDrag(startOrder = listOf(2L, 3L, 1L), endOrder = listOf(1L, 2L, 3L), movedId = 1))
+    }
+
+    @Test
+    fun `moveAfterDrag returns null when the drag ended where it started`() {
+        assertEquals(null, moveAfterDrag(startOrder = listOf(1L, 2L, 3L), endOrder = listOf(1L, 2L, 3L), movedId = 2))
+    }
+
+    @Test
+    fun `stepAnchors moves one place within the given order`() {
+        val visible = listOf(10L, 20L, 30L)
+        assertEquals(null to 10L, stepAnchors(visible, movedId = 20, up = true))
+        assertEquals(30L to null, stepAnchors(visible, movedId = 20, up = false))
+        assertEquals(null, stepAnchors(visible, movedId = 10, up = true))
+        assertEquals(null, stepAnchors(visible, movedId = 30, up = false))
+        assertEquals(null, stepAnchors(visible, movedId = 99, up = true))
+    }
 }
