@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -24,18 +25,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.berpod.app.R
+import com.berpod.app.ui.common.CompactEpisodeRow
 import com.berpod.app.ui.common.EmptyState
 import com.berpod.app.ui.common.MarkPlayedSwipe
+import com.berpod.app.ui.common.QueueToggleButton
 import com.berpod.app.ui.common.TagChipRow
 import com.berpod.app.ui.dot.DotIcons
 import com.berpod.app.ui.dot.SectionSeparator
-import com.berpod.app.ui.dot.rememberNowMillis
-import com.berpod.app.ui.podcastlist.ShowEpisodeRow
 import com.berpod.app.ui.theme.DotTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -107,20 +109,22 @@ fun NewEpisodesScreen(viewModelFactory: ViewModelProvider.Factory) {
                     subtitle = stringResource(R.string.queue_tag_filter_empty_subtitle)
                 )
                 else -> {
-                    val now = rememberNowMillis()
-                    LazyColumn(state = listState, contentPadding = PaddingValues(top = 4.dp, bottom = 16.dp)) {
+                    LazyColumn(state = listState, contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 16.dp)) {
                         items(uiState.episodes, key = { it.episode.id }) { item ->
-                            MarkPlayedSwipe(onToggle = { viewModel.onMarkPlayed(item.episode.id) }) {
-                                ShowEpisodeRow(
+                            val isCurrent = uiState.currentlyPlayingEpisodeId == item.episode.id
+                            val isQueued = item.episode.id in uiState.queuedEpisodeIds
+                            // Same shape as the row, so the swipe background never shows in its corners.
+                            MarkPlayedSwipe(onToggle = { viewModel.onMarkPlayed(item.episode.id) }, modifier = Modifier.clip(RoundedCornerShape(16.dp))) {
+                                CompactEpisodeRow(
                                     episode = item.episode,
-                                    isCurrentlyPlaying = uiState.currentlyPlayingEpisodeId == item.episode.id && uiState.isPlaying,
-                                    onPlayOrPause = { viewModel.onPlayOrPause(item) },
-                                    isQueued = item.episode.id in uiState.queuedEpisodeIds,
-                                    onToggleQueue = { viewModel.onToggleQueue(item.episode.id) },
-                                    nowMillis = now,
                                     podcastTitle = item.podcastTitle,
-                                    podcastImageUrl = item.podcastImageUrl
-                                )
+                                    podcastImageUrl = item.podcastImageUrl,
+                                    isCurrent = isCurrent,
+                                    isPlaying = isCurrent && uiState.isPlaying,
+                                    onPlayOrPause = { viewModel.onPlayOrPause(item) }
+                                ) {
+                                    QueueToggleButton(isQueued) { viewModel.onToggleQueue(item.episode.id) }
+                                }
                             }
                         }
                     }

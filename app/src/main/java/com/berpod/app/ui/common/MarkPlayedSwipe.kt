@@ -29,7 +29,7 @@ private const val TOGGLE_GUARD_MS = 800L
  */
 @Suppress("DEPRECATION")
 @Composable
-fun MarkPlayedSwipe(onToggle: () -> Unit, content: @Composable () -> Unit) {
+fun MarkPlayedSwipe(onToggle: () -> Unit, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     val currentOnToggle by rememberUpdatedState(onToggle)
     // confirmValueChange runs more than once per swipe (release and settle); toggle only once per gesture.
     var lastToggleAtMs by remember { mutableLongStateOf(0L) }
@@ -45,6 +45,7 @@ fun MarkPlayedSwipe(onToggle: () -> Unit, content: @Composable () -> Unit) {
     )
     val c = DotTheme.colors
     SwipeToDismissBox(
+        modifier = modifier,
         state = state,
         enableDismissFromEndToStart = false,
         backgroundContent = {

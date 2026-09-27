@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.berpod.app.R
 import com.berpod.app.data.local.EpisodeEntity
-import com.berpod.app.ui.dot.CoverImage
+import com.berpod.app.ui.common.QueueToggleButton
 import com.berpod.app.ui.dot.DotIcon
 import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIcons
@@ -40,10 +40,7 @@ fun ShowEpisodeRow(
     onPlayOrPause: () -> Unit,
     isQueued: Boolean,
     onToggleQueue: () -> Unit,
-    nowMillis: Long,
-    /** Mixed lists (Nové) show which podcast the episode is from: its cover and name above the date. */
-    podcastTitle: String? = null,
-    podcastImageUrl: String? = null
+    nowMillis: Long
 ) {
     val c = DotTheme.colors
     val played = episode.playedAtMs != null
@@ -53,34 +50,13 @@ fun ShowEpisodeRow(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(top = 16.dp, bottom = 18.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        if (podcastTitle != null) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                CoverImage(podcastImageUrl, 48.dp, 10.dp)
-                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(
-                        podcastTitle.upperCs(),
-                        style = DotType.label.copy(letterSpacing = 1.sp),
-                        color = c.textMuted,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    EpisodeDateLine(episode, recent)
-                }
-            }
-        } else {
-            EpisodeDateLine(episode, recent)
-        }
+        EpisodeDateLine(episode, recent)
         Text(episode.title, style = DotType.title, color = if (played) c.textMuted else c.text)
         descriptionSnippet(episode.description)?.let {
             Text(it, style = DotType.body, color = c.textMuted, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
         Row(modifier = Modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            // Filled accent with a check while queued; tapping it again takes the episode out.
-            if (isQueued) {
-                DotIconButton(DotIcons.Check, stringResource(R.string.action_remove_from_queue), onToggleQueue, radius = 12.dp, iconSize = 20.dp, filled = c.accent)
-            } else {
-                DotIconButton(DotIcons.Queue, stringResource(R.string.action_add_to_queue), onToggleQueue, radius = 12.dp, iconSize = 22.dp)
-            }
+            QueueToggleButton(isQueued, onToggleQueue)
             DotIconButton(DotIcons.Download, stringResource(R.string.action_download), {}, radius = 12.dp, iconSize = 22.dp)
             Spacer(Modifier.weight(1f))
             if (played) {

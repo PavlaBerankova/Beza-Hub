@@ -2,14 +2,11 @@ package com.berpod.app.ui.queue
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,7 +17,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Podcasts
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -31,7 +27,6 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
-import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -50,30 +45,20 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.berpod.app.R
 import com.berpod.app.data.local.QueueItemWithEpisode
 import com.berpod.app.data.local.moveAfterDrag
 import com.berpod.app.data.local.stepAnchors
+import com.berpod.app.ui.common.CompactEpisodeRow
 import com.berpod.app.ui.common.EmptyState
 import com.berpod.app.ui.common.MarkPlayedBackground
 import com.berpod.app.ui.common.TagChipRow
-import com.berpod.app.ui.common.episodeProgressFraction
-import com.berpod.app.ui.dot.CoverImage
-import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIcons
-import com.berpod.app.ui.dot.DotProgress
 import com.berpod.app.ui.dot.SectionSeparator
-import com.berpod.app.ui.dot.formatDotDate
-import com.berpod.app.ui.dot.upperCs
-import com.berpod.app.ui.podcastlist.remainingText
 import com.berpod.app.ui.theme.DotTheme
-import com.berpod.app.ui.theme.DotType
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
@@ -253,54 +238,15 @@ private fun RemoveBackground() {
     }
 }
 
-/** Queue row in the Dot Matrix style: cover, meta, title, time with dot progress, square play button. */
 @Composable
-private fun QueueRow(
-    item: QueueItemWithEpisode,
-    uiState: QueueUiState,
-    viewModel: QueueViewModel
-) {
-    val c = DotTheme.colors
-    val episode = item.episode
-    val isCurrent = uiState.currentlyPlayingEpisodeId == episode.id
-    val isPlaying = isCurrent && uiState.isPlaying
-    val fraction = episodeProgressFraction(episode.lastPositionMs, episode.durationSeconds)
-    Column {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
-                .background(if (isCurrent) c.surface else c.background)
-                .padding(start = 10.dp, end = 10.dp, top = 12.dp, bottom = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            CoverImage(item.podcastImageUrl, 64.dp, 12.dp)
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(
-                    listOfNotNull(item.podcastTitle, formatDotDate(episode.pubDateMillis)).joinToString(" · ").upperCs(),
-                    style = DotType.meta.copy(fontSize = 10.sp, fontWeight = FontWeight.W600),
-                    color = c.textMuted,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(episode.title, style = DotType.rowTitle, color = c.text, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    remainingText(episode)?.let {
-                        Text(it.upperCs(), style = DotType.chip.copy(fontWeight = FontWeight.W700), color = c.accent, maxLines = 1)
-                    }
-                    if (fraction != null) DotProgress(fraction, cells = 16, modifier = Modifier.weight(1f))
-                }
-            }
-            DotIconButton(
-                icon = if (isPlaying) DotIcons.Equalizer else DotIcons.Play,
-                contentDescription = stringResource(if (isPlaying) R.string.action_pause else R.string.action_play),
-                onClick = { viewModel.onPlayOrPause(item) },
-                size = 48.dp,
-                iconSize = 22.dp,
-                accentBorder = isCurrent
-            )
-        }
-        if (!isCurrent) HorizontalDivider(modifier = Modifier.padding(horizontal = 8.dp), color = c.divider)
-    }
+private fun QueueRow(item: QueueItemWithEpisode, uiState: QueueUiState, viewModel: QueueViewModel) {
+    val isCurrent = uiState.currentlyPlayingEpisodeId == item.episode.id
+    CompactEpisodeRow(
+        episode = item.episode,
+        podcastTitle = item.podcastTitle,
+        podcastImageUrl = item.podcastImageUrl,
+        isCurrent = isCurrent,
+        isPlaying = isCurrent && uiState.isPlaying,
+        onPlayOrPause = { viewModel.onPlayOrPause(item) }
+    )
 }
