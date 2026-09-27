@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
 data class PodcastEpisodesUiState(
     val feedTitle: String = "",
     val feedImageUrl: String? = null,
+    val feedAuthor: String? = null,
     val episodes: List<EpisodeEntity> = emptyList(),
     val isRefreshing: Boolean = false,
     val snackbarMessage: String? = null,
@@ -43,10 +44,13 @@ class PodcastEpisodesViewModel(
     val tagAssignment = TagAssignmentController(tagRepository, viewModelScope)
 
     init {
-        viewModelScope.launch {
-            val feed = podcastRepository.getFeedById(feedId)
-            _uiState.update { it.copy(feedTitle = feed?.title.orEmpty(), feedImageUrl = feed?.imageUrl) }
-        }
+        podcastRepository.observeFeed(feedId)
+            .onEach { feed ->
+                _uiState.update {
+                    it.copy(feedTitle = feed?.title.orEmpty(), feedImageUrl = feed?.imageUrl, feedAuthor = feed?.author)
+                }
+            }
+            .launchIn(viewModelScope)
         episodeRepository.observeEpisodesForFeed(feedId)
             .onEach { episodes -> _uiState.update { it.copy(episodes = episodes) } }
             .launchIn(viewModelScope)
