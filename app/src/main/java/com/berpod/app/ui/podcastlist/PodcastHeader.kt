@@ -59,7 +59,7 @@ data class HeaderPlayButton(val label: String, val icon: ImageVector, val onClic
 
 /**
  * Apple Podcasts-style show header: a compact block in the cover's colour with the cover on the left and the
- * title, author and tags beside it, and a full-width play button below. [topPadding] keeps the content below the transparent top app bar drawn over it.
+ * title, author and tags beside it, and a centred play button below. [topPadding] keeps the content below the transparent top app bar drawn over it.
  * [onColorExtracted] reports the cover's average colour once the image has loaded.
  */
 @Composable
@@ -155,7 +155,11 @@ fun PodcastHeader(
             Button(
                 onClick = playButton.onClick,
                 colors = ButtonDefaults.buttonColors(containerColor = contentColor, contentColor = background),
-                modifier = Modifier.fillMaxWidth().padding(top = 16.dp).height(ActionHeight)
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .fillMaxWidth(0.6f)
+                    .padding(top = 16.dp)
+                    .height(ActionHeight)
             ) {
                 Icon(playButton.icon, contentDescription = null, modifier = Modifier.size(20.dp))
                 Spacer(Modifier.width(8.dp))
