@@ -44,7 +44,10 @@ fun EpisodeListItem(
     val metaParts = listOfNotNull(formatPubDate(episode.pubDateMillis), formatDuration(episode.durationSeconds))
 
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+        // A leading drag handle is a 48dp touch target; a 4dp start inset puts its icon 16dp from the edge.
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = if (leadingContent != null) 4.dp else 16.dp, end = 16.dp, top = 12.dp, bottom = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (leadingContent != null) {
