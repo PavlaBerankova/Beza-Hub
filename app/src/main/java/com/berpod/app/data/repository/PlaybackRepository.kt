@@ -119,11 +119,10 @@ class PlaybackRepository(context: Context, private val episodeDao: EpisodeDao) {
                             .build()
                     )
                     .build()
-                c.setMediaItem(mediaItem)
+                // Start position goes with the item: a seekTo() issued right after setMediaItem() over the
+                // controller was dropped, so resumed episodes restarted from 0.
+                c.setMediaItem(mediaItem, episode.lastPositionMs.coerceAtLeast(0L))
                 c.prepare()
-                if (episode.lastPositionMs > 0L) {
-                    c.seekTo(episode.lastPositionMs)
-                }
                 c.play()
             }
         }

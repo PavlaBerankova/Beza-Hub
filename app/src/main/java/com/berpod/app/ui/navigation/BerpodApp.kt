@@ -82,7 +82,8 @@ fun BerpodApp(container: AppContainer) {
         bottomBar = {
             val showNavigation = bottomTabs.any { it.route == currentRoute }
             Column {
-                if (playbackState.currentEpisodeId != null) {
+                // The full player already shows everything the mini player would.
+                if (playbackState.currentEpisodeId != null && currentRoute != Screen.Player.route) {
                     MiniPlayerBar(
                         state = playbackState,
                         onClick = { navController.navigate(Screen.Player.route) { launchSingleTop = true } },
