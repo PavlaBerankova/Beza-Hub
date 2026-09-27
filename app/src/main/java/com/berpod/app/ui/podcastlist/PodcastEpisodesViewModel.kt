@@ -68,6 +68,11 @@ class PodcastEpisodesViewModel(
         playbackRepository.play(episode, state.feedTitle, state.feedImageUrl)
     }
 
+    /** Pauses/resumes the episode that is already loaded; starts any other episode. */
+    fun onPlayOrPause(episode: EpisodeEntity) {
+        if (_uiState.value.currentlyPlayingEpisodeId == episode.id) playbackRepository.togglePlayPause() else onPlay(episode)
+    }
+
     fun onRefresh() {
         _uiState.update { it.copy(isRefreshing = true) }
         viewModelScope.launch {

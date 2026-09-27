@@ -52,4 +52,6 @@
     <string name="action_drag_to_reorder">Přesunout</string>
     <string name="queue_removed">Odebráno z fronty</string>
     <string name="action_undo">Zpět</string>
+    <string name="action_resume">Pokračovat</string>
+    <string name="action_latest_episode">Poslední epizoda</string>
 </resources>

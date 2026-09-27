@@ -11,6 +11,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.Label
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Podcasts
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.CircularProgressIndicator
@@ -29,11 +31,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -42,9 +46,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.berpod.app.R
 import com.berpod.app.ui.common.EmptyState
-import com.berpod.app.ui.common.EpisodeListItem
 import com.berpod.app.ui.common.TagAssignDialog
-import com.berpod.app.ui.common.episodeProgressFraction
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -70,7 +72,25 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
             isBarOverHeader(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset, headerHeightPx, barHeightPx)
         }
     }
-    val barContentColor = if (isHeaderVisible) Color.White else MaterialTheme.colorScheme.onSurface
+    var coverColor by remember { mutableStateOf<Color?>(null) }
+    val headerBackground = coverColor ?: MaterialTheme.colorScheme.surfaceVariant
+    val headerContent = if (isLightColor(headerBackground.toArgb())) Color.Black else Color.White
+    val barContentColor = if (isHeaderVisible) headerContent else MaterialTheme.colorScheme.onSurface
+    val headerEpisode = pickHeaderEpisode(uiState.episodes)
+    val playButton = headerEpisode?.let { (episode, isResume) ->
+        val isThisPlaying = uiState.currentlyPlayingEpisodeId == episode.id && uiState.isPlaying
+        HeaderPlayButton(
+            label = stringResource(
+                when {
+                    isThisPlaying -> R.string.action_pause
+                    isResume -> R.string.action_resume
+                    else -> R.string.action_latest_episode
+                }
+            ),
+            icon = if (isThisPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+            onClick = { viewModel.onPlayOrPause(episode) }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -118,6 +138,10 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                     author = uiState.feedAuthor,
                     imageUrl = uiState.feedImageUrl,
                     topPadding = paddingValues.calculateTopPadding(),
+                    background = headerBackground,
+                    contentColor = headerContent,
+                    playButton = playButton,
+                    onColorExtracted = { coverColor = it },
                     modifier = Modifier.onSizeChanged { headerHeightPx = it.height }
                 )
             }
@@ -133,15 +157,11 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                 }
             } else {
                 items(uiState.episodes, key = { it.id }) { episode ->
-                    EpisodeListItem(
+                    ShowEpisodeRow(
                         episode = episode,
-                        podcastTitle = null,
-                        podcastImageUrl = uiState.feedImageUrl,
-                        onAddToQueue = { viewModel.onAddToQueue(episode.id) },
-                        onPlay = { viewModel.onPlay(episode) },
                         isCurrentlyPlaying = uiState.currentlyPlayingEpisodeId == episode.id && uiState.isPlaying,
-                        onDownload = {},
-                        progressFraction = episodeProgressFraction(episode.lastPositionMs, episode.durationSeconds),
+                        onPlayOrPause = { viewModel.onPlayOrPause(episode) },
+                        onAddToQueue = { viewModel.onAddToQueue(episode.id) }
                     )
                 }
             }
