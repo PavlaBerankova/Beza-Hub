@@ -133,7 +133,8 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                                 episode = episode,
                                 isCurrentlyPlaying = uiState.currentlyPlayingEpisodeId == episode.id && uiState.isPlaying,
                                 onPlayOrPause = { viewModel.onPlayOrPause(episode) },
-                                onAddToQueue = { viewModel.onAddToQueue(episode.id) },
+                                isQueued = episode.id in uiState.queuedEpisodeIds,
+                                onToggleQueue = { viewModel.onToggleQueue(episode.id) },
                                 nowMillis = now
                             )
                         }

@@ -32,13 +32,14 @@ import com.berpod.app.ui.dot.upperCs
 import com.berpod.app.ui.theme.DotTheme
 import com.berpod.app.ui.theme.DotType
 
-/** Dot Matrix episode row: date (accent + "NOVÁ" when recent), title, description, queue/download, time and play. */
+/** Dot Matrix episode row: date (accent + "NOVÁ" when recent), title, description, queue (filled when queued)/download, time and play. */
 @Composable
 fun ShowEpisodeRow(
     episode: EpisodeEntity,
     isCurrentlyPlaying: Boolean,
     onPlayOrPause: () -> Unit,
-    onAddToQueue: () -> Unit,
+    isQueued: Boolean,
+    onToggleQueue: () -> Unit,
     nowMillis: Long,
     /** Mixed lists (Nové) show which podcast the episode is from: its cover and name above the date. */
     podcastTitle: String? = null,
@@ -74,7 +75,12 @@ fun ShowEpisodeRow(
             Text(it, style = DotType.body, color = c.textMuted, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
         Row(modifier = Modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            DotIconButton(DotIcons.Queue, stringResource(R.string.action_add_to_queue), onAddToQueue, radius = 12.dp, iconSize = 22.dp)
+            // Filled accent with a check while queued; tapping it again takes the episode out.
+            if (isQueued) {
+                DotIconButton(DotIcons.Check, stringResource(R.string.action_remove_from_queue), onToggleQueue, radius = 12.dp, iconSize = 20.dp, filled = c.accent)
+            } else {
+                DotIconButton(DotIcons.Queue, stringResource(R.string.action_add_to_queue), onToggleQueue, radius = 12.dp, iconSize = 22.dp)
+            }
             DotIconButton(DotIcons.Download, stringResource(R.string.action_download), {}, radius = 12.dp, iconSize = 22.dp)
             Spacer(Modifier.weight(1f))
             if (played) {

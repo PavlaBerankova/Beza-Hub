@@ -5,6 +5,7 @@ import com.berpod.app.data.local.QueueEntryEntity
 import com.berpod.app.data.local.QueueItemWithEpisode
 import com.berpod.app.data.local.RemovedQueueEntry
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class QueueRepository(private val queueDao: QueueDao) {
 
@@ -15,6 +16,17 @@ class QueueRepository(private val queueDao: QueueDao) {
         val nextPosition = queueDao.getMaxPosition() + 1
         queueDao.insert(QueueEntryEntity(episodeId = episodeId, position = nextPosition, dateAdded = System.currentTimeMillis()))
     }
+
+    /** Removes the episode when it's queued, otherwise adds it at the end. */
+    suspend fun toggleQueued(episodeId: Long): QueueToggle =
+        if (removeEpisode(episodeId) != null) {
+            QueueToggle.Removed
+        } else {
+            addToQueue(episodeId).getOrThrow()
+            QueueToggle.Added
+        }
+
+    fun observeQueuedEpisodeIds(): Flow<Set<Long>> = queueDao.observeQueuedEpisodeIds().map { it.toSet() }
 
     suspend fun removeFromQueue(queueEntryId: Long): RemovedQueueEntry? = queueDao.removeEntry(queueEntryId)
 
@@ -27,3 +39,5 @@ class QueueRepository(private val queueDao: QueueDao) {
 
     suspend fun removeEpisode(episodeId: Long): RemovedQueueEntry? = queueDao.removeEpisode(episodeId)
 }
+
+enum class QueueToggle { Added, Removed }

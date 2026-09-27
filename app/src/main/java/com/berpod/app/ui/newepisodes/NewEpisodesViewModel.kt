@@ -8,6 +8,7 @@ import com.berpod.app.data.local.TagEntity
 import com.berpod.app.data.repository.EpisodeRepository
 import com.berpod.app.data.repository.PlaybackRepository
 import com.berpod.app.data.repository.QueueRepository
+import com.berpod.app.data.repository.QueueToggle
 import com.berpod.app.data.repository.TagRepository
 import com.berpod.app.ui.common.PlayedUndo
 import com.berpod.app.ui.common.filterByPodcastIds
@@ -41,6 +42,8 @@ data class NewEpisodesUiState(
     val snackbarMessage: String? = null,
     /** Set right after swiping an episode to played, while "Zpět" can undo it. */
     val playedUndo: PlayedUndo? = null,
+    /** Episodes currently in the queue, so rows can show it. */
+    val queuedEpisodeIds: Set<Long> = emptySet(),
     val currentlyPlayingEpisodeId: Long? = null,
     val isPlaying: Boolean = false
 )
@@ -72,6 +75,9 @@ class NewEpisodesViewModel(
                 selectedTagId.value = resolveSelectedTagId(selectedTagId.value, tags)
                 _uiState.update { it.copy(tags = tags, selectedTagId = selectedTagId.value) }
             }
+            .launchIn(viewModelScope)
+        queueRepository.observeQueuedEpisodeIds()
+            .onEach { ids -> _uiState.update { it.copy(queuedEpisodeIds = ids) } }
             .launchIn(viewModelScope)
         playbackRepository.uiState
             .onEach { playback ->
@@ -133,10 +139,13 @@ class NewEpisodesViewModel(
         }
     }
 
-    fun onAddToQueue(episodeId: Long) {
+    fun onToggleQueue(episodeId: Long) {
         viewModelScope.launch {
-            queueRepository.addToQueue(episodeId)
-                .onSuccess { _uiState.update { it.copy(snackbarMessage = "Přidáno do fronty") } }
+            runCatching { queueRepository.toggleQueued(episodeId) }
+                .onSuccess { result ->
+                    val message = if (result == QueueToggle.Added) "Přidáno do fronty" else "Odebráno z fronty"
+                    _uiState.update { it.copy(snackbarMessage = message) }
+                }
                 .onFailure { error -> _uiState.update { it.copy(snackbarMessage = error.message) } }
         }
     }

@@ -24,6 +24,9 @@ interface QueueDao {
     @Query("SELECT COALESCE(MAX(position), -1) FROM queue_entries")
     suspend fun getMaxPosition(): Int
 
+    @Query("SELECT episodeId FROM queue_entries")
+    fun observeQueuedEpisodeIds(): Flow<List<Long>>
+
     @Query("SELECT EXISTS(SELECT 1 FROM queue_entries WHERE episodeId = :episodeId)")
     suspend fun isQueued(episodeId: Long): Boolean
 
