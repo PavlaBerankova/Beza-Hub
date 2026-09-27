@@ -107,21 +107,6 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
                     }
-                },
-                actions = {
-                    IconButton(onClick = viewModel::onOpenTagDialog) {
-                        Icon(
-                            Icons.AutoMirrored.Outlined.Label,
-                            contentDescription = stringResource(R.string.action_manage_tags)
-                        )
-                    }
-                    if (uiState.isRefreshing) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp).padding(end = 8.dp), color = barContentColor)
-                    } else {
-                        IconButton(onClick = viewModel::onRefresh) {
-                            Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.action_refresh))
-                        }
-                    }
                 }
             )
         },
@@ -142,6 +127,9 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                     contentColor = headerContent,
                     tags = uiState.feedTags,
                     playButton = playButton,
+                    isRefreshing = uiState.isRefreshing,
+                    onTagClick = viewModel::onOpenTagDialog,
+                    onRefresh = viewModel::onRefresh,
                     onColorExtracted = { coverColor = it },
                     modifier = Modifier.onSizeChanged { headerHeightPx = it.height }
                 )

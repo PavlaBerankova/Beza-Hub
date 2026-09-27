@@ -16,6 +16,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Podcasts
+import androidx.compose.material.icons.automirrored.outlined.Label
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.IconButton
+import androidx.compose.ui.res.stringResource
+import com.berpod.app.R
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -55,7 +61,7 @@ data class HeaderPlayButton(val label: String, val icon: ImageVector, val onClic
 
 /**
  * Apple Podcasts-style show header: a compact block in the cover's colour with the cover on the left and the
- * title, author, tags and a play button beside it. [topPadding] keeps the content below the transparent top app bar drawn over it.
+ * title, author and tags beside it, then a row with the play button and the tag / refresh actions. [topPadding] keeps the content below the transparent top app bar drawn over it.
  * [onColorExtracted] reports the cover's average colour once the image has loaded.
  */
 @Composable
@@ -68,93 +74,115 @@ fun PodcastHeader(
     contentColor: Color,
     tags: List<String>,
     playButton: HeaderPlayButton?,
+    isRefreshing: Boolean,
+    onTagClick: () -> Unit,
+    onRefresh: () -> Unit,
     onColorExtracted: (Color) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    Row(
+    Column(
         modifier = modifier
             .fillMaxWidth()
             .background(background)
-            .padding(start = 16.dp, end = 16.dp, top = topPadding, bottom = 20.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(start = 16.dp, end = 16.dp, top = topPadding, bottom = 16.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .size(120.dp)
-                .shadow(elevation = 8.dp, shape = CoverShape)
-                .clip(CoverShape)
-                .background(MaterialTheme.colorScheme.surfaceVariant),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                Icons.Filled.Podcasts,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(40.dp)
-            )
-            if (imageUrl != null) {
-                AsyncImage(
-                    // Software bitmap so its pixels can be read for the header colour.
-                    model = ImageRequest.Builder(context).data(imageUrl).allowHardware(false).build(),
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .size(120.dp)
+                    .shadow(elevation = 8.dp, shape = CoverShape)
+                    .clip(CoverShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Filled.Podcasts,
                     contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    onSuccess = { state -> coverColor(state.result.image.toBitmap())?.let(onColorExtracted) },
-                    modifier = Modifier.matchParentSize()
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(40.dp)
                 )
+                if (imageUrl != null) {
+                    AsyncImage(
+                        // Software bitmap so its pixels can be read for the header colour.
+                        model = ImageRequest.Builder(context).data(imageUrl).allowHardware(false).build(),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        onSuccess = { state -> coverColor(state.result.image.toBitmap())?.let(onColorExtracted) },
+                        modifier = Modifier.matchParentSize()
+                    )
+                }
             }
-        }
-        Spacer(Modifier.width(16.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = contentColor,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-            if (author != null) {
+            Spacer(Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = author,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = contentColor.copy(alpha = 0.75f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(top = 2.dp)
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = contentColor,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
-            }
-            if (tags.isNotEmpty()) {
-                FlowRow(
-                    modifier = Modifier.padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    tags.forEach { name ->
-                        Text(
-                            text = name,
-                            style = MaterialTheme.typography.labelMedium,
-                            color = contentColor,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier
-                                .clip(TagShape)
-                                .background(contentColor.copy(alpha = 0.18f))
-                                .padding(horizontal = 10.dp, vertical = 4.dp)
-                        )
+                if (author != null) {
+                    Text(
+                        text = author,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = contentColor.copy(alpha = 0.75f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
+                }
+                if (tags.isNotEmpty()) {
+                    FlowRow(
+                        modifier = Modifier.padding(top = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        tags.forEach { name ->
+                            Text(
+                                text = name,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = contentColor,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier
+                                    .clip(TagShape)
+                                    .background(contentColor.copy(alpha = 0.18f))
+                                    .padding(horizontal = 10.dp, vertical = 4.dp)
+                            )
+                        }
                     }
                 }
             }
+        }
+        Row(modifier = Modifier.padding(top = 12.dp), verticalAlignment = Alignment.CenterVertically) {
             if (playButton != null) {
                 Button(
                     onClick = playButton.onClick,
                     colors = ButtonDefaults.buttonColors(containerColor = contentColor, contentColor = background),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
-                    modifier = Modifier.padding(top = 10.dp)
+                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp)
                 ) {
                     Icon(playButton.icon, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
                     Text(playButton.label, style = MaterialTheme.typography.labelLarge)
+                }
+                Spacer(Modifier.width(8.dp))
+            }
+            IconButton(onClick = onTagClick) {
+                Icon(
+                    Icons.AutoMirrored.Outlined.Label,
+                    contentDescription = stringResource(R.string.action_manage_tags),
+                    tint = contentColor
+                )
+            }
+            if (isRefreshing) {
+                Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(modifier = Modifier.size(22.dp), color = contentColor, strokeWidth = 2.dp)
+                }
+            } else {
+                IconButton(onClick = onRefresh) {
+                    Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.action_refresh), tint = contentColor)
                 }
             }
         }
