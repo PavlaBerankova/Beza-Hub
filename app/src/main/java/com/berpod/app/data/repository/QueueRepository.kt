@@ -21,6 +21,6 @@ class QueueRepository(private val queueDao: QueueDao) {
         if (fromIndex !in currentOrder.indices || toIndex !in currentOrder.indices) return
         val a = currentOrder[fromIndex]
         val b = currentOrder[toIndex]
-        queueDao.swapPositions(a.queueEntryId, a.queuePosition, b.queueEntryId, b.queuePosition)
+        queueDao.swapEntries(a.queueEntryId, b.queueEntryId)
     }
 }

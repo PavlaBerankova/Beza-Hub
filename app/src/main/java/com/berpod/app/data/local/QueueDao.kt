@@ -36,8 +36,15 @@ interface QueueDao {
     @Query("UPDATE queue_entries SET position = :position WHERE id = :queueEntryId")
     suspend fun updatePosition(queueEntryId: Long, position: Int)
 
+    @Query("SELECT position FROM queue_entries WHERE id = :queueEntryId")
+    suspend fun getPosition(queueEntryId: Long): Int?
+
+    // Reads the current positions inside the transaction, so a move issued from a stale UI list
+    // (a second tap before the queue re-emits) can't leave two entries on the same position.
     @Transaction
-    suspend fun swapPositions(idA: Long, posA: Int, idB: Long, posB: Int) {
+    suspend fun swapEntries(idA: Long, idB: Long) {
+        val posA = getPosition(idA) ?: return
+        val posB = getPosition(idB) ?: return
         updatePosition(idA, posB)
         updatePosition(idB, posA)
     }

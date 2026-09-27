@@ -24,6 +24,7 @@ private class RecordingQueueDao(initial: Map<Long, Int>) : QueueDao {
     override suspend fun updatePosition(queueEntryId: Long, position: Int) {
         positions[queueEntryId] = position
     }
+    override suspend fun getPosition(queueEntryId: Long): Int? = positions[queueEntryId]
 }
 
 class QueueRepositoryTest {
@@ -49,5 +50,22 @@ class QueueRepositoryTest {
         repository.moveItem(visible, fromIndex = 0, toIndex = -1)
 
         assertEquals(mapOf(10L to 0, 11L to 1, 12L to 2), dao.positions)
+    }
+
+    @Test
+    fun `second move with a stale list keeps positions unique`() = runTest {
+        // Full queue A=20@0, B=21@1, C=22@2; the UI list is not refreshed between two quick taps.
+        val dao = RecordingQueueDao(mapOf(20L to 0, 21L to 1, 22L to 2))
+        val repository = QueueRepository(dao)
+        val stale = listOf(
+            queueItem(entryId = 20, position = 0, feedId = 1),
+            queueItem(entryId = 21, position = 1, feedId = 1),
+            queueItem(entryId = 22, position = 2, feedId = 1)
+        )
+
+        repository.moveItem(stale, fromIndex = 2, toIndex = 1) // C up: A@0, C@1, B@2
+        repository.moveItem(stale, fromIndex = 1, toIndex = 0) // stale "B up"
+
+        assertEquals(setOf(0, 1, 2), dao.positions.values.toSet())
     }
 }
