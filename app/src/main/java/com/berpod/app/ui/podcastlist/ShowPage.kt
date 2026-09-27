@@ -38,12 +38,17 @@ fun descriptionSnippet(raw: String?): String? {
     return text.replace(whitespace, " ").trim().takeIf { it.isNotEmpty() }
 }
 
+/** Seconds left to listen: the rest of an episode in progress, otherwise its full duration; null if unknown. */
+fun remainingSeconds(episode: EpisodeEntity): Int? {
+    val duration = episode.durationSeconds ?: return null
+    return if (episode.isInProgress()) duration - (episode.lastPositionMs / 1000).toInt() else duration
+}
+
 /** "zbývá 5 min" for an episode in progress, otherwise its full duration; null when the duration is unknown. */
 fun remainingText(episode: EpisodeEntity): String? {
-    val duration = episode.durationSeconds ?: return null
-    if (!episode.isInProgress()) return formatDuration(duration)
-    val remainingSeconds = duration - (episode.lastPositionMs / 1000).toInt()
-    return formatDuration(remainingSeconds)?.let { "zbývá $it" }
+    val seconds = remainingSeconds(episode) ?: return null
+    val text = formatDuration(seconds) ?: return null
+    return if (episode.isInProgress()) "zbývá $text" else text
 }
 
 /** Whether [argb] is light enough to need dark text and icons on top of it. */

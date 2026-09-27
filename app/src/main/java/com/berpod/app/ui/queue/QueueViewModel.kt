@@ -103,6 +103,11 @@ class QueueViewModel(
         playbackRepository.play(item.episode, item.podcastTitle, item.podcastImageUrl)
     }
 
+    /** Pauses/resumes the episode that is already loaded; starts any other one. */
+    fun onPlayOrPause(item: QueueItemWithEpisode) {
+        if (_uiState.value.currentlyPlayingEpisodeId == item.episode.id) playbackRepository.togglePlayPause() else onPlay(item)
+    }
+
     companion object {
         fun factory(
             repository: QueueRepository,
