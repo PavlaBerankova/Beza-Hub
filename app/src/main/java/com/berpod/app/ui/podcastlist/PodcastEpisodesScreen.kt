@@ -1,5 +1,6 @@
 package com.berpod.app.ui.podcastlist
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
@@ -35,6 +36,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -107,6 +109,23 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
                     }
+                },
+                actions = {
+                    IconButton(onClick = viewModel::onOpenTagDialog) {
+                        Icon(
+                            Icons.AutoMirrored.Outlined.Label,
+                            contentDescription = stringResource(R.string.action_manage_tags)
+                        )
+                    }
+                    if (uiState.isRefreshing) {
+                        Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(modifier = Modifier.size(22.dp), color = barContentColor, strokeWidth = 2.dp)
+                        }
+                    } else {
+                        IconButton(onClick = viewModel::onRefresh) {
+                            Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.action_refresh))
+                        }
+                    }
                 }
             )
         },
@@ -127,9 +146,6 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                     contentColor = headerContent,
                     tags = uiState.feedTags,
                     playButton = playButton,
-                    isRefreshing = uiState.isRefreshing,
-                    onTagClick = viewModel::onOpenTagDialog,
-                    onRefresh = viewModel::onRefresh,
                     onColorExtracted = { coverColor = it },
                     modifier = Modifier.onSizeChanged { headerHeightPx = it.height }
                 )
