@@ -75,13 +75,23 @@ class QueueViewModel(
         _uiState.update { it.copy(selectedTagId = tagId) }
     }
 
-    // Moves act on the visible list: an item swaps with its visible neighbour, hidden entries keep their positions.
+    fun onMoveEntry(movedId: Long, afterId: Long?, beforeId: Long?) {
+        viewModelScope.launch { repository.moveEntry(movedId, afterId, beforeId) }
+    }
+
+    // One step within the visible list (used by accessibility actions); hidden entries keep their positions.
     fun onMoveUp(index: Int) {
-        viewModelScope.launch { repository.moveItem(_uiState.value.visibleItems, index, index - 1) }
+        val visible = _uiState.value.visibleItems
+        val moved = visible.getOrNull(index) ?: return
+        val above = visible.getOrNull(index - 1) ?: return
+        onMoveEntry(moved.queueEntryId, afterId = null, beforeId = above.queueEntryId)
     }
 
     fun onMoveDown(index: Int) {
-        viewModelScope.launch { repository.moveItem(_uiState.value.visibleItems, index, index + 1) }
+        val visible = _uiState.value.visibleItems
+        val moved = visible.getOrNull(index) ?: return
+        val below = visible.getOrNull(index + 1) ?: return
+        onMoveEntry(moved.queueEntryId, afterId = below.queueEntryId, beforeId = null)
     }
 
     fun onRemove(queueEntryId: Long) {

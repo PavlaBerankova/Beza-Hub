@@ -17,10 +17,6 @@ class QueueRepository(private val queueDao: QueueDao) {
 
     suspend fun removeFromQueue(queueEntryId: Long) = queueDao.deleteById(queueEntryId)
 
-    suspend fun moveItem(currentOrder: List<QueueItemWithEpisode>, fromIndex: Int, toIndex: Int) {
-        if (fromIndex !in currentOrder.indices || toIndex !in currentOrder.indices) return
-        val a = currentOrder[fromIndex]
-        val b = currentOrder[toIndex]
-        queueDao.swapEntries(a.queueEntryId, b.queueEntryId)
-    }
+    suspend fun moveEntry(movedId: Long, afterId: Long?, beforeId: Long?) =
+        queueDao.moveEntry(movedId, afterId, beforeId)
 }
