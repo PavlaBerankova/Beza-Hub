@@ -5,11 +5,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -31,7 +31,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -55,8 +54,8 @@ private val TagShape = RoundedCornerShape(50)
 data class HeaderPlayButton(val label: String, val icon: ImageVector, val onClick: () -> Unit)
 
 /**
- * Apple Podcasts-style show header: a block in the cover's colour with the large cover centred, the title,
- * the author and a play button. [topPadding] keeps the content below the transparent top app bar drawn over it.
+ * Apple Podcasts-style show header: a compact block in the cover's colour with the cover on the left and the
+ * title, author, tags and a play button beside it. [topPadding] keeps the content below the transparent top app bar drawn over it.
  * [onColorExtracted] reports the cover's average colour once the image has loaded.
  */
 @Composable
@@ -73,17 +72,17 @@ fun PodcastHeader(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    Column(
+    Row(
         modifier = modifier
             .fillMaxWidth()
             .background(background)
-            .padding(start = 24.dp, end = 24.dp, top = topPadding + 8.dp, bottom = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(start = 16.dp, end = 16.dp, top = topPadding, bottom = 20.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
-                .size(200.dp)
-                .shadow(elevation = 12.dp, shape = CoverShape)
+                .size(120.dp)
+                .shadow(elevation = 8.dp, shape = CoverShape)
                 .clip(CoverShape)
                 .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center
@@ -92,7 +91,7 @@ fun PodcastHeader(
                 Icons.Filled.Podcasts,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(56.dp)
+                modifier = Modifier.size(40.dp)
             )
             if (imageUrl != null) {
                 AsyncImage(
@@ -105,58 +104,58 @@ fun PodcastHeader(
                 )
             }
         }
-        Spacer(Modifier.height(20.dp))
-        Text(
-            text = title,
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            color = contentColor,
-            textAlign = TextAlign.Center,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
-        )
-        if (author != null) {
+        Spacer(Modifier.width(16.dp))
+        Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = author,
-                style = MaterialTheme.typography.bodyLarge,
-                color = contentColor.copy(alpha = 0.75f),
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(top = 4.dp)
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = contentColor,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
             )
-        }
-        if (tags.isNotEmpty()) {
-            FlowRow(
-                modifier = Modifier.padding(top = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                tags.forEach { name ->
-                    Text(
-                        text = name,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = contentColor,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier
-                            .clip(TagShape)
-                            .background(contentColor.copy(alpha = 0.18f))
-                            .padding(horizontal = 10.dp, vertical = 4.dp)
-                    )
+            if (author != null) {
+                Text(
+                    text = author,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = contentColor.copy(alpha = 0.75f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(top = 2.dp)
+                )
+            }
+            if (tags.isNotEmpty()) {
+                FlowRow(
+                    modifier = Modifier.padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    tags.forEach { name ->
+                        Text(
+                            text = name,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = contentColor,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier
+                                .clip(TagShape)
+                                .background(contentColor.copy(alpha = 0.18f))
+                                .padding(horizontal = 10.dp, vertical = 4.dp)
+                        )
+                    }
                 }
             }
-        }
-        if (playButton != null) {
-            Spacer(Modifier.height(20.dp))
-            Button(
-                onClick = playButton.onClick,
-                colors = ButtonDefaults.buttonColors(containerColor = contentColor, contentColor = background),
-                contentPadding = PaddingValues(horizontal = 28.dp, vertical = 12.dp)
-            ) {
-                Icon(playButton.icon, contentDescription = null, modifier = Modifier.size(20.dp))
-                Spacer(Modifier.width(8.dp))
-                Text(playButton.label, style = MaterialTheme.typography.titleSmall)
+            if (playButton != null) {
+                Button(
+                    onClick = playButton.onClick,
+                    colors = ButtonDefaults.buttonColors(containerColor = contentColor, contentColor = background),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
+                    modifier = Modifier.padding(top = 10.dp)
+                ) {
+                    Icon(playButton.icon, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(playButton.label, style = MaterialTheme.typography.labelLarge)
+                }
             }
         }
     }
