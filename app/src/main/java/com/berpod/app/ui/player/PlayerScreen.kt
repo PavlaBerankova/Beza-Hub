@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DropdownMenu
@@ -66,7 +65,7 @@ import com.berpod.app.ui.dot.DotIcon
 import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIconSpec
 import com.berpod.app.ui.dot.DotIcons
-import com.berpod.app.ui.dot.ringDots
+import com.berpod.app.ui.dot.roundedSquareDots
 import com.berpod.app.ui.dot.upperCs
 import com.berpod.app.ui.dot.waveHeights
 import com.berpod.app.ui.dot.waveSeekFraction
@@ -87,7 +86,8 @@ fun PlayerScreen(viewModel: PlayerViewModel, onBack: () -> Unit, onOpenQueue: ()
     val fraction = draggingFraction ?: if (known) (state.positionMs.toFloat() / duration).coerceIn(0f, 1f) else 0f
     val heights = remember(state.currentEpisodeId) { waveHeights(state.currentEpisodeId ?: 0L) }
     val ringStep = (fraction * 56).toInt()
-    val ring = remember(ringStep) { ringDots(56, center = 140f, radius = 132f, fraction = ringStep / 56f + 0.0001f) }
+    // Corners concentric with the cover's (28 dp corners, 27 dp away), in the canvas' 280-unit space.
+    val ring = remember(ringStep) { roundedSquareDots(56, center = 140f, half = 132f, cornerRadius = 55f, fraction = ringStep / 56f + 0.0001f) }
 
     Column(
         Modifier
@@ -110,6 +110,7 @@ fun PlayerScreen(viewModel: PlayerViewModel, onBack: () -> Unit, onOpenQueue: ()
             }
             Spacer(Modifier.size(44.dp))
         }
+        val coverShape = RoundedCornerShape(28.dp)
         Box(Modifier.padding(top = 18.dp).size(280.dp), contentAlignment = Alignment.Center) {
             Canvas(Modifier.matchParentSize()) {
                 val scale = size.width / 280f
@@ -122,7 +123,7 @@ fun PlayerScreen(viewModel: PlayerViewModel, onBack: () -> Unit, onOpenQueue: ()
                 }
             }
             Box(
-                modifier = Modifier.size(210.dp).clip(CircleShape).background(c.divider).border(1.dp, c.divider, CircleShape),
+                modifier = Modifier.size(210.dp).clip(coverShape).background(c.divider).border(1.dp, c.divider, coverShape),
                 contentAlignment = Alignment.Center
             ) {
                 DotIcon(DotIcons.Podcasts, 56.dp, monochrome = c.textMuted)
@@ -134,7 +135,7 @@ fun PlayerScreen(viewModel: PlayerViewModel, onBack: () -> Unit, onOpenQueue: ()
                 }
             }
         }
-        Text(state.title, style = DotType.title.copy(fontSize = 20.sp), color = c.text, maxLines = 1, overflow = TextOverflow.Ellipsis,
+        Text(state.title, style = DotType.title.copy(fontSize = 20.sp), color = c.text, maxLines = 3, overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(top = 18.dp))
         Text(state.podcastTitle.upperCs(), style = DotType.chip.copy(letterSpacing = 2.sp), color = c.textMuted, modifier = Modifier.padding(top = 6.dp))
         val seekLabel = stringResource(R.string.action_seek)

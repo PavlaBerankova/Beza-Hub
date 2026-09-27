@@ -30,12 +30,20 @@ class DotMathTest {
     }
 
     @Test
-    fun `ring dots sit on the circle starting at the top`() {
-        val dots = ringDots(count = 56, center = 140f, radius = 132f, fraction = 0.25f)
+    fun `square ring dots go clockwise around the rounded square from the top`() {
+        val dots = roundedSquareDots(count = 56, center = 140f, half = 132f, cornerRadius = 40f, fraction = 0.25f)
         assertEquals(56, dots.size)
-        assertTrue(dots.all { abs(hypot(it.x - 140f, it.y - 140f) - 132f) < 0.01f })
-        assertEquals(140f, dots[0].x, 0.01f)
-        assertEquals(8f, dots[0].y, 0.01f)
+        // Top centre, then right centre a quarter of the way round, bottom centre halfway.
+        assertEquals(140f, dots[0].x, 0.01f); assertEquals(8f, dots[0].y, 0.01f)
+        assertEquals(272f, dots[14].x, 0.01f); assertEquals(140f, dots[14].y, 0.01f)
+        assertEquals(140f, dots[28].x, 0.01f); assertEquals(272f, dots[28].y, 0.01f)
+        // Every dot is inside the square and on its outline: on a side or on a corner arc.
+        assertTrue(dots.all { d ->
+            val dx = abs(d.x - 140f); val dy = abs(d.y - 140f)
+            val onSide = (abs(dx - 132f) < 0.01f && dy <= 92.01f) || (abs(dy - 132f) < 0.01f && dx <= 92.01f)
+            val onCorner = dx >= 92f && dy >= 92f && abs(hypot(dx - 92f, dy - 92f) - 40f) < 0.01f
+            onSide || onCorner
+        })
         assertEquals(14, dots.count { it.role == CellRole.Played })
     }
 
