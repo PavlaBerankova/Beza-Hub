@@ -38,6 +38,12 @@ object DotIcons {
         IconPart(roundRect(20f, 7f, 5f, 18f, 2f), IconRole.Primary, 3f),
         px(15f, 10f), px(15f, 15f), px(15f, 20f)
     ))
+    val Previous = DotIconSpec(24f, 24f, listOf(IconPart("M6 5v14", IconRole.Muted, 2.4f), IconPart("M19 5.5L10 12l9 6.5z", IconRole.Primary, 2.4f), px(14.6f, 11f)))
+    val Next = DotIconSpec(24f, 24f, listOf(IconPart("M18 5v14", IconRole.Muted, 2.4f), IconPart("M5 5.5L14 12l-9 6.5z", IconRole.Primary, 2.4f), px(7.4f, 11f)))
+    val Back15 = DotIconSpec(24f, 24f, listOf(IconPart("M4.5 12a7.5 7.5 0 1 0 2.2-5.3", IconRole.Primary, 2.2f), IconPart("M6.7 3v3.7H3", IconRole.Muted, 2.2f), px(18.3f, 10.8f, 2.4f)))
+    val Forward30 = DotIconSpec(24f, 24f, listOf(IconPart("M19.5 12a7.5 7.5 0 1 1-2.2-5.3", IconRole.Primary, 2.2f), IconPart("M17.3 3v3.7H21", IconRole.Muted, 2.2f), px(3.3f, 10.8f, 2.4f)))
+    val Speed = DotIconSpec(24f, 24f, listOf(IconPart("M4 17a8 8 0 1 1 16 0", IconRole.Primary, 2.4f), IconPart("M12 7v1.5M6.3 9.3l1 1M17.7 9.3l-1 1", IconRole.Muted, 2.4f), IconPart("M12 17l3.5-4.5", IconRole.Primary, 2.4f), px(11f, 16f)))
+    val Sleep = DotIconSpec(24f, 24f, listOf(IconPart("M19 14.5A7.5 7.5 0 1 1 9.5 5a6 6 0 0 0 9.5 9.5z", IconRole.Primary, 2.4f), px(16f, 3.5f), px(19.5f, 7f, 1.8f, IconRole.Muted)))
     /** Solid play triangle for filled (accent) buttons. */
     val PlaySolid = DotIconSpec(24f, 24f, listOf(IconPart("M8 5v14l11-7z", IconRole.OnAccent)))
     val PlayLarge = DotIconSpec(32f, 32f, listOf(

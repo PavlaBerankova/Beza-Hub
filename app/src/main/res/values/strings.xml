@@ -69,4 +69,14 @@
     <string name="queue_total">celkem %1$s</string>
     <string name="label_podcast">Podcast</string>
     <string name="filter_label">Filtr: %1$s</string>
+    <string name="action_back_15">Zpět o 15 sekund</string>
+    <string name="action_forward_30">Vpřed o 30 sekund</string>
+    <string name="action_previous">Předchozí</string>
+    <string name="action_next">Další</string>
+    <string name="speed">Rychlost</string>
+    <string name="sleep">Spánek</string>
+    <string name="sleep_end_of_episode">Do konce epizody</string>
+    <string name="sleep_cancel">Zrušit časovač</string>
+    <string name="sleep_minutes">%1$d min</string>
+    <string name="queue">Fronta</string>
 </resources>

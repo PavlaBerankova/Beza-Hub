@@ -17,8 +17,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,16 +51,17 @@ enum class PodcastsSection(val labelRes: Int) {
 
 /**
  * The Podcasts tab: a large title with a section switcher (Odběry · Fronta · Nové) above the chosen screen.
- * The chosen section survives visits to a podcast's detail and back, for the session.
+ * The chosen section is owned by the caller so other screens (the player's FRONTA) can switch it.
  */
 @Composable
 fun PodcastsHubScreen(
     subscriptionsFactory: ViewModelProvider.Factory,
     queueFactory: ViewModelProvider.Factory,
     newEpisodesFactory: ViewModelProvider.Factory,
-    onPodcastClick: (Long) -> Unit
+    onPodcastClick: (Long) -> Unit,
+    section: PodcastsSection,
+    onSectionChange: (PodcastsSection) -> Unit
 ) {
-    var section by rememberSaveable { mutableStateOf(PodcastsSection.Subscriptions) }
     // Same instance NewEpisodesScreen gets (same owner and class), so the bar's refresh drives that screen.
     val newEpisodesViewModel: NewEpisodesViewModel = viewModel(factory = newEpisodesFactory)
     val newEpisodesState by newEpisodesViewModel.uiState.collectAsState()
@@ -112,7 +111,7 @@ fun PodcastsHubScreen(
         DotSegmented(
             options = PodcastsSection.entries.map { stringResource(it.labelRes) },
             selectedIndex = section.ordinal,
-            onSelect = { section = PodcastsSection.entries[it] },
+            onSelect = { onSectionChange(PodcastsSection.entries[it]) },
             modifier = Modifier.padding(horizontal = 20.dp)
         )
         Spacer(Modifier.height(18.dp))

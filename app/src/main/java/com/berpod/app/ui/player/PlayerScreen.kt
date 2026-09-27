@@ -3,6 +3,7 @@ package com.berpod.app.ui.player
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -20,7 +22,10 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -39,6 +44,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.semantics
@@ -50,10 +56,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.berpod.app.R
+import com.berpod.app.data.repository.SleepTimer
 import com.berpod.app.ui.common.formatPlaybackTime
 import com.berpod.app.ui.dot.CellRole
 import com.berpod.app.ui.dot.DotIcon
 import com.berpod.app.ui.dot.DotIconButton
+import com.berpod.app.ui.dot.DotIconSpec
 import com.berpod.app.ui.dot.DotIcons
 import com.berpod.app.ui.dot.ringDots
 import com.berpod.app.ui.dot.upperCs
@@ -61,10 +69,11 @@ import com.berpod.app.ui.dot.waveHeights
 import com.berpod.app.ui.dot.waveSeekFraction
 import com.berpod.app.ui.theme.DotTheme
 import com.berpod.app.ui.theme.DotType
+import kotlin.math.abs
 
 /** Dot Matrix player (step 1): dot ring around the cover, seekable decorative wave, times and play/pause. */
 @Composable
-fun PlayerScreen(viewModel: PlayerViewModel, onBack: () -> Unit) {
+fun PlayerScreen(viewModel: PlayerViewModel, onBack: () -> Unit, onOpenQueue: () -> Unit) {
     val state by viewModel.uiState.collectAsState()
     val c = DotTheme.colors
     var draggingFraction by remember { mutableStateOf<Float?>(null) }
@@ -173,12 +182,105 @@ fun PlayerScreen(viewModel: PlayerViewModel, onBack: () -> Unit) {
             Spacer(Modifier.weight(1f))
                         if (known) Text("−" + formatPlaybackTime(duration - (fraction * duration).toLong()), style = DotType.rowTitle.copy(letterSpacing = 1.sp), color = c.textMuted)
         }
-        DotIconButton(
-            if (state.isPlaying) DotIcons.PauseLarge else DotIcons.PlayLarge,
-            stringResource(if (state.isPlaying) R.string.action_pause else R.string.action_play),
-            viewModel::togglePlayPause,
-            modifier = Modifier.padding(top = 24.dp),
-            size = 78.dp, radius = 24.dp, iconSize = 36.dp, accentBorder = true, filled = c.surface
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SkipButton(DotIcons.Back15, "15", stringResource(R.string.action_back_15), viewModel::skipBack)
+            TransportButton(DotIcons.Previous, stringResource(R.string.action_previous), enabled = true, onClick = viewModel::playPrevious)
+            DotIconButton(
+                if (state.isPlaying) DotIcons.PauseLarge else DotIcons.PlayLarge,
+                stringResource(if (state.isPlaying) R.string.action_pause else R.string.action_play),
+                viewModel::togglePlayPause,
+                size = 78.dp, radius = 24.dp, iconSize = 36.dp, accentBorder = true, filled = c.surface
+            )
+            TransportButton(DotIcons.Next, stringResource(R.string.action_next), enabled = state.hasNext, onClick = viewModel::playNext)
+            SkipButton(DotIcons.Forward30, "30", stringResource(R.string.action_forward_30), viewModel::skipForward)
+        }
+        Row(Modifier.fillMaxWidth().padding(top = 18.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OptionButton(
+                icon = DotIcons.Speed,
+                label = formatSpeed(state.speed),
+                active = abs(state.speed - 1f) > 0.01f,
+                onClick = viewModel::cycleSpeed,
+                modifier = Modifier.weight(1f)
+            )
+            Box(Modifier.weight(1f)) {
+                var menuOpen by remember { mutableStateOf(false) }
+                OptionButton(
+                    icon = DotIcons.Sleep,
+                    label = when (val t = state.sleepTimer) {
+                        null -> stringResource(R.string.sleep)
+                        SleepTimer.EndOfEpisode -> stringResource(R.string.sleep_end_of_episode)
+                        is SleepTimer.At -> formatPlaybackTime(state.sleepRemainingMs ?: 0L)
+                    },
+                    active = state.sleepTimer != null,
+                    onClick = { menuOpen = true },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                    listOf(15, 30, 45, 60).forEach { min ->
+                        DropdownMenuItem(text = { Text(stringResource(R.string.sleep_minutes, min)) }, onClick = { menuOpen = false; viewModel.setSleepTimer(min) })
+                    }
+                    DropdownMenuItem(text = { Text(stringResource(R.string.sleep_end_of_episode)) }, onClick = { menuOpen = false; viewModel.setSleepAtEndOfEpisode() })
+                    if (state.sleepTimer != null) {
+                        DropdownMenuItem(text = { Text(stringResource(R.string.sleep_cancel)) }, onClick = { menuOpen = false; viewModel.cancelSleepTimer() })
+                    }
+                }
+            }
+            OptionButton(DotIcons.Queue, stringResource(R.string.queue), active = false, onClick = onOpenQueue, modifier = Modifier.weight(1f))
+        }
+    }
+}
+
+@Composable
+private fun SkipButton(icon: DotIconSpec, seconds: String, description: String, onClick: () -> Unit) {
+    DotIconButton(icon, description, onClick, size = 52.dp, radius = 16.dp) {
+        Box(contentAlignment = Alignment.Center) {
+            DotIcon(icon, 30.dp)
+            Text(seconds, style = DotType.chip.copy(fontSize = 9.sp, fontWeight = FontWeight.W700), color = DotTheme.colors.text)
+        }
+    }
+}
+
+@Composable
+private fun TransportButton(icon: DotIconSpec, description: String, enabled: Boolean, onClick: () -> Unit) {
+    val c = DotTheme.colors
+    Box(
+        modifier = Modifier
+            .size(48.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+            .semantics { contentDescription = description },
+        contentAlignment = Alignment.Center
+    ) {
+        DotIcon(icon, 28.dp, monochrome = if (enabled) null else c.divider)
+    }
+}
+
+@Composable
+private fun OptionButton(icon: DotIconSpec, label: String, active: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val c = DotTheme.colors
+    val shape = RoundedCornerShape(12.dp)
+    Row(
+        modifier = modifier
+            .height(44.dp)
+            .clip(shape)
+            .border(1.dp, if (active) c.accent else c.outline, shape)
+            .clickable(role = Role.Button, onClick = onClick),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        DotIcon(icon, 18.dp)
+        Spacer(Modifier.width(6.dp))
+        Text(
+            label.upperCs(),
+            style = DotType.segment.copy(fontWeight = if (active) FontWeight.W700 else FontWeight.W600, letterSpacing = 1.sp),
+            color = if (active) c.accent else c.textStrong,
+            maxLines = 1
         )
     }
 }
+
+private fun formatSpeed(speed: Float): String = String.format(java.util.Locale.forLanguageTag("cs"), "%.1f×", speed)

@@ -75,6 +75,8 @@ class PlaybackRepository(
     private var latestQueue: List<QueueItemWithEpisode> = emptyList()
     private var lastPreviousPressAtMs: Long? = null
     private var sleepJob: Job? = null
+    // The episode that just finished: its stored position stays 0 until it's played again.
+    private var endedEpisodeId: Long? = null
 
     private val playerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -143,6 +145,7 @@ class PlaybackRepository(
     }
 
     fun play(episode: EpisodeEntity, podcastTitle: String, podcastImageUrl: String?) {
+        if (episode.id == endedEpisodeId) endedEpisodeId = null
         // Playing from outside the queue puts the episode first, so next/auto-advance continue with the rest.
         scope.launch { runCatching { queueDao.queueAtFront(episode.id) } }
         val action: () -> Unit = {
@@ -256,6 +259,7 @@ class PlaybackRepository(
 
     private fun onEpisodeEnded() {
         val endedId = _uiState.value.currentEpisodeId ?: return
+        endedEpisodeId = endedId
         val order = latestQueue.map { it.episode.id }
         val next = nextInQueue(order, endedId)?.let { id -> latestQueue.firstOrNull { it.episode.id == id } }
         val entry = latestQueue.firstOrNull { it.episode.id == endedId }
@@ -292,6 +296,7 @@ class PlaybackRepository(
     }
 
     private fun persistPosition(episodeId: Long, positionMs: Long) {
+        if (episodeId == endedEpisodeId) return
         lastPersistedAtMs = System.currentTimeMillis()
         scope.launch { runCatching { episodeDao.updatePosition(episodeId, positionMs) } }
     }

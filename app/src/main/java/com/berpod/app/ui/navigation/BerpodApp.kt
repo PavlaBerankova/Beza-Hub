@@ -18,6 +18,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -47,6 +50,7 @@ import com.berpod.app.ui.podcastlist.PodcastEpisodesScreen
 import com.berpod.app.ui.podcastlist.PodcastEpisodesViewModel
 import com.berpod.app.ui.podcastlist.PodcastListViewModel
 import com.berpod.app.ui.podcasts.PodcastsHubScreen
+import com.berpod.app.ui.podcasts.PodcastsSection
 import com.berpod.app.ui.queue.QueueViewModel
 import com.berpod.app.ui.theme.DotTheme
 import com.berpod.app.ui.theme.DotType
@@ -77,6 +81,8 @@ fun BerpodApp(container: AppContainer) {
     // observe the exact same instance, instead of each screen creating its own via a factory.
     val playerViewModel: PlayerViewModel = viewModel(factory = PlayerViewModel.factory(container.playbackRepository))
     val playbackState by playerViewModel.uiState.collectAsState()
+    // Hoisted so the player's FRONTA button can open Podcasts › Fronta.
+    var podcastsSection by rememberSaveable { mutableStateOf(PodcastsSection.Subscriptions) }
 
     Scaffold(
         containerColor = DotTheme.colors.background,
@@ -149,7 +155,9 @@ fun BerpodApp(container: AppContainer) {
                         container.queueRepository,
                         container.playbackRepository
                     ),
-                    onPodcastClick = { feedId -> navController.navigate(Screen.PodcastEpisodes.createRoute(feedId)) }
+                    onPodcastClick = { feedId -> navController.navigate(Screen.PodcastEpisodes.createRoute(feedId)) },
+                    section = podcastsSection,
+                    onSectionChange = { podcastsSection = it }
                 )
             }
             composable(Screen.YouTube.route) {
@@ -176,7 +184,19 @@ fun BerpodApp(container: AppContainer) {
                 )
             }
             composable(Screen.Player.route) {
-                PlayerScreen(viewModel = playerViewModel, onBack = { navController.popBackStack() })
+                PlayerScreen(
+                    viewModel = playerViewModel,
+                    onBack = { navController.popBackStack() },
+                    onOpenQueue = {
+                        podcastsSection = PodcastsSection.Queue
+                        if (!navController.popBackStack(Screen.Podcasts.route, inclusive = false)) {
+                            navController.navigate(Screen.Podcasts.route) {
+                                popUpTo(navController.graph.startDestinationId)
+                                launchSingleTop = true
+                            }
+                        }
+                    }
+                )
             }
         }
     }
