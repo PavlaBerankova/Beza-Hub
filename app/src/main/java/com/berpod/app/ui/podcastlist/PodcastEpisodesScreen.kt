@@ -28,10 +28,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -60,12 +63,19 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
 
     val listState = rememberLazyListState()
     // Transparent bar over the header; solid with the title once the header has scrolled away.
-    val isHeaderVisible by remember { derivedStateOf { listState.firstVisibleItemIndex == 0 } }
+    var headerHeightPx by remember { mutableIntStateOf(0) }
+    var barHeightPx by remember { mutableIntStateOf(0) }
+    val isHeaderVisible by remember {
+        derivedStateOf {
+            isBarOverHeader(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset, headerHeightPx, barHeightPx)
+        }
+    }
     val barContentColor = if (isHeaderVisible) Color.White else MaterialTheme.colorScheme.onSurface
 
     Scaffold(
         topBar = {
             TopAppBar(
+                modifier = Modifier.onSizeChanged { barHeightPx = it.height },
                 title = { if (!isHeaderVisible) Text(uiState.feedTitle, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = if (isHeaderVisible) Color.Transparent else MaterialTheme.colorScheme.surface,
@@ -107,7 +117,8 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                     title = uiState.feedTitle,
                     author = uiState.feedAuthor,
                     imageUrl = uiState.feedImageUrl,
-                    topPadding = paddingValues.calculateTopPadding()
+                    topPadding = paddingValues.calculateTopPadding(),
+                    modifier = Modifier.onSizeChanged { headerHeightPx = it.height }
                 )
             }
             if (uiState.episodes.isEmpty()) {

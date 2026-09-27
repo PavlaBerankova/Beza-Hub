@@ -27,6 +27,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 
+/**
+ * Whether the transparent top bar still has header behind it: the header is the first list item and at least
+ * the bar's height of it is left on screen. Otherwise episode rows would slide under white icons.
+ */
+fun isBarOverHeader(firstVisibleIndex: Int, scrollOffsetPx: Int, headerHeightPx: Int, barHeightPx: Int): Boolean =
+    firstVisibleIndex == 0 && scrollOffsetPx <= headerHeightPx - barHeightPx
+
 private val HeaderShape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
 private val CoverShape = RoundedCornerShape(12.dp)
 
@@ -35,9 +42,9 @@ private val CoverShape = RoundedCornerShape(12.dp)
  * [topPadding] keeps the content below the transparent top app bar drawn over it.
  */
 @Composable
-fun PodcastHeader(title: String, author: String?, imageUrl: String?, topPadding: Dp) {
+fun PodcastHeader(title: String, author: String?, imageUrl: String?, topPadding: Dp, modifier: Modifier = Modifier) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(HeaderShape)
             .background(MaterialTheme.colorScheme.surfaceVariant)
