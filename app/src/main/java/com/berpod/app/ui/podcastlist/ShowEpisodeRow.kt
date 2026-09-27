@@ -32,7 +32,7 @@ import com.berpod.app.ui.dot.upperCs
 import com.berpod.app.ui.theme.DotTheme
 import com.berpod.app.ui.theme.DotType
 
-/** Dot Matrix episode row: date (accent + "NOVÁ" when recent), title, description, queue (until queued)/download, time and play. */
+/** Dot Matrix episode row: date (accent + "NOVÁ" when recent), title, description, download/queue (until queued), time and play. */
 @Composable
 fun ShowEpisodeRow(
     episode: EpisodeEntity,
@@ -56,8 +56,8 @@ fun ShowEpisodeRow(
             Text(it, style = DotType.body, color = c.textMuted, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
         Row(modifier = Modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            AddToQueueButton(isQueued, onAddToQueue)
             DotIconButton(DotIcons.Download, stringResource(R.string.action_download), {}, radius = 12.dp, iconSize = 22.dp)
+            AddToQueueButton(isQueued, onAddToQueue)
             Spacer(Modifier.weight(1f))
             if (played) {
                 DotIcon(DotIcons.Check, 16.dp, monochrome = c.textMuted)
