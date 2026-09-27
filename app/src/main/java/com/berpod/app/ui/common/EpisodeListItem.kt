@@ -37,7 +37,9 @@ fun EpisodeListItem(
     onPlay: (() -> Unit)? = null,
     isCurrentlyPlaying: Boolean = false,
     onDownload: (() -> Unit)? = null,
-    progressFraction: Float? = null
+    progressFraction: Float? = null,
+    showArtwork: Boolean = false,
+    leadingContent: @Composable (() -> Unit)? = null
 ) {
     val metaParts = listOfNotNull(formatPubDate(episode.pubDateMillis), formatDuration(episode.durationSeconds))
 
@@ -45,6 +47,12 @@ fun EpisodeListItem(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        if (leadingContent != null) {
+            leadingContent()
+        }
+        if (showArtwork) {
+            PodcastArtwork(imageUrl = podcastImageUrl, modifier = Modifier.padding(end = 12.dp))
+        }
         Column(modifier = Modifier.weight(1f)) {
             if (podcastTitle != null) {
                 Text(

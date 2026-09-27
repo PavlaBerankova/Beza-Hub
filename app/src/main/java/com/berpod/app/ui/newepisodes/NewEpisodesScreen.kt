@@ -76,13 +76,14 @@ fun NewEpisodesScreen(viewModelFactory: ViewModelProvider.Factory) {
                     items(uiState.episodes, key = { it.episode.id }) { item ->
                         EpisodeListItem(
                             episode = item.episode,
-                            podcastTitle = item.podcastTitle,
+                            podcastTitle = null,
                             podcastImageUrl = item.podcastImageUrl,
                             onAddToQueue = { viewModel.onAddToQueue(item.episode.id) },
                             onPlay = { viewModel.onPlay(item) },
                             isCurrentlyPlaying = uiState.currentlyPlayingEpisodeId == item.episode.id && uiState.isPlaying,
                             onDownload = {},
                             progressFraction = episodeProgressFraction(item.episode.lastPositionMs, item.episode.durationSeconds),
+                            showArtwork = true,
                         )
                     }
                 }
