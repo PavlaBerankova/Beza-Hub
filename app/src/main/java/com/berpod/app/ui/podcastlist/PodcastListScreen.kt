@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -53,9 +54,8 @@ fun PodcastListScreen(viewModelFactory: ViewModelProvider.Factory, onPodcastClic
     val tagAssignState by viewModel.tagAssignment.state.collectAsState()
 
     Scaffold(
-        topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.app_name)) })
-        },
+        // Embedded in the Podcasts tab, which draws the title and the section switcher.
+        contentWindowInsets = WindowInsets(0),
         floatingActionButton = {
             FloatingActionButton(onClick = viewModel::onFabClick) {
                 Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.fab_add_podcast))

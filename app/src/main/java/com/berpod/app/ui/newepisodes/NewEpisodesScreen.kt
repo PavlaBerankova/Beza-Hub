@@ -1,6 +1,7 @@
 package com.berpod.app.ui.newepisodes
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -48,20 +49,8 @@ fun NewEpisodesScreen(viewModelFactory: ViewModelProvider.Factory) {
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.new_episodes_title)) },
-                actions = {
-                    if (uiState.isRefreshing) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp).padding(end = 8.dp))
-                    } else {
-                        IconButton(onClick = viewModel::onRefresh) {
-                            Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.action_refresh))
-                        }
-                    }
-                }
-            )
-        },
+        // Embedded in the Podcasts tab, which draws the title and the section switcher.
+        contentWindowInsets = WindowInsets(0),
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {

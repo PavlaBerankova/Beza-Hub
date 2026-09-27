@@ -3,8 +3,8 @@ package com.berpod.app.ui.navigation
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.QueueMusic
-import androidx.compose.material.icons.filled.FiberNew
+import androidx.compose.material.icons.filled.RssFeed
+import androidx.compose.material.icons.filled.SmartDisplay
 import androidx.compose.material.icons.filled.Podcasts
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -28,32 +28,31 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.berpod.app.R
 import com.berpod.app.di.AppContainer
-import com.berpod.app.ui.newepisodes.NewEpisodesScreen
+import com.berpod.app.ui.comingsoon.ComingSoonScreen
 import com.berpod.app.ui.newepisodes.NewEpisodesViewModel
 import com.berpod.app.ui.player.MiniPlayerBar
 import com.berpod.app.ui.player.PlayerScreen
 import com.berpod.app.ui.player.PlayerViewModel
+import com.berpod.app.ui.podcasts.PodcastsHubScreen
 import com.berpod.app.ui.podcastlist.PodcastEpisodesScreen
 import com.berpod.app.ui.podcastlist.PodcastEpisodesViewModel
-import com.berpod.app.ui.podcastlist.PodcastListScreen
 import com.berpod.app.ui.podcastlist.PodcastListViewModel
-import com.berpod.app.ui.queue.QueueScreen
 import com.berpod.app.ui.queue.QueueViewModel
 
-private val bottomTabs = listOf(Screen.Podcasts, Screen.Queue, Screen.NewEpisodes)
+private val bottomTabs = listOf(Screen.Podcasts, Screen.YouTube, Screen.Articles)
 
 private fun iconFor(screen: Screen): ImageVector = when (screen) {
     Screen.Podcasts -> Icons.Filled.Podcasts
-    Screen.Queue -> Icons.AutoMirrored.Filled.QueueMusic
-    Screen.NewEpisodes -> Icons.Filled.FiberNew
+    Screen.YouTube -> Icons.Filled.SmartDisplay
+    Screen.Articles -> Icons.Filled.RssFeed
     else -> Icons.Filled.Podcasts
 }
 
 @Composable
 private fun labelFor(screen: Screen): String = when (screen) {
     Screen.Podcasts -> stringResource(R.string.nav_podcasts)
-    Screen.Queue -> stringResource(R.string.nav_queue)
-    Screen.NewEpisodes -> stringResource(R.string.nav_new_episodes)
+    Screen.YouTube -> stringResource(R.string.nav_youtube)
+    Screen.Articles -> stringResource(R.string.nav_articles)
     else -> ""
 }
 
@@ -113,32 +112,30 @@ fun BerpodApp(container: AppContainer) {
             modifier = Modifier.padding(paddingValues)
         ) {
             composable(Screen.Podcasts.route) {
-                PodcastListScreen(
-                    viewModelFactory = PodcastListViewModel.factory(
+                PodcastsHubScreen(
+                    subscriptionsFactory = PodcastListViewModel.factory(
                         container.podcastRepository,
                         container.episodeRepository,
                         container.tagRepository
                     ),
-                    onPodcastClick = { feedId -> navController.navigate(Screen.PodcastEpisodes.createRoute(feedId)) }
-                )
-            }
-            composable(Screen.Queue.route) {
-                QueueScreen(
-                    viewModelFactory = QueueViewModel.factory(
+                    queueFactory = QueueViewModel.factory(
                         container.queueRepository,
                         container.playbackRepository,
                         container.tagRepository
-                    )
-                )
-            }
-            composable(Screen.NewEpisodes.route) {
-                NewEpisodesScreen(
-                    viewModelFactory = NewEpisodesViewModel.factory(
+                    ),
+                    newEpisodesFactory = NewEpisodesViewModel.factory(
                         container.episodeRepository,
                         container.queueRepository,
                         container.playbackRepository
-                    )
+                    ),
+                    onPodcastClick = { feedId -> navController.navigate(Screen.PodcastEpisodes.createRoute(feedId)) }
                 )
+            }
+            composable(Screen.YouTube.route) {
+                ComingSoonScreen(title = stringResource(R.string.nav_youtube), icon = Icons.Filled.SmartDisplay)
+            }
+            composable(Screen.Articles.route) {
+                ComingSoonScreen(title = stringResource(R.string.nav_articles), icon = Icons.Filled.RssFeed)
             }
             composable(
                 route = Screen.PodcastEpisodes.route,
