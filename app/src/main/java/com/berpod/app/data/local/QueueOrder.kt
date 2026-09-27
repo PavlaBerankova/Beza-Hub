@@ -39,3 +39,11 @@ fun stepAnchors(order: List<Long>, movedId: Long, up: Boolean): Pair<Long?, Long
         order.getOrNull(index + 1)?.let { below -> below to null }
     }
 }
+
+/** What's needed to put a removed queue entry back between the same neighbours. */
+data class RemovedQueueEntry(
+    val episodeId: Long,
+    val dateAdded: Long,
+    val afterId: Long?,
+    val beforeId: Long?
+)

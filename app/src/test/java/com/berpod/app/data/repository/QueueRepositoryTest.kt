@@ -9,23 +9,37 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-/** Stores positions per queue entry id; inherits the real moveEntry transaction logic. */
+/** In-memory queue: positions and episode per entry id; inherits the real transaction default methods. */
 private class RecordingQueueDao(initial: Map<Long, Int>) : QueueDao {
     val positions = initial.toMutableMap()
+    private val episodeIds = initial.keys.associateWith { it + 1000 }.toMutableMap()
+    private val datesAdded = mutableMapOf<Long, Long>()
 
     override fun observeQueue(): Flow<List<QueueItemWithEpisode>> = emptyFlow()
     override suspend fun getMaxPosition(): Int = positions.values.maxOrNull() ?: -1
-    override suspend fun isQueued(episodeId: Long): Boolean = false
-    override suspend fun insert(entry: QueueEntryEntity): Long = entry.id
+    override suspend fun isQueued(episodeId: Long): Boolean = episodeId in episodeIds.values
+    override suspend fun insert(entry: QueueEntryEntity): Long {
+        val id = (positions.keys.maxOrNull() ?: 0L) + 100
+        positions[id] = entry.position
+        episodeIds[id] = entry.episodeId
+        datesAdded[id] = entry.dateAdded
+        return id
+    }
     override suspend fun deleteById(queueEntryId: Long) {
         positions.remove(queueEntryId)
+        episodeIds.remove(queueEntryId)
     }
     override suspend fun updatePosition(queueEntryId: Long, position: Int) {
         positions[queueEntryId] = position
     }
     override suspend fun getOrderedIds(): List<Long> = positions.entries.sortedBy { it.value }.map { it.key }
+    override suspend fun getById(queueEntryId: Long): QueueEntryEntity? =
+        positions[queueEntryId]?.let { pos ->
+            QueueEntryEntity(queueEntryId, episodeIds.getValue(queueEntryId), pos, datesAdded[queueEntryId] ?: 0L)
+        }
 
     fun order(): List<Long> = positions.entries.sortedBy { it.value }.map { it.key }
+    fun episodeOrder(): List<Long> = order().map { episodeIds.getValue(it) }
 }
 
 class QueueRepositoryTest {
@@ -58,5 +72,63 @@ class QueueRepositoryTest {
         QueueRepository(dao).moveEntry(movedId = 99, afterId = 10, beforeId = 11)
 
         assertEquals(mapOf(10L to 0, 11L to 1), dao.positions)
+    }
+
+    // Entries 1..4 hold episodes 1001..1004.
+    private fun queueOf(vararg ids: Long) = RecordingQueueDao(ids.withIndex().associate { (i, id) -> id to i })
+
+    @Test
+    fun `removed entry can be restored to its place`() = runTest {
+        val dao = queueOf(1, 2, 3)
+        val repository = QueueRepository(dao)
+
+        val removed = repository.removeFromQueue(2)!!
+        assertEquals(listOf(1001L, 1003L), dao.episodeOrder())
+
+        repository.restore(removed)
+        assertEquals(listOf(1001L, 1002L, 1003L), dao.episodeOrder())
+    }
+
+    @Test
+    fun `restore keeps the entry after its previous neighbour when the queue was reordered`() = runTest {
+        val dao = queueOf(1, 2, 3, 4)
+        val repository = QueueRepository(dao)
+
+        val removed = repository.removeFromQueue(2)!! // neighbours 1 and 3
+        repository.moveEntry(movedId = 3, afterId = null, beforeId = 1) // 3,1,4
+        repository.restore(removed)
+
+        assertEquals(listOf(1003L, 1001L, 1002L, 1004L), dao.episodeOrder())
+        assertEquals(setOf(0, 1, 2, 3), dao.positions.values.toSet())
+    }
+
+    @Test
+    fun `restore goes to the end when both neighbours are gone`() = runTest {
+        val dao = queueOf(1, 2, 3, 4)
+        val repository = QueueRepository(dao)
+
+        val removed = repository.removeFromQueue(2)!!
+        repository.removeFromQueue(1)
+        repository.removeFromQueue(3)
+        repository.restore(removed)
+
+        assertEquals(listOf(1004L, 1002L), dao.episodeOrder())
+    }
+
+    @Test
+    fun `restore does nothing when the episode is already queued again`() = runTest {
+        val dao = queueOf(1, 2)
+        val repository = QueueRepository(dao)
+
+        val removed = repository.removeFromQueue(2)!!
+        repository.restore(removed)
+        repository.restore(removed)
+
+        assertEquals(listOf(1001L, 1002L), dao.episodeOrder())
+    }
+
+    @Test
+    fun `removing an unknown entry returns null`() = runTest {
+        assertEquals(null, QueueRepository(queueOf(1)).removeFromQueue(99))
     }
 }

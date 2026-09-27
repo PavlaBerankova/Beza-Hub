@@ -21,6 +21,16 @@ import com.berpod.app.data.local.moveAfterDrag
 import com.berpod.app.data.local.stepAnchors
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
+import androidx.compose.foundation.background
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
@@ -58,8 +68,23 @@ fun QueueScreen(viewModelFactory: ViewModelProvider.Factory) {
     val viewModel: QueueViewModel = viewModel(factory = viewModelFactory)
     val uiState by viewModel.uiState.collectAsState()
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    val removedMessage = stringResource(R.string.queue_removed)
+    val undoLabel = stringResource(R.string.action_undo)
+    // A new removal replaces the previous snackbar (the effect restarts with the new entry).
+    LaunchedEffect(uiState.removedEntry) {
+        if (uiState.removedEntry == null) return@LaunchedEffect
+        val result = snackbarHostState.showSnackbar(
+            message = removedMessage,
+            actionLabel = undoLabel,
+            duration = SnackbarDuration.Long
+        )
+        if (result == SnackbarResult.ActionPerformed) viewModel.onUndoRemove() else viewModel.onRemovedMessageDismissed()
+    }
+
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.nav_queue)) }) }
+        topBar = { TopAppBar(title = { Text(stringResource(R.string.nav_queue)) }) },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
             if (uiState.tags.isNotEmpty()) {
@@ -107,6 +132,7 @@ private fun ReorderableQueueList(uiState: QueueUiState, viewModel: QueueViewMode
     val moveUpLabel = stringResource(R.string.action_move_up)
     val moveDownLabel = stringResource(R.string.action_move_down)
     val dragLabel = stringResource(R.string.action_drag_to_reorder)
+    val removeLabel = stringResource(R.string.action_remove_from_queue)
 
     fun stepMove(movedId: Long, up: Boolean): Boolean {
         val anchors = stepAnchors(localItems.map { it.queueEntryId }, movedId, up) ?: return false
@@ -118,46 +144,69 @@ private fun ReorderableQueueList(uiState: QueueUiState, viewModel: QueueViewMode
         items(localItems, key = { it.queueEntryId }) { item ->
             ReorderableItem(reorderState, key = item.queueEntryId) { isDragging ->
                 val elevation by animateDpAsState(if (isDragging) 6.dp else 0.dp, label = "dragElevation")
-                Surface(shadowElevation = elevation) {
-                    QueueRow(
-                        item = item,
-                        uiState = uiState,
-                        viewModel = viewModel,
-                        handleModifier = Modifier
-                            .draggableHandle(
-                                // Only State reads in here: this lambda is not replaced on recomposition.
-                                onDragStarted = {
-                                    dragStartOrder = localItems.map { it.queueEntryId }
-                                    draggingId = item.queueEntryId
-                                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                },
-                                onDragStopped = {
-                                    draggingId = null
-                                    val move = moveAfterDrag(
-                                        startOrder = dragStartOrder,
-                                        endOrder = localItems.map { it.queueEntryId },
-                                        movedId = item.queueEntryId
-                                    )
-                                    if (move != null) {
-                                        viewModel.onMoveEntry(item.queueEntryId, move.first, move.second)
-                                    } else {
-                                        // Nothing to store, so no emission will follow: apply any skipped update now.
-                                        localItems = latestVisibleItems
+                // Swipe left to remove; the row stays swiped until the queue emission drops it.
+                SwipeToDismissBox(
+                    state = rememberSwipeToDismissBoxState(),
+                    enableDismissFromStartToEnd = false,
+                    gesturesEnabled = !isDragging,
+                    onDismiss = { viewModel.onRemove(item.queueEntryId) },
+                    backgroundContent = { RemoveBackground() }
+                ) {
+                    Surface(shadowElevation = elevation) {
+                        QueueRow(
+                            item = item,
+                            uiState = uiState,
+                            viewModel = viewModel,
+                            handleModifier = Modifier
+                                .draggableHandle(
+                                    // Only State reads in here: this lambda is not replaced on recomposition.
+                                    onDragStarted = {
+                                        dragStartOrder = localItems.map { it.queueEntryId }
+                                        draggingId = item.queueEntryId
+                                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    },
+                                    onDragStopped = {
+                                        draggingId = null
+                                        val move = moveAfterDrag(
+                                            startOrder = dragStartOrder,
+                                            endOrder = localItems.map { it.queueEntryId },
+                                            movedId = item.queueEntryId
+                                        )
+                                        if (move != null) {
+                                            viewModel.onMoveEntry(item.queueEntryId, move.first, move.second)
+                                        } else {
+                                            // Nothing to store, so no emission will follow: apply any skipped update now.
+                                            localItems = latestVisibleItems
+                                        }
                                     }
-                                }
-                            )
-                            // Label and move actions on the same node, so TalkBack offers them on the handle.
-                            .semantics {
-                                contentDescription = dragLabel
-                                customActions = listOf(
-                                    CustomAccessibilityAction(moveUpLabel) { stepMove(item.queueEntryId, up = true) },
-                                    CustomAccessibilityAction(moveDownLabel) { stepMove(item.queueEntryId, up = false) }
                                 )
-                            }
-                    )
+                                // Label and move actions on the same node, so TalkBack offers them on the handle.
+                                .semantics {
+                                    contentDescription = dragLabel
+                                    customActions = listOf(
+                                        CustomAccessibilityAction(moveUpLabel) { stepMove(item.queueEntryId, up = true) },
+                                        CustomAccessibilityAction(moveDownLabel) { stepMove(item.queueEntryId, up = false) },
+                                        CustomAccessibilityAction(removeLabel) { viewModel.onRemove(item.queueEntryId); true }
+                                    )
+                                }
+                        )
+                    }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun RemoveBackground() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.error)
+            .padding(horizontal = 24.dp),
+        contentAlignment = Alignment.CenterEnd
+    ) {
+        Icon(Icons.Filled.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.onError)
     }
 }
 
@@ -182,13 +231,5 @@ private fun QueueRow(
                 Icon(Icons.Filled.DragIndicator, contentDescription = null)
             }
         },
-        trailingContent = {
-            IconButton(onClick = { viewModel.onRemove(item.queueEntryId) }) {
-                Icon(
-                    Icons.Filled.Close,
-                    contentDescription = stringResource(R.string.action_remove_from_queue)
-                )
-            }
-        }
     )
 }

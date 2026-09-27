@@ -36,6 +36,9 @@ interface QueueDao {
     @Query("UPDATE queue_entries SET position = :position WHERE id = :queueEntryId")
     suspend fun updatePosition(queueEntryId: Long, position: Int)
 
+    @Query("SELECT * FROM queue_entries WHERE id = :queueEntryId")
+    suspend fun getById(queueEntryId: Long): QueueEntryEntity?
+
     @Query("SELECT id FROM queue_entries ORDER BY position ASC")
     suspend fun getOrderedIds(): List<Long>
 
@@ -47,5 +50,24 @@ interface QueueDao {
         val reordered = reorderQueue(current, movedId, afterId, beforeId)
         if (reordered == current) return
         reordered.forEachIndexed { index, id -> updatePosition(id, index) }
+    }
+
+    /** Deletes the entry and returns what [restoreEntry] needs to put it back, or null if it's gone. */
+    @Transaction
+    suspend fun removeEntry(queueEntryId: Long): RemovedQueueEntry? {
+        val entry = getById(queueEntryId) ?: return null
+        val (afterId, beforeId) = anchorsFor(getOrderedIds(), queueEntryId)
+        deleteById(queueEntryId)
+        return RemovedQueueEntry(entry.episodeId, entry.dateAdded, afterId, beforeId)
+    }
+
+    /** Re-adds a removed entry between its old neighbours (at the end if both are gone); no-op if queued again. */
+    @Transaction
+    suspend fun restoreEntry(removed: RemovedQueueEntry) {
+        if (isQueued(removed.episodeId)) return
+        val newId = insert(
+            QueueEntryEntity(episodeId = removed.episodeId, position = getMaxPosition() + 1, dateAdded = removed.dateAdded)
+        )
+        moveEntry(newId, removed.afterId, removed.beforeId)
     }
 }

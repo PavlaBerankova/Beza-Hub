@@ -50,4 +50,6 @@
     <string name="queue_tag_filter_empty">Ve frontě nejsou epizody s tímto štítkem</string>
     <string name="queue_tag_filter_empty_subtitle">Vyberte jiný štítek nebo Všechny</string>
     <string name="action_drag_to_reorder">Přesunout</string>
+    <string name="queue_removed">Odebráno z fronty</string>
+    <string name="action_undo">Zpět</string>
 </resources>

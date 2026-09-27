@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.berpod.app.data.local.QueueItemWithEpisode
+import com.berpod.app.data.local.RemovedQueueEntry
 import com.berpod.app.data.local.TagEntity
 import com.berpod.app.data.repository.PlaybackRepository
 import com.berpod.app.data.repository.QueueRepository
@@ -31,7 +32,9 @@ data class QueueUiState(
     /** null = "Všechny". */
     val selectedTagId: Long? = null,
     val currentlyPlayingEpisodeId: Long? = null,
-    val isPlaying: Boolean = false
+    val isPlaying: Boolean = false,
+    /** The last swiped-away entry, while its "Zpět" snackbar can still restore it. */
+    val removedEntry: RemovedQueueEntry? = null
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -80,7 +83,20 @@ class QueueViewModel(
     }
 
     fun onRemove(queueEntryId: Long) {
-        viewModelScope.launch { repository.removeFromQueue(queueEntryId) }
+        viewModelScope.launch {
+            val removed = repository.removeFromQueue(queueEntryId) ?: return@launch
+            _uiState.update { it.copy(removedEntry = removed) }
+        }
+    }
+
+    fun onUndoRemove() {
+        val removed = _uiState.value.removedEntry ?: return
+        _uiState.update { it.copy(removedEntry = null) }
+        viewModelScope.launch { repository.restore(removed) }
+    }
+
+    fun onRemovedMessageDismissed() {
+        _uiState.update { it.copy(removedEntry = null) }
     }
 
     fun onPlay(item: QueueItemWithEpisode) {
