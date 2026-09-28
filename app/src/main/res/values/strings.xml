@@ -133,4 +133,5 @@
     <string name="podcast_searching">Hledám podcast…</string>
     <string name="podcast_not_found">Podcast nenalezen</string>
     <string name="podcast_found">Podcast nalezen</string>
+    <string name="section_read">Přečtené</string>
 </resources>

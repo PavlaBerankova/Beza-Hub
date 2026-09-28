@@ -70,4 +70,12 @@ class ArticleFormatTest {
         assertEquals(16, nextFontSize(22))
         assertEquals(16, nextFontSize(17))
     }
+
+    @Test
+    fun `unread articles come first, each group keeping the newest-first order`() {
+        val items = listOf("a" to true, "b" to false, "c" to true, "d" to false)
+        val (unread, read) = unreadFirst(items) { it.second }
+        assertEquals(listOf("a", "c"), unread.map { it.first })
+        assertEquals(listOf("b", "d"), read.map { it.first })
+    }
 }

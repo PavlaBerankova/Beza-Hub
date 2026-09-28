@@ -49,6 +49,7 @@ import com.berpod.app.ui.common.TagChipRow
 import com.berpod.app.ui.common.articleCategoryTexts
 import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIcons
+import com.berpod.app.ui.dot.SectionSeparator
 import com.berpod.app.ui.dot.DotTitle
 import com.berpod.app.ui.dot.rememberNowMillis
 import com.berpod.app.ui.dot.upperCs
@@ -147,7 +148,7 @@ fun ArticlesScreen(
                     title = stringResource(R.string.articles_empty),
                     subtitle = stringResource(R.string.articles_empty_subtitle)
                 )
-                uiState.articles.isEmpty() -> EmptyState(
+                uiState.unreadArticles.isEmpty() && uiState.readArticles.isEmpty() -> EmptyState(
                     icon = DotIcons.Tag,
                     title = stringResource(R.string.articles_filter_empty),
                     subtitle = stringResource(R.string.queue_tag_filter_empty_subtitle)
@@ -155,7 +156,22 @@ fun ArticlesScreen(
                 else -> {
                     val now = rememberNowMillis()
                     LazyColumn(contentPadding = PaddingValues(bottom = 96.dp)) {
-                        items(uiState.articles, key = { it.article.id }) { item ->
+                        items(uiState.unreadArticles, key = { it.article.id }) { item ->
+                            MarkPlayedSwipe(onToggle = { viewModel.onToggleRead(item) }) {
+                                ArticleRow(item, now) { onArticleClick(item.article.id, uiState.selectedTagId) }
+                            }
+                        }
+                        // Read articles keep their place in the list, just below everything unread.
+                        if (uiState.readArticles.isNotEmpty()) {
+                            item(key = "read-separator") {
+                                SectionSeparator(
+                                    left = stringResource(R.string.section_read),
+                                    right = uiState.readArticles.size.toString(),
+                                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 8.dp)
+                                )
+                            }
+                        }
+                        items(uiState.readArticles, key = { it.article.id }) { item ->
                             MarkPlayedSwipe(onToggle = { viewModel.onToggleRead(item) }) {
                                 ArticleRow(item, now) { onArticleClick(item.article.id, uiState.selectedTagId) }
                             }

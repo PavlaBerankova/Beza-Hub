@@ -56,3 +56,6 @@ fun nextUnreadId(orderedIds: List<Long>, unreadIds: Set<Long>, currentId: Long):
     val after = if (index < 0) orderedIds else orderedIds.drop(index + 1) + orderedIds.take(index)
     return after.firstOrNull { it in unreadIds && it != currentId }
 }
+
+/** Splits a list into the unread ones and the read ones, each keeping the list's own order. */
+fun <T> unreadFirst(items: List<T>, isUnread: (T) -> Boolean): Pair<List<T>, List<T>> = items.partition(isUnread)

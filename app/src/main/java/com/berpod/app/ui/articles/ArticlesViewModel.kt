@@ -23,8 +23,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class ArticlesUiState(
-    /** Articles in the selected category, newest first. */
-    val articles: List<ArticleWithFeed> = emptyList(),
+    /** Unread articles in the selected category, newest first. */
+    val unreadArticles: List<ArticleWithFeed> = emptyList(),
+    /** The read ones, shown under a "Přečtené" separator. */
+    val readArticles: List<ArticleWithFeed> = emptyList(),
     val unreadCount: Int = 0,
     val sourceCount: Int = 0,
     val hasAnySource: Boolean = false,
@@ -63,9 +65,8 @@ class ArticlesViewModel(private val repository: ArticleRepository) : ViewModel()
             filterByPodcastIds(articles, feedIds) { it.article.feedId }
         }
             .onEach { visible ->
-                _uiState.update { state ->
-                    state.copy(articles = visible, unreadCount = visible.count { it.article.readAtMs == null })
-                }
+                val (unread, read) = unreadFirst(visible) { it.article.readAtMs == null }
+                _uiState.update { it.copy(unreadArticles = unread, readArticles = read, unreadCount = unread.size) }
             }
             .launchIn(viewModelScope)
         repository.observeFeeds()
