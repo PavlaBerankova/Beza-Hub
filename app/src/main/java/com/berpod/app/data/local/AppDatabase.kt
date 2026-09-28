@@ -9,9 +9,13 @@ import androidx.room.RoomDatabase
         EpisodeEntity::class,
         QueueEntryEntity::class,
         TagEntity::class,
-        PodcastTagCrossRef::class
+        PodcastTagCrossRef::class,
+        ArticleFeedEntity::class,
+        ArticleEntity::class,
+        ArticleTagEntity::class,
+        ArticleFeedTagCrossRef::class
     ],
-    version = 7,
+    version = 8,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -19,4 +23,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun episodeDao(): EpisodeDao
     abstract fun queueDao(): QueueDao
     abstract fun tagDao(): TagDao
+    abstract fun articleDao(): ArticleDao
 }

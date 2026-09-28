@@ -28,6 +28,24 @@ data class ParsedEpisode(
 fun pickAuthor(itunesAuthor: String?, ownerName: String?): String? =
     listOf(itunesAuthor, ownerName).firstNotNullOfOrNull { it?.trim()?.takeIf(String::isNotEmpty) }
 
+/** RSS (RFC 1123) or Atom (ISO 8601) date to epoch millis; null when it can't be read. */
+fun parseFeedDateMillis(raw: String): Long? {
+    val trimmed = raw.trim()
+    val formatters = listOf(
+        DateTimeFormatter.RFC_1123_DATE_TIME,
+        DateTimeFormatter.ISO_OFFSET_DATE_TIME,
+        DateTimeFormatter.ISO_ZONED_DATE_TIME
+    )
+    for (formatter in formatters) {
+        try {
+            return ZonedDateTime.parse(trimmed, formatter).toInstant().toEpochMilli()
+        } catch (_: DateTimeParseException) {
+            // try next formatter
+        }
+    }
+    return null
+}
+
 interface FeedFetcher {
     suspend fun fetchAndParse(url: String): ParsedFeedMeta
 }
@@ -55,28 +73,11 @@ class FeedParser(private val rssParser: RssParser = RssParser()) : FeedFetcher {
             guid = guid,
             title = title,
             audioUrl = audioUrl,
-            pubDateMillis = item.pubDate?.let(::parsePubDateMillis),
+            pubDateMillis = item.pubDate?.let(::parseFeedDateMillis),
             durationSeconds = item.itunesItemData?.duration?.let(::parseItunesDuration),
             description = item.description?.takeIf { it.isNotBlank() } ?: item.itunesItemData?.summary,
             imageUrl = item.image ?: item.itunesItemData?.image
         )
-    }
-
-    private fun parsePubDateMillis(raw: String): Long? {
-        val trimmed = raw.trim()
-        val formatters = listOf(
-            DateTimeFormatter.RFC_1123_DATE_TIME,
-            DateTimeFormatter.ISO_OFFSET_DATE_TIME,
-            DateTimeFormatter.ISO_ZONED_DATE_TIME
-        )
-        for (formatter in formatters) {
-            try {
-                return ZonedDateTime.parse(trimmed, formatter).toInstant().toEpochMilli()
-            } catch (_: DateTimeParseException) {
-                // try next formatter
-            }
-        }
-        return null
     }
 
     private fun parseItunesDuration(raw: String): Int? {

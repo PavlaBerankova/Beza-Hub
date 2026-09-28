@@ -114,3 +114,19 @@ val MIGRATION_6_7 = object : Migration(6, 7) {
         db.execSQL("ALTER TABLE episodes ADD COLUMN playedAtMs INTEGER")
     }
 }
+
+/** Články: article sources, their articles, and a separate set of categories. */
+val MIGRATION_7_8 = object : Migration(7, 8) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS `article_feeds` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `rssUrl` TEXT NOT NULL, `title` TEXT NOT NULL, `siteUrl` TEXT, `imageUrl` TEXT, `dateAdded` INTEGER NOT NULL, `lastFetchedAt` INTEGER NOT NULL)")
+        db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_article_feeds_rssUrl` ON `article_feeds` (`rssUrl`)")
+        db.execSQL("CREATE TABLE IF NOT EXISTS `articles` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `feedId` INTEGER NOT NULL, `guid` TEXT NOT NULL, `title` TEXT NOT NULL, `link` TEXT, `author` TEXT, `pubDateMillis` INTEGER, `summary` TEXT, `content` TEXT, `dateFetched` INTEGER NOT NULL, `readAtMs` INTEGER, FOREIGN KEY(`feedId`) REFERENCES `article_feeds`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )")
+        db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_articles_feedId_guid` ON `articles` (`feedId`, `guid`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_articles_feedId` ON `articles` (`feedId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_articles_pubDateMillis` ON `articles` (`pubDateMillis`)")
+        db.execSQL("CREATE TABLE IF NOT EXISTS `article_tags` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL COLLATE NOCASE)")
+        db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_article_tags_name` ON `article_tags` (`name`)")
+        db.execSQL("CREATE TABLE IF NOT EXISTS `article_feed_tags` (`feedId` INTEGER NOT NULL, `tagId` INTEGER NOT NULL, PRIMARY KEY(`feedId`, `tagId`), FOREIGN KEY(`feedId`) REFERENCES `article_feeds`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`tagId`) REFERENCES `article_tags`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_article_feed_tags_tagId` ON `article_feed_tags` (`tagId`)")
+    }
+}
