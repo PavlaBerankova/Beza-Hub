@@ -63,6 +63,9 @@ import com.berpod.app.ui.podcasts.PodcastsHubScreen
 import com.berpod.app.ui.podcasts.PodcastsSection
 import com.berpod.app.ui.queue.QueueViewModel
 import com.berpod.app.ui.theme.DotTheme
+import com.berpod.app.ui.theme.TabAccent
+import com.berpod.app.ui.theme.TabAccentTheme
+import com.berpod.app.ui.theme.tabAccentFor
 import com.berpod.app.ui.theme.DotType
 
 private val bottomTabs = listOf(Screen.Podcasts, Screen.YouTube, Screen.Articles)
@@ -94,186 +97,192 @@ fun BerpodApp(container: AppContainer) {
     // Hoisted so the player's FRONTA button can open Podcasts › Fronta.
     var podcastsSection by rememberSaveable { mutableStateOf(PodcastsSection.Subscriptions) }
 
-    Scaffold(
-        containerColor = DotTheme.colors.background,
-        bottomBar = {
-            val showNavigation = bottomTabs.any { it.route == currentRoute }
-            Column {
-                // The full player already shows everything the mini player would.
-                if (playbackState.currentEpisodeId != null && currentRoute != Screen.Player.route) {
-                    MiniPlayerBar(
-                        state = playbackState,
-                        onClick = { navController.navigate(Screen.Player.route) { launchSingleTop = true } },
-                        onPlayPauseClick = playerViewModel::togglePlayPause,
-                        padForSystemBar = !showNavigation
-                    )
-                }
-                if (showNavigation) {
-                    val c = DotTheme.colors
-                    Column(Modifier.background(c.background)) {
-                        HorizontalDivider(color = c.divider)
-                        Row(Modifier.fillMaxWidth().navigationBarsPadding().height(82.dp)) {
-                            bottomTabs.forEach { screen ->
-                                val selected = currentRoute == screen.route
-                                Column(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .fillMaxHeight()
-                                        .clickable(role = Role.Tab) {
-                                            navController.navigate(screen.route) {
-                                                popUpTo(navController.graph.startDestinationId) { saveState = true }
-                                                launchSingleTop = true
-                                                restoreState = true
+    // Everything on screen — including the bottom bar — takes the current tab's accent colour.
+    TabAccentTheme(tabAccentFor(currentRoute)) {
+        Scaffold(
+            containerColor = DotTheme.colors.background,
+            bottomBar = {
+                val showNavigation = bottomTabs.any { it.route == currentRoute }
+                Column {
+                    // The full player already shows everything the mini player would.
+                    if (playbackState.currentEpisodeId != null && currentRoute != Screen.Player.route) {
+                        // Podcast playback keeps the podcast colour wherever the mini player shows up.
+                        TabAccentTheme(TabAccent.Podcasts) {
+                            MiniPlayerBar(
+                                state = playbackState,
+                                onClick = { navController.navigate(Screen.Player.route) { launchSingleTop = true } },
+                                onPlayPauseClick = playerViewModel::togglePlayPause,
+                                padForSystemBar = !showNavigation
+                            )
+                        }
+                    }
+                    if (showNavigation) {
+                        val c = DotTheme.colors
+                        Column(Modifier.background(c.background)) {
+                            HorizontalDivider(color = c.divider)
+                            Row(Modifier.fillMaxWidth().navigationBarsPadding().height(82.dp)) {
+                                bottomTabs.forEach { screen ->
+                                    val selected = currentRoute == screen.route
+                                    Column(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .fillMaxHeight()
+                                            .clickable(role = Role.Tab) {
+                                                navController.navigate(screen.route) {
+                                                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                                    launchSingleTop = true
+                                                    restoreState = true
+                                                }
                                             }
-                                        }
-                                        .semantics { this.selected = selected },
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center
-                                ) {
-                                    // Selected: the icon's own colour roles; unselected: all muted.
-                                    DotIcon(iconFor(screen), 30.dp, monochrome = if (selected) null else c.textMuted)
-                                    Spacer(Modifier.height(6.dp))
-                                    Text(labelFor(screen).upperCs(), style = DotType.label, color = if (selected) c.text else c.textMuted)
+                                            .semantics { this.selected = selected },
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Center
+                                    ) {
+                                        // Selected: the icon's own colour roles; unselected: all muted.
+                                        DotIcon(iconFor(screen), 30.dp, monochrome = if (selected) null else c.textMuted)
+                                        Spacer(Modifier.height(6.dp))
+                                        Text(labelFor(screen).upperCs(), style = DotType.label, color = if (selected) c.text else c.textMuted)
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-        }
-    ) { paddingValues ->
-        val openEpisode: (Long) -> Unit = { id -> navController.navigate(Screen.EpisodeDetail.createRoute(id)) }
-        NavHost(
-            navController = navController,
-            startDestination = Screen.Podcasts.route,
-            // Screens pad for the status bar themselves; consume the Scaffold's insets so they aren't applied twice.
-            modifier = Modifier.padding(paddingValues).consumeWindowInsets(paddingValues)
-        ) {
-            composable(Screen.Podcasts.route) {
-                PodcastsHubScreen(
-                    subscriptionsFactory = PodcastListViewModel.factory(
-                        container.podcastRepository,
-                        container.episodeRepository,
-                        container.tagRepository
-                    ),
-                    queueFactory = QueueViewModel.factory(
-                        container.queueRepository,
-                        container.playbackRepository,
-                        container.tagRepository,
-                        container.episodeRepository
-                    ),
-                    newEpisodesFactory = NewEpisodesViewModel.factory(
-                        container.episodeRepository,
-                        container.queueRepository,
-                        container.playbackRepository,
-                        container.tagRepository
-                    ),
-                    onPodcastClick = { feedId -> navController.navigate(Screen.PodcastEpisodes.createRoute(feedId)) },
-                    onEpisodeClick = openEpisode,
-                    section = podcastsSection,
-                    onSectionChange = { podcastsSection = it }
-                )
-            }
-            composable(Screen.YouTube.route) {
-                ComingSoonScreen(title = stringResource(R.string.nav_youtube), icon = DotIcons.YouTube)
-            }
-            composable(Screen.Articles.route) {
-                ArticlesScreen(
-                    viewModelFactory = ArticlesViewModel.factory(container.articleRepository),
-                    onArticleClick = { id, tagId -> navController.navigate(Screen.Article.createRoute(id, tagId)) },
-                    onOpenSources = { navController.navigate(Screen.ArticleSources.route) }
-                )
-            }
-            composable(
-                route = Screen.Article.route,
-                arguments = listOf(
-                    navArgument(Screen.Article.ARG_ARTICLE_ID) { type = NavType.LongType },
-                    navArgument(Screen.Article.ARG_TAG_ID) { type = NavType.LongType; defaultValue = -1L }
-                )
-            ) { backStackEntry ->
-                val articleId = backStackEntry.arguments?.getLong(Screen.Article.ARG_ARTICLE_ID) ?: return@composable
-                val tagId = backStackEntry.arguments?.getLong(Screen.Article.ARG_TAG_ID)?.takeIf { it >= 0 }
-                val context = LocalContext.current
-                ArticleReaderScreen(
-                    viewModelFactory = ArticleReaderViewModel.factory(
-                        container.articleRepository,
-                        context.getSharedPreferences("reader", Context.MODE_PRIVATE),
-                        articleId,
-                        tagId
-                    ),
-                    onBack = { navController.popBackStack() },
-                    // The next article replaces this one, so Back still returns to the list.
-                    onOpenArticle = { nextId ->
-                        navController.navigate(Screen.Article.createRoute(nextId, tagId)) {
-                            popUpTo(Screen.Article.route) { inclusive = true }
-                        }
-                    }
-                )
-            }
-            composable(Screen.ArticleSources.route) {
-                ArticleSourcesScreen(
-                    viewModelFactory = ArticleSourcesViewModel.factory(container.articleRepository),
-                    onBack = { navController.popBackStack() }
-                )
-            }
-            composable(
-                route = Screen.PodcastEpisodes.route,
-                arguments = listOf(navArgument(Screen.PodcastEpisodes.ARG_FEED_ID) { type = NavType.LongType })
-            ) { backStackEntry ->
-                val feedId = backStackEntry.arguments?.getLong(Screen.PodcastEpisodes.ARG_FEED_ID) ?: return@composable
-                PodcastEpisodesScreen(
-                    viewModelFactory = PodcastEpisodesViewModel.factory(
-                        container.podcastRepository,
-                        container.episodeRepository,
-                        container.queueRepository,
-                        container.playbackRepository,
-                        container.tagRepository,
-                        feedId
-                    ),
-                    onBack = { navController.popBackStack() },
-                    onEpisodeClick = openEpisode
-                )
-            }
-            composable(
-                route = Screen.EpisodeDetail.route,
-                arguments = listOf(navArgument(Screen.EpisodeDetail.ARG_EPISODE_ID) { type = NavType.LongType })
-            ) { backStackEntry ->
-                val episodeId = backStackEntry.arguments?.getLong(Screen.EpisodeDetail.ARG_EPISODE_ID) ?: return@composable
-                EpisodeDetailScreen(
-                    viewModelFactory = EpisodeDetailViewModel.factory(
-                        container.episodeRepository,
-                        container.queueRepository,
-                        container.playbackRepository,
-                        episodeId
-                    ),
-                    onBack = { navController.popBackStack() },
-                    onOpenPodcast = { feedId ->
-                        // Coming from that podcast's page: go back to it instead of stacking a second one.
-                        val previous = navController.previousBackStackEntry
-                        if (previous?.destination?.route == Screen.PodcastEpisodes.route &&
-                            previous.arguments?.getLong(Screen.PodcastEpisodes.ARG_FEED_ID) == feedId
-                        ) {
-                            navController.popBackStack()
-                        } else {
-                            navController.navigate(Screen.PodcastEpisodes.createRoute(feedId))
-                        }
-                    }
-                )
-            }
-            composable(Screen.Player.route) {
-                PlayerScreen(
-                    viewModel = playerViewModel,
-                    onBack = { navController.popBackStack() },
-                    onOpenQueue = {
-                        podcastsSection = PodcastsSection.Queue
-                        if (!navController.popBackStack(Screen.Podcasts.route, inclusive = false)) {
-                            navController.navigate(Screen.Podcasts.route) {
-                                popUpTo(navController.graph.startDestinationId)
-                                launchSingleTop = true
+        ) { paddingValues ->
+            val openEpisode: (Long) -> Unit = { id -> navController.navigate(Screen.EpisodeDetail.createRoute(id)) }
+            NavHost(
+                navController = navController,
+                startDestination = Screen.Podcasts.route,
+                // Screens pad for the status bar themselves; consume the Scaffold's insets so they aren't applied twice.
+                modifier = Modifier.padding(paddingValues).consumeWindowInsets(paddingValues)
+            ) {
+                composable(Screen.Podcasts.route) {
+                    PodcastsHubScreen(
+                        subscriptionsFactory = PodcastListViewModel.factory(
+                            container.podcastRepository,
+                            container.episodeRepository,
+                            container.tagRepository
+                        ),
+                        queueFactory = QueueViewModel.factory(
+                            container.queueRepository,
+                            container.playbackRepository,
+                            container.tagRepository,
+                            container.episodeRepository
+                        ),
+                        newEpisodesFactory = NewEpisodesViewModel.factory(
+                            container.episodeRepository,
+                            container.queueRepository,
+                            container.playbackRepository,
+                            container.tagRepository
+                        ),
+                        onPodcastClick = { feedId -> navController.navigate(Screen.PodcastEpisodes.createRoute(feedId)) },
+                        onEpisodeClick = openEpisode,
+                        section = podcastsSection,
+                        onSectionChange = { podcastsSection = it }
+                    )
+                }
+                composable(Screen.YouTube.route) {
+                    ComingSoonScreen(title = stringResource(R.string.nav_youtube), icon = DotIcons.YouTube)
+                }
+                composable(Screen.Articles.route) {
+                    ArticlesScreen(
+                        viewModelFactory = ArticlesViewModel.factory(container.articleRepository),
+                        onArticleClick = { id, tagId -> navController.navigate(Screen.Article.createRoute(id, tagId)) },
+                        onOpenSources = { navController.navigate(Screen.ArticleSources.route) }
+                    )
+                }
+                composable(
+                    route = Screen.Article.route,
+                    arguments = listOf(
+                        navArgument(Screen.Article.ARG_ARTICLE_ID) { type = NavType.LongType },
+                        navArgument(Screen.Article.ARG_TAG_ID) { type = NavType.LongType; defaultValue = -1L }
+                    )
+                ) { backStackEntry ->
+                    val articleId = backStackEntry.arguments?.getLong(Screen.Article.ARG_ARTICLE_ID) ?: return@composable
+                    val tagId = backStackEntry.arguments?.getLong(Screen.Article.ARG_TAG_ID)?.takeIf { it >= 0 }
+                    val context = LocalContext.current
+                    ArticleReaderScreen(
+                        viewModelFactory = ArticleReaderViewModel.factory(
+                            container.articleRepository,
+                            context.getSharedPreferences("reader", Context.MODE_PRIVATE),
+                            articleId,
+                            tagId
+                        ),
+                        onBack = { navController.popBackStack() },
+                        // The next article replaces this one, so Back still returns to the list.
+                        onOpenArticle = { nextId ->
+                            navController.navigate(Screen.Article.createRoute(nextId, tagId)) {
+                                popUpTo(Screen.Article.route) { inclusive = true }
                             }
                         }
-                    }
-                )
+                    )
+                }
+                composable(Screen.ArticleSources.route) {
+                    ArticleSourcesScreen(
+                        viewModelFactory = ArticleSourcesViewModel.factory(container.articleRepository),
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+                composable(
+                    route = Screen.PodcastEpisodes.route,
+                    arguments = listOf(navArgument(Screen.PodcastEpisodes.ARG_FEED_ID) { type = NavType.LongType })
+                ) { backStackEntry ->
+                    val feedId = backStackEntry.arguments?.getLong(Screen.PodcastEpisodes.ARG_FEED_ID) ?: return@composable
+                    PodcastEpisodesScreen(
+                        viewModelFactory = PodcastEpisodesViewModel.factory(
+                            container.podcastRepository,
+                            container.episodeRepository,
+                            container.queueRepository,
+                            container.playbackRepository,
+                            container.tagRepository,
+                            feedId
+                        ),
+                        onBack = { navController.popBackStack() },
+                        onEpisodeClick = openEpisode
+                    )
+                }
+                composable(
+                    route = Screen.EpisodeDetail.route,
+                    arguments = listOf(navArgument(Screen.EpisodeDetail.ARG_EPISODE_ID) { type = NavType.LongType })
+                ) { backStackEntry ->
+                    val episodeId = backStackEntry.arguments?.getLong(Screen.EpisodeDetail.ARG_EPISODE_ID) ?: return@composable
+                    EpisodeDetailScreen(
+                        viewModelFactory = EpisodeDetailViewModel.factory(
+                            container.episodeRepository,
+                            container.queueRepository,
+                            container.playbackRepository,
+                            episodeId
+                        ),
+                        onBack = { navController.popBackStack() },
+                        onOpenPodcast = { feedId ->
+                            // Coming from that podcast's page: go back to it instead of stacking a second one.
+                            val previous = navController.previousBackStackEntry
+                            if (previous?.destination?.route == Screen.PodcastEpisodes.route &&
+                                previous.arguments?.getLong(Screen.PodcastEpisodes.ARG_FEED_ID) == feedId
+                            ) {
+                                navController.popBackStack()
+                            } else {
+                                navController.navigate(Screen.PodcastEpisodes.createRoute(feedId))
+                            }
+                        }
+                    )
+                }
+                composable(Screen.Player.route) {
+                    PlayerScreen(
+                        viewModel = playerViewModel,
+                        onBack = { navController.popBackStack() },
+                        onOpenQueue = {
+                            podcastsSection = PodcastsSection.Queue
+                            if (!navController.popBackStack(Screen.Podcasts.route, inclusive = false)) {
+                                navController.navigate(Screen.Podcasts.route) {
+                                    popUpTo(navController.graph.startDestinationId)
+                                    launchSingleTop = true
+                                }
+                            }
+                        }
+                    )
+                }
             }
         }
     }

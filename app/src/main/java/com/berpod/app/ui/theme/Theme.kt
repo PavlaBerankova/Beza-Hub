@@ -33,8 +33,14 @@ private fun DotColors.toMaterial(dark: Boolean) = (if (dark) darkColorScheme() e
 /** Dot Matrix theme, light or dark following the system setting. */
 @Composable
 fun BerpodTheme(content: @Composable () -> Unit) {
+    TabAccentTheme(TabAccent.Podcasts, content)
+}
+
+/** The theme in [tab]'s accent colour; wraps each tab (and its detail screens). */
+@Composable
+fun TabAccentTheme(tab: TabAccent, content: @Composable () -> Unit) {
     val dark = isSystemInDarkTheme()
-    val colors = if (dark) DarkDotColors else LightDotColors
+    val colors = (if (dark) DarkDotColors else LightDotColors).withAccent(tab, dark)
     CompositionLocalProvider(LocalDotColors provides colors) {
         MaterialTheme(colorScheme = colors.toMaterial(dark), typography = Typography, content = content)
     }

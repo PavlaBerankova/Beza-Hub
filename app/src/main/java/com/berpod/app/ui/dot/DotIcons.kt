@@ -106,11 +106,12 @@ object DotIcons {
     ))
     val YouTube = DotIconSpec(32f, 32f, listOf(
         IconPart(roundRect(5f, 7f, 22f, 18f, 3f), IconRole.Primary, 2.4f),
-        IconPart("M9.5 7v18M22.5 7v18M14.5 13l3.5 3-3.5 3", IconRole.Primary, 2.4f)
+        IconPart("M9.5 7v18M22.5 7v18M14.5 13l3.5 3-3.5 3", IconRole.Primary, 2.4f),
+        px(6.2f, 19.6f, 2.6f)
     ))
     val Articles = DotIconSpec(32f, 32f, listOf(
         IconPart("M7 7a18 18 0 0 1 18 18M7 13a12 12 0 0 1 12 12", IconRole.Primary, 2.4f),
-        IconPart(circle(8.5f, 23.5f, 2f), IconRole.Primary, 2.4f)
+        px(6.4f, 21.4f, 4.2f)
     ))
     val WaveGlyph = DotIconSpec(34f, 14f, listOf(
         IconPart("M2 7h10", IconRole.Muted, 2.2f),
