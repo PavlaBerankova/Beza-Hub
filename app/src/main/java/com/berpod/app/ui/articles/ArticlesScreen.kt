@@ -97,12 +97,15 @@ fun ArticlesScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 DotTitle(stringResource(R.string.nav_articles), Modifier.weight(1f))
-                if (uiState.isRefreshing) {
-                    Box(Modifier.size(44.dp), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(Modifier.size(22.dp), color = c.accent, strokeWidth = 2.dp)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    DotIconButton(DotIcons.Sources, stringResource(R.string.sources), onOpenSources)
+                    if (uiState.isRefreshing) {
+                        Box(Modifier.size(44.dp), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(Modifier.size(22.dp), color = c.accent, strokeWidth = 2.dp)
+                        }
+                    } else {
+                        DotIconButton(DotIcons.Refresh, stringResource(R.string.action_refresh), viewModel::onRefresh)
                     }
-                } else {
-                    DotIconButton(DotIcons.Refresh, stringResource(R.string.action_refresh), viewModel::onRefresh)
                 }
             }
             if (uiState.hasAnySource) {
@@ -182,13 +185,19 @@ private fun ArticleRow(item: ArticleWithFeed, nowMillis: Long, onClick: () -> Un
         Column(modifier = Modifier.padding(vertical = 16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (unread) Box(Modifier.size(7.dp).clip(RoundedCornerShape(1.dp)).background(c.accent))
+                // The source stands out in the tab's colour; the time stays quiet beside it.
                 Text(
-                    listOfNotNull(item.feedTitle.upperCs(), relativeTimeLabel(item.article.pubDateMillis, nowMillis)).joinToString("  ·  "),
-                    style = DotType.label,
-                    color = c.textMuted,
+                    item.feedTitle.upperCs(),
+                    style = DotType.label.copy(fontWeight = FontWeight.W700),
+                    color = c.accent,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false)
                 )
+                relativeTimeLabel(item.article.pubDateMillis, nowMillis)?.let {
+                    Text("·", style = DotType.label, color = c.textMuted)
+                    Text(it, style = DotType.label, color = c.textMuted, maxLines = 1)
+                }
             }
             Text(
                 item.article.title,

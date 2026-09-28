@@ -4,7 +4,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -80,22 +79,23 @@ fun MiniPlayerBar(
                     accentBorder = true
                 )
             }
-            DotProgress(
-                fraction = if (state.durationMs > 0) state.positionMs.toFloat() / state.durationMs else 0f,
-                cells = 52,
-                modifier = Modifier.padding(vertical = 2.dp)
-            )
-            // Times at both ends of the dotted bar: where we are, and how much is left.
-            Row(modifier = Modifier.fillMaxWidth()) {
+            // The dotted bar runs between the two times: where we are, and how much is left.
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
                 Text(formatPlaybackTime(state.positionMs), style = DotType.meta, color = c.textMuted)
-                Spacer(Modifier.weight(1f))
-                if (state.durationMs > 0) {
-                    Text(
-                        "-" + formatPlaybackTime(state.durationMs - state.positionMs),
-                        style = DotType.meta,
-                        color = c.textMuted
-                    )
-                }
+                DotProgress(
+                    fraction = if (state.durationMs > 0) state.positionMs.toFloat() / state.durationMs else 0f,
+                    cells = 40,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    if (state.durationMs > 0) "-" + formatPlaybackTime(state.durationMs - state.positionMs) else "",
+                    style = DotType.meta,
+                    color = c.textMuted
+                )
             }
         }
     }

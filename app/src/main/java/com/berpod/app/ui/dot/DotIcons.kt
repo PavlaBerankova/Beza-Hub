@@ -73,6 +73,13 @@ object DotIcons {
         IconPart("M17 14v4a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 5 18V8.5A1.5 1.5 0 0 1 6.5 7H10", IconRole.Muted, 2.4f),
         px(10f, 13f)
     ))
+    /** A stack of sources: three cards, the first one accented. */
+    val Sources = DotIconSpec(24f, 24f, listOf(
+        IconPart(roundRect(4f, 4.5f, 16f, 5f, 1.6f), IconRole.Primary, 2f),
+        IconPart(roundRect(4f, 12f, 16f, 5f, 1.6f), IconRole.Muted, 2f),
+        IconPart("M6 20h12", IconRole.Muted, 2f),
+        px(6.4f, 6f)
+    ))
     val Trash = DotIconSpec(24f, 24f, listOf(
         IconPart("M5 7h14M10 7V5h4v2", IconRole.Primary, 2.4f),
         IconPart("M7 7l1 12.5h8L17 7", IconRole.Muted, 2.4f),
