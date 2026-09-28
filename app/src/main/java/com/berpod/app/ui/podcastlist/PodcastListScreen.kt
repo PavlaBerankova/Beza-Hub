@@ -48,6 +48,7 @@ fun PodcastListScreen(viewModelFactory: ViewModelProvider.Factory, onPodcastClic
     val viewModel: PodcastListViewModel = viewModel(factory = viewModelFactory)
     val uiState by viewModel.uiState.collectAsState()
     val tagAssignState by viewModel.tagAssignment.state.collectAsState()
+    val addPodcastState by viewModel.addPodcast.state.collectAsState()
 
     Scaffold(
         // Embedded in the Podcasts tab, which draws the title and the section switcher.
@@ -57,7 +58,7 @@ fun PodcastListScreen(viewModelFactory: ViewModelProvider.Factory, onPodcastClic
             DotIconButton(
                 icon = DotIcons.AddOnAccent,
                 contentDescription = stringResource(R.string.fab_add_podcast),
-                onClick = viewModel::onFabClick,
+                onClick = viewModel.addPodcast::open,
                 size = 56.dp,
                 radius = 16.dp,
                 iconSize = 24.dp,
@@ -111,14 +112,6 @@ fun PodcastListScreen(viewModelFactory: ViewModelProvider.Factory, onPodcastClic
             }
         }
 
-        if (uiState.isAddDialogOpen) {
-            AddFeedDialog(
-                isSubmitting = uiState.isSubmitting,
-                errorMessage = uiState.errorMessage,
-                onDismiss = viewModel::onDismissAddDialog,
-                onSubmit = viewModel::onAddFeed
-            )
-        }
         tagAssignState?.let { state ->
             TagAssignDialog(
                 state = state,
@@ -143,6 +136,7 @@ fun PodcastListScreen(viewModelFactory: ViewModelProvider.Factory, onPodcastClic
                 onDismiss = viewModel::onDismissDeleteTag
             )
         }
+        addPodcastState?.let { AddPodcastSheet(it, viewModel.addPodcast) }
     }
 }
 

@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.berpod.app.data.local.ArticleWithFeed
 import com.berpod.app.data.local.TagEntity
 import com.berpod.app.data.repository.ArticleRepository
+import com.berpod.app.ui.common.AddFeedController
 import com.berpod.app.ui.common.filterByPodcastIds
 import com.berpod.app.ui.common.resolveSelectedTagId
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -45,9 +46,14 @@ class ArticlesViewModel(private val repository: ArticleRepository) : ViewModel()
 
     private val selectedTagId = MutableStateFlow<Long?>(null)
 
-    val addSource = AddSourceController(repository, viewModelScope) {
-        _uiState.update { it.copy(snackbarMessage = "Zdroj přidán") }
-    }
+    val addSource = AddFeedController(
+        scope = viewModelScope,
+        resolve = repository::resolve,
+        add = { feed, tagIds -> repository.addFeed(feed, tagIds).map { } },
+        observeTags = { repository.observeTags().map { tags -> tags.map { TagEntity(it.id, it.name) } } },
+        createTagNamed = repository::createTag,
+        onAdded = { _uiState.update { it.copy(snackbarMessage = "Zdroj přidán") } }
+    )
 
     init {
         val taggedFeedIds = selectedTagId.flatMapLatest { tagId ->

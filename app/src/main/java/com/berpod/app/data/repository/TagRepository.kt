@@ -27,11 +27,14 @@ class TagRepository(
     fun observeFeeds(filterTagId: Long?): Flow<List<PodcastFeedEntity>> =
         if (filterTagId == null) podcastFeedDao.observeAll() else tagDao.observeFeedsWithTag(filterTagId)
 
-    suspend fun createAndAssign(podcastId: Long, rawName: String): Result<Unit> = runCatching {
+    /** The id of the tag called [rawName], created when it doesn't exist yet. */
+    suspend fun createTag(rawName: String): Result<Long> = runCatching {
         val name = requireNotNull(normalizeTagName(rawName)) { "Zadejte název štítku" }
-        val tagId = tagDao.findByName(name)?.id ?: tagDao.insert(TagEntity(name = name))
-        tagDao.assign(PodcastTagCrossRef(podcastId, tagId))
+        tagDao.findByName(name)?.id ?: tagDao.insert(TagEntity(name = name))
     }
+
+    suspend fun createAndAssign(podcastId: Long, rawName: String): Result<Unit> =
+        createTag(rawName).map { tagId -> tagDao.assign(PodcastTagCrossRef(podcastId, tagId)) }
 
     suspend fun setAssigned(podcastId: Long, tagId: Long, assigned: Boolean) {
         if (assigned) tagDao.assign(PodcastTagCrossRef(podcastId, tagId)) else tagDao.unassign(podcastId, tagId)

@@ -1,12 +1,11 @@
-package com.berpod.app.ui.articles
+package com.berpod.app.ui.common
 
 import com.berpod.app.data.local.TagEntity
-import com.berpod.app.data.remote.ParsedArticleFeed
 import com.berpod.app.data.remote.normalizeSourceUrl
-import com.berpod.app.data.repository.ArticleRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,41 +13,58 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.IOException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 
-sealed interface SourceLookup {
-    data object Idle : SourceLookup
-    data object Searching : SourceLookup
-    data class Found(val feed: ParsedArticleFeed) : SourceLookup
-    data class NotFound(val message: String) : SourceLookup
+/** A failed lookup in words the reader can act on; our own messages (already Czech) are kept. */
+fun feedLookupMessage(error: Throwable): String = when (error) {
+    is UnknownHostException -> "Adresa neexistuje nebo není dostupná"
+    is SocketTimeoutException -> "Server neodpovídá"
+    is IOException -> "Nepodařilo se připojit k serveru"
+    else -> error.message?.takeIf { it.isNotBlank() } ?: "Nepodařilo se načíst"
 }
 
-data class AddSourceState(
+/** What the address typed into the sheet has turned into so far. */
+sealed interface FeedLookup<out T> {
+    data object Idle : FeedLookup<Nothing>
+    data object Searching : FeedLookup<Nothing>
+    data class Found<T>(val feed: T) : FeedLookup<T>
+    data class NotFound(val message: String) : FeedLookup<Nothing>
+}
+
+data class AddFeedState<T>(
     val url: String = "",
-    val lookup: SourceLookup = SourceLookup.Idle,
+    val lookup: FeedLookup<T> = FeedLookup.Idle,
     val tags: List<TagEntity> = emptyList(),
     val selectedTagIds: Set<Long> = emptySet(),
     val isSubmitting: Boolean = false,
     val errorMessage: String? = null
 )
 
-/** The "Přidat zdroj" sheet: looks the address up while typing, picks categories, adds the source. */
-class AddSourceController(
-    private val repository: ArticleRepository,
+/**
+ * The "add a feed" sheet behind both Podcasty and Články: it looks the typed address up while the user
+ * types, collects tags, then hands the found feed to [add]. State is null while the sheet is closed.
+ */
+class AddFeedController<T>(
     private val scope: CoroutineScope,
+    private val resolve: suspend (url: String) -> Result<T>,
+    private val add: suspend (feed: T, tagIds: Set<Long>) -> Result<Unit>,
+    private val observeTags: () -> Flow<List<TagEntity>>,
+    private val createTagNamed: suspend (name: String) -> Result<Long>,
     private val onAdded: () -> Unit
 ) {
-    private val _state = MutableStateFlow<AddSourceState?>(null)
-    /** null while the sheet is closed. */
-    val state: StateFlow<AddSourceState?> = _state.asStateFlow()
+    private val _state = MutableStateFlow<AddFeedState<T>?>(null)
+    val state: StateFlow<AddFeedState<T>?> = _state.asStateFlow()
 
     private var lookupJob: Job? = null
     private var tagsJob: Job? = null
 
     fun open() {
-        _state.value = AddSourceState()
+        _state.value = AddFeedState()
         tagsJob?.cancel()
-        tagsJob = repository.observeTags()
-            .onEach { tags -> _state.update { it?.copy(tags = tags.map { t -> TagEntity(t.id, t.name) }) } }
+        tagsJob = observeTags()
+            .onEach { tags -> _state.update { it?.copy(tags = tags) } }
             .launchIn(scope)
     }
 
@@ -58,23 +74,23 @@ class AddSourceController(
         _state.value = null
     }
 
-    /** Typing waits a moment before looking up; a pasted address is looked up straight away. */
+    /** Typing waits a moment before looking the address up; a pasted one is looked up straight away. */
     fun onUrlChange(url: String, immediate: Boolean = false) {
         _state.update { it?.copy(url = url, errorMessage = null) }
         lookupJob?.cancel()
         if (normalizeSourceUrl(url) == null) {
-            _state.update { it?.copy(lookup = SourceLookup.Idle) }
+            _state.update { it?.copy(lookup = FeedLookup.Idle) }
             return
         }
         lookupJob = scope.launch {
             if (!immediate) delay(700)
-            _state.update { it?.copy(lookup = SourceLookup.Searching) }
-            val result = repository.resolve(url)
+            _state.update { it?.copy(lookup = FeedLookup.Searching) }
+            val result = resolve(url)
             _state.update { state ->
                 state?.copy(
                     lookup = result.fold(
-                        { SourceLookup.Found(it) },
-                        { SourceLookup.NotFound(it.message ?: "Zdroj se nepodařilo načíst") }
+                        { FeedLookup.Found(it) },
+                        { FeedLookup.NotFound(feedLookupMessage(it)) }
                     )
                 )
             }
@@ -87,7 +103,7 @@ class AddSourceController(
 
     fun createTag(name: String) {
         scope.launch {
-            repository.createTag(name)
+            createTagNamed(name)
                 .onSuccess { id -> _state.update { it?.copy(selectedTagIds = it.selectedTagIds + id, errorMessage = null) } }
                 .onFailure { e -> _state.update { it?.copy(errorMessage = e.message) } }
         }
@@ -95,11 +111,11 @@ class AddSourceController(
 
     fun submit() {
         val state = _state.value ?: return
-        val found = state.lookup as? SourceLookup.Found ?: return
+        val found = state.lookup as? FeedLookup.Found ?: return
         if (state.isSubmitting) return
         _state.update { it?.copy(isSubmitting = true, errorMessage = null) }
         scope.launch {
-            repository.addFeed(found.feed, state.selectedTagIds)
+            add(found.feed, state.selectedTagIds)
                 .onSuccess {
                     dismiss()
                     onAdded()

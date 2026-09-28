@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -28,7 +29,7 @@ import com.berpod.app.ui.dot.upperCs
 import com.berpod.app.ui.theme.DotTheme
 import com.berpod.app.ui.theme.DotType
 
-/** Floating Dot Matrix mini player: cover, title, "PODCAST · TIME", play/pause and a dot progress row. */
+/** Floating Dot Matrix mini player: cover, title, podcast, play/pause, and a dot progress row with times. */
 @Composable
 fun MiniPlayerBar(
     state: PlaybackUiState,
@@ -63,7 +64,7 @@ fun MiniPlayerBar(
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        "${state.podcastTitle} · ${formatPlaybackTime(state.positionMs)}".upperCs(),
+                        state.podcastTitle.upperCs(),
                         style = DotType.meta,
                         color = c.textMuted,
                         maxLines = 1,
@@ -84,6 +85,18 @@ fun MiniPlayerBar(
                 cells = 52,
                 modifier = Modifier.padding(vertical = 2.dp)
             )
+            // Times at both ends of the dotted bar: where we are, and how much is left.
+            Row(modifier = Modifier.fillMaxWidth()) {
+                Text(formatPlaybackTime(state.positionMs), style = DotType.meta, color = c.textMuted)
+                Spacer(Modifier.weight(1f))
+                if (state.durationMs > 0) {
+                    Text(
+                        "-" + formatPlaybackTime(state.durationMs - state.positionMs),
+                        style = DotType.meta,
+                        color = c.textMuted
+                    )
+                }
+            }
         }
     }
 }

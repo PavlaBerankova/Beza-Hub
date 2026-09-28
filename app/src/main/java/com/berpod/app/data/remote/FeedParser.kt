@@ -7,6 +7,8 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 
 data class ParsedFeedMeta(
+    /** The feed's own address: what the user typed may have been a web page pointing at it. */
+    val feedUrl: String,
     val title: String,
     val imageUrl: String?,
     val description: String?,
@@ -50,17 +52,21 @@ interface FeedFetcher {
     suspend fun fetchAndParse(url: String): ParsedFeedMeta
 }
 
-class FeedParser(private val rssParser: RssParser = RssParser()) : FeedFetcher {
+class FeedParser(
+    private val rssParser: RssParser = RssParser(),
+    private val documentLoader: FeedDocumentLoader = FeedDocumentLoader()
+) : FeedFetcher {
 
     override suspend fun fetchAndParse(url: String): ParsedFeedMeta {
-        val channel = rssParser.getRssChannel(url)
-        val title = channel.title?.takeIf { it.isNotBlank() } ?: url
+        val document = documentLoader.resolve(url)
+        val channel = rssParser.parse(document.text)
+        val title = channel.title?.takeIf { it.isNotBlank() } ?: document.url
         val imageUrl = channel.image?.url ?: channel.itunesChannelData?.image
         val description = channel.description?.takeIf { it.isNotBlank() }
             ?: channel.itunesChannelData?.summary
         val episodes = channel.items.mapNotNull(::toParsedEpisode)
         val author = pickAuthor(channel.itunesChannelData?.author, channel.itunesChannelData?.owner?.name)
-        return ParsedFeedMeta(title = title, imageUrl = imageUrl, description = description, episodes = episodes, author = author)
+        return ParsedFeedMeta(feedUrl = document.url, title = title, imageUrl = imageUrl, description = description, episodes = episodes, author = author)
     }
 
     private fun toParsedEpisode(item: RssItem): ParsedEpisode? {

@@ -8,6 +8,7 @@ import com.berpod.app.data.local.TagEntity
 import com.berpod.app.data.repository.EpisodeRepository
 import com.berpod.app.data.repository.PodcastRepository
 import com.berpod.app.data.repository.TagRepository
+import com.berpod.app.ui.common.AddFeedController
 import com.berpod.app.ui.common.TagAssignmentController
 import com.berpod.app.ui.common.resolveSelectedTagId
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -31,7 +32,6 @@ data class PodcastListUiState(
     val renamingTag: TagEntity? = null,
     val renameError: String? = null,
     val deletingTag: TagEntity? = null,
-    val isAddDialogOpen: Boolean = false,
     val isSubmitting: Boolean = false,
     val errorMessage: String? = null
 )
@@ -47,6 +47,21 @@ class PodcastListViewModel(
     val uiState: StateFlow<PodcastListUiState> = _uiState.asStateFlow()
 
     val tagAssignment = TagAssignmentController(tagRepository, viewModelScope)
+
+    val addPodcast = AddFeedController(
+        scope = viewModelScope,
+        resolve = repository::resolve,
+        add = { meta, tagIds ->
+            repository.addFeed(meta).map { feedId ->
+                tagIds.forEach { tagRepository.setAssigned(feedId, it, assigned = true) }
+                // Best-effort: a slow episode fetch shouldn't hold up the added podcast.
+                viewModelScope.launch { episodeRepository.syncEpisodesForFeedId(feedId) }
+            }
+        },
+        observeTags = tagRepository::observeTags,
+        createTagNamed = tagRepository::createTag,
+        onAdded = { }
+    )
 
     private val selectedTagId = MutableStateFlow<Long?>(null)
 
@@ -103,31 +118,6 @@ class PodcastListViewModel(
         _uiState.update { it.copy(deletingTag = null) }
         // The tags observer resets the filter to "Všechny" if this was the selected tag.
         viewModelScope.launch { tagRepository.delete(tag.id) }
-    }
-
-    fun onFabClick() {
-        _uiState.update { it.copy(isAddDialogOpen = true, errorMessage = null) }
-    }
-
-    fun onDismissAddDialog() {
-        _uiState.update { it.copy(isAddDialogOpen = false, errorMessage = null) }
-    }
-
-    fun onAddFeed(url: String) {
-        _uiState.update { it.copy(isSubmitting = true, errorMessage = null) }
-        viewModelScope.launch {
-            repository.addFeed(url)
-                .onSuccess { feedId ->
-                    _uiState.update { it.copy(isSubmitting = false, isAddDialogOpen = false) }
-                    // Best-effort: a slow/broken episode fetch shouldn't block the "feed added" success state.
-                    episodeRepository.syncEpisodesForFeedId(feedId)
-                }
-                .onFailure { error ->
-                    _uiState.update {
-                        it.copy(isSubmitting = false, errorMessage = error.message ?: "Nepodařilo se přidat podcast")
-                    }
-                }
-        }
     }
 
     companion object {

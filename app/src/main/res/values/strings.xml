@@ -101,7 +101,6 @@
     <string name="add_source_hint">např. lupa.cz</string>
     <string name="action_paste">Vložit</string>
     <string name="categories">Kategorie</string>
-    <string name="new_category_chip">+ Nová</string>
     <string name="new_category_title">Nová kategorie</string>
     <string name="category_name">Název kategorie</string>
     <string name="source_searching">Hledám zdroj…</string>
@@ -126,4 +125,13 @@
     <string name="delete_category_title">Smazat kategorii</string>
     <string name="delete_category_message">Kategorie „%1$s“ zmizí u všech zdrojů. Zdroje i články zůstanou.</string>
     <string name="action_delete_category">Smazat kategorii %1$s</string>
+    <string name="new_tag_chip">+ Nový</string>
+    <string name="new_category_chip">+ Nová</string>
+    <string name="new_tag_title">Nový štítek</string>
+    <string name="tags">Štítky</string>
+    <string name="add_podcast_label">Adresa podcastu nebo RSS</string>
+    <string name="add_podcast_hint">např. vinohradska12.cz</string>
+    <string name="podcast_searching">Hledám podcast…</string>
+    <string name="podcast_not_found">Podcast nenalezen</string>
+    <string name="podcast_found">Podcast nalezen</string>
 </resources>

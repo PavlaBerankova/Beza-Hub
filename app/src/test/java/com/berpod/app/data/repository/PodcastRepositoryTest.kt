@@ -45,12 +45,12 @@ private class FakeDao : PodcastFeedDao {
 }
 
 private class FakeFeedFetcher(
-    private val result: ParsedFeedMeta = ParsedFeedMeta("Fake Podcast", null, "A fake podcast", emptyList()),
+    private val result: ParsedFeedMeta = ParsedFeedMeta("", "Fake Podcast", null, "A fake podcast", emptyList()),
     private val shouldFail: Boolean = false
 ) : FeedFetcher {
     override suspend fun fetchAndParse(url: String): ParsedFeedMeta {
         if (shouldFail) error("Fetch failed")
-        return result
+        return result.copy(feedUrl = url)
     }
 }
 
@@ -99,11 +99,36 @@ class PodcastRepositoryTest {
     @Test
     fun `addFeed stores the parsed author`() = runTest {
         val dao = FakeDao()
-        val fetcher = FakeFeedFetcher(ParsedFeedMeta("Fake Podcast", null, "A fake podcast", emptyList(), author = "Autor"))
+        val fetcher = FakeFeedFetcher(ParsedFeedMeta("", "Fake Podcast", null, "A fake podcast", emptyList(), author = "Autor"))
         val repository = PodcastRepository(dao, fetcher)
 
         val id = repository.addFeed("https://example.com/feed.xml").getOrThrow()
 
         assertEquals("Autor", dao.getById(id)?.author)
+    }
+
+    @Test
+    fun `resolve finds the podcast behind a typed address without saving it`() = runTest {
+        val dao = FakeDao()
+        val repository = PodcastRepository(dao, FakeFeedFetcher())
+
+        val meta = repository.resolve(" example.com/feed.xml ").getOrThrow()
+
+        assertEquals("Fake Podcast", meta.title)
+        assertEquals("https://example.com/feed.xml", meta.feedUrl)
+        assertEquals(emptyList<PodcastFeedEntity>(), dao.getAll())
+        assertEquals("Zadejte adresu webu nebo RSS", repository.resolve("  ").exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `adding a resolved podcast stores it under the feed's own address`() = runTest {
+        val dao = FakeDao()
+        val repository = PodcastRepository(dao, FakeFeedFetcher())
+        val meta = repository.resolve("https://example.com/page").getOrThrow().copy(feedUrl = "https://example.com/feed.xml")
+
+        val id = repository.addFeed(meta).getOrThrow()
+
+        assertEquals("https://example.com/feed.xml", dao.getById(id)?.rssUrl)
+        assertTrue(repository.addFeed(meta).isFailure)
     }
 }
