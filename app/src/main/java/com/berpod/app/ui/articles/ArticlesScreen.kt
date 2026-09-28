@@ -15,7 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
@@ -49,7 +49,7 @@ import com.berpod.app.ui.common.TagChipRow
 import com.berpod.app.ui.common.articleCategoryTexts
 import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIcons
-import com.berpod.app.ui.dot.SectionSeparator
+import com.berpod.app.ui.dot.CenteredSeparator
 import com.berpod.app.ui.dot.DotTitle
 import com.berpod.app.ui.dot.rememberNowMillis
 import com.berpod.app.ui.dot.upperCs
@@ -156,24 +156,28 @@ fun ArticlesScreen(
                 else -> {
                     val now = rememberNowMillis()
                     LazyColumn(contentPadding = PaddingValues(bottom = 96.dp)) {
-                        items(uiState.unreadArticles, key = { it.article.id }) { item ->
+                        itemsIndexed(uiState.unreadArticles, key = { _, it -> it.article.id }) { index, item ->
                             MarkPlayedSwipe(onToggle = { viewModel.onToggleRead(item) }) {
-                                ArticleRow(item, now) { onArticleClick(item.article.id, uiState.selectedTagId) }
+                                // The last row's divider would double up with the separator (or dangle at the end).
+                                ArticleRow(item, now, showDivider = index < uiState.unreadArticles.lastIndex) {
+                                    onArticleClick(item.article.id, uiState.selectedTagId)
+                                }
                             }
                         }
                         // Read articles keep their place in the list, just below everything unread.
                         if (uiState.readArticles.isNotEmpty()) {
                             item(key = "read-separator") {
-                                SectionSeparator(
-                                    left = stringResource(R.string.section_read),
-                                    right = uiState.readArticles.size.toString(),
-                                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 8.dp)
+                                CenteredSeparator(
+                                    label = stringResource(R.string.section_read),
+                                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 12.dp)
                                 )
                             }
                         }
-                        items(uiState.readArticles, key = { it.article.id }) { item ->
+                        itemsIndexed(uiState.readArticles, key = { _, it -> it.article.id }) { index, item ->
                             MarkPlayedSwipe(onToggle = { viewModel.onToggleRead(item) }) {
-                                ArticleRow(item, now) { onArticleClick(item.article.id, uiState.selectedTagId) }
+                                ArticleRow(item, now, showDivider = index < uiState.readArticles.lastIndex) {
+                                    onArticleClick(item.article.id, uiState.selectedTagId)
+                                }
                             }
                         }
                     }
@@ -192,7 +196,7 @@ fun ArticlesScreen(
 }
 
 @Composable
-private fun ArticleRow(item: ArticleWithFeed, nowMillis: Long, onClick: () -> Unit) {
+private fun ArticleRow(item: ArticleWithFeed, nowMillis: Long, showDivider: Boolean, onClick: () -> Unit) {
     val c = DotTheme.colors
     val unread = item.article.readAtMs == null
     Column(
@@ -221,6 +225,6 @@ private fun ArticleRow(item: ArticleWithFeed, nowMillis: Long, onClick: () -> Un
                 color = if (unread) c.text else c.textMuted
             )
         }
-        HorizontalDivider(color = c.divider)
+        if (showDivider) HorizontalDivider(color = c.divider)
     }
 }

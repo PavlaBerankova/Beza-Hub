@@ -42,6 +42,7 @@ import com.berpod.app.R
 import com.berpod.app.ui.common.htmlText
 import com.berpod.app.ui.dot.DotIcon
 import com.berpod.app.ui.dot.DotIconButton
+import com.berpod.app.ui.dot.CenteredSeparator
 import com.berpod.app.ui.dot.DotIcons
 import com.berpod.app.ui.dot.formatDotDate
 import com.berpod.app.ui.dot.upperCs
@@ -131,11 +132,7 @@ fun ArticleReaderScreen(
         if (article.content == null && link != null) {
             OutlinedWideButton(stringResource(R.string.read_full_in_browser), DotIcons.OpenExternal) { uriHandler.openUri(link) }
         }
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(top = 8.dp)) {
-            HorizontalDivider(Modifier.weight(1f), color = c.divider)
-            Text(stringResource(R.string.end_of_article).upperCs(), style = DotType.label, color = c.textMuted)
-            HorizontalDivider(Modifier.weight(1f), color = c.divider)
-        }
+        CenteredSeparator(stringResource(R.string.end_of_article), Modifier.padding(top = 8.dp))
         uiState.nextUnreadId?.let { nextId ->
             OutlinedWideButton(stringResource(R.string.next_unread), DotIcons.Forward, iconAfter = true) { onOpenArticle(nextId) }
         }

@@ -165,6 +165,17 @@ fun DotPrimaryButton(label: String, icon: DotIconSpec?, onClick: () -> Unit, mod
     }
 }
 
+/** "——— LABEL ———": a section label centred between two rules. */
+@Composable
+fun CenteredSeparator(label: String, modifier: Modifier = Modifier) {
+    val c = DotTheme.colors
+    Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        HorizontalDivider(modifier = Modifier.weight(1f), color = c.divider)
+        Text(label.upperCs(), style = DotType.label, color = c.textMuted)
+        HorizontalDivider(modifier = Modifier.weight(1f), color = c.divider)
+    }
+}
+
 /** "LEFT ——— RIGHT" section label; [leadingSquare] draws a small accent square first. */
 @Composable
 fun SectionSeparator(left: String, right: String? = null, modifier: Modifier = Modifier, leadingSquare: Boolean = false) {
