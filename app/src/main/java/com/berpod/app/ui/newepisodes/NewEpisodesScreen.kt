@@ -42,7 +42,7 @@ import com.berpod.app.ui.theme.DotTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NewEpisodesScreen(viewModelFactory: ViewModelProvider.Factory) {
+fun NewEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onEpisodeClick: (Long) -> Unit) {
     val viewModel: NewEpisodesViewModel = viewModel(factory = viewModelFactory)
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -121,7 +121,8 @@ fun NewEpisodesScreen(viewModelFactory: ViewModelProvider.Factory) {
                                     podcastImageUrl = item.podcastImageUrl,
                                     isCurrent = isCurrent,
                                     isPlaying = isCurrent && uiState.isPlaying,
-                                    onPlayOrPause = { viewModel.onPlayOrPause(item) }
+                                    onPlayOrPause = { viewModel.onPlayOrPause(item) },
+                                    onClick = { onEpisodeClick(item.episode.id) }
                                 ) {
                                     AddToQueueButton(isQueued) { viewModel.onAddToQueue(item.episode.id) }
                                 }

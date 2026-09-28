@@ -60,6 +60,14 @@ object DotIcons {
         IconPart("M4 16h6", IconRole.Muted, 2.4f),
         px(14f, 13.5f, 1.9f), px(16.2f, 15.6f, 1.9f), px(14f, 17.7f, 1.9f)
     ))
+    val Share = DotIconSpec(24f, 24f, listOf(
+        IconPart("M12 4v10M8 7.5L12 4l4 3.5", IconRole.Primary, 2.4f),
+        IconPart("M6 12v6.5A1.5 1.5 0 0 0 7.5 20h9a1.5 1.5 0 0 0 1.5-1.5V12", IconRole.Muted, 2.4f),
+        px(11f, 16.5f)
+    ))
+    /** "In the queue": a check with the accent pixel, for outlined buttons. */
+    val Queued = DotIconSpec(24f, 24f, listOf(IconPart("M5 12.5l4.5 4.5L19 7.5", IconRole.Primary, 2.4f), px(11f, 19.5f)))
+    val Forward = DotIconSpec(24f, 24f, listOf(IconPart("M9 5l7 7-7 7", IconRole.Primary, 2.6f)))
     val Download = DotIconSpec(24f, 24f, listOf(
         IconPart("M12 4v9.5M7.5 9L12 13.5 16.5 9", IconRole.Primary, 2.4f),
         IconPart("M5 16v4h14v-4", IconRole.Muted, 2.4f),

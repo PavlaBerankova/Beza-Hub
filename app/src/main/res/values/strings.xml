@@ -84,4 +84,15 @@
     <string name="new_episodes_tag_empty">Žádné nové epizody s tímto štítkem</string>
     <string name="status_played">Přehráno</string>
     <string name="marked_played">Označeno jako přehrané</string>
+    <string name="episode">Epizoda</string>
+    <string name="episode_missing">Epizoda už neexistuje</string>
+    <string name="remaining">Zbývá %1$s</string>
+    <string name="resume_from">Pokračovat od %1$s</string>
+    <string name="action_play_again">Přehrát znovu</string>
+    <string name="action_share">Sdílet</string>
+    <string name="to_queue">Do fronty</string>
+    <string name="in_queue">Ve frontě</string>
+    <string name="section_about_episode">O epizodě</string>
+    <string name="section_chapters">Kapitoly</string>
+    <string name="all_episodes">Všechny epizody</string>
 </resources>

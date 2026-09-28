@@ -64,7 +64,7 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun QueueScreen(viewModelFactory: ViewModelProvider.Factory) {
+fun QueueScreen(viewModelFactory: ViewModelProvider.Factory, onEpisodeClick: (Long) -> Unit) {
     val viewModel: QueueViewModel = viewModel(factory = viewModelFactory)
     val uiState by viewModel.uiState.collectAsState()
 
@@ -120,14 +120,14 @@ fun QueueScreen(viewModelFactory: ViewModelProvider.Factory) {
                     title = stringResource(R.string.queue_tag_filter_empty),
                     subtitle = stringResource(R.string.queue_tag_filter_empty_subtitle)
                 )
-                else -> ReorderableQueueList(uiState = uiState, viewModel = viewModel)
+                else -> ReorderableQueueList(uiState = uiState, viewModel = viewModel, onEpisodeClick = onEpisodeClick)
             }
         }
     }
 }
 
 @Composable
-private fun ReorderableQueueList(uiState: QueueUiState, viewModel: QueueViewModel) {
+private fun ReorderableQueueList(uiState: QueueUiState, viewModel: QueueViewModel, onEpisodeClick: (Long) -> Unit) {
     val haptics = LocalHapticFeedback.current
     // Local copy reordered live while dragging; the database is written once on drop.
     var localItems by remember { mutableStateOf(uiState.visibleItems) }
@@ -217,7 +217,7 @@ private fun ReorderableQueueList(uiState: QueueUiState, viewModel: QueueViewMode
                                     )
                                 }
                     ) {
-                        QueueRow(item = item, uiState = uiState, viewModel = viewModel)
+                        QueueRow(item = item, uiState = uiState, viewModel = viewModel, onClick = { onEpisodeClick(item.episode.id) })
                     }
                 }
             }
@@ -239,7 +239,7 @@ private fun RemoveBackground() {
 }
 
 @Composable
-private fun QueueRow(item: QueueItemWithEpisode, uiState: QueueUiState, viewModel: QueueViewModel) {
+private fun QueueRow(item: QueueItemWithEpisode, uiState: QueueUiState, viewModel: QueueViewModel, onClick: () -> Unit) {
     val isCurrent = uiState.currentlyPlayingEpisodeId == item.episode.id
     CompactEpisodeRow(
         episode = item.episode,
@@ -247,6 +247,7 @@ private fun QueueRow(item: QueueItemWithEpisode, uiState: QueueUiState, viewMode
         podcastImageUrl = item.podcastImageUrl,
         isCurrent = isCurrent,
         isPlaying = isCurrent && uiState.isPlaying,
-        onPlayOrPause = { viewModel.onPlayOrPause(item) }
+        onPlayOrPause = { viewModel.onPlayOrPause(item) },
+        onClick = onClick
     )
 }

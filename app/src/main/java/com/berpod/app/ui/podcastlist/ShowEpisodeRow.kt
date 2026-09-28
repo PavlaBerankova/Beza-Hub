@@ -1,6 +1,7 @@
 package com.berpod.app.ui.podcastlist
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -40,14 +41,15 @@ fun ShowEpisodeRow(
     onPlayOrPause: () -> Unit,
     isQueued: Boolean,
     onAddToQueue: () -> Unit,
-    nowMillis: Long
+    nowMillis: Long,
+    onClick: () -> Unit
 ) {
     val c = DotTheme.colors
     val played = episode.playedAtMs != null
     // A played episode isn't "new" any more, whatever its date.
     val recent = !played && isRecentEpisode(episode.pubDateMillis, nowMillis)
     Column(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(top = 16.dp, bottom = 18.dp),
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 20.dp).padding(top = 16.dp, bottom = 18.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         EpisodeDateLine(episode, recent)

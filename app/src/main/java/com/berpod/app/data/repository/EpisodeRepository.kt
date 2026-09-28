@@ -20,6 +20,8 @@ class EpisodeRepository(
     suspend fun setPlayed(episodeId: Long, played: Boolean) =
         episodeDao.setPlayed(episodeId, if (played) System.currentTimeMillis() else null)
 
+    fun observeEpisode(episodeId: Long): Flow<EpisodeWithFeed?> = episodeDao.observeEpisodeWithFeed(episodeId)
+
     fun observeEpisodesForFeed(feedId: Long): Flow<List<EpisodeEntity>> = episodeDao.observeEpisodesForFeed(feedId)
 
     suspend fun syncEpisodesForFeed(feed: PodcastFeedEntity): Result<Unit> = runCatching {

@@ -8,5 +8,9 @@ sealed class Screen(val route: String) {
         const val ARG_FEED_ID = "feedId"
         fun createRoute(feedId: Long) = "podcast/$feedId"
     }
+    data object EpisodeDetail : Screen("episode/{episodeId}") {
+        const val ARG_EPISODE_ID = "episodeId"
+        fun createRoute(episodeId: Long) = "episode/$episodeId"
+    }
     data object Player : Screen("player")
 }

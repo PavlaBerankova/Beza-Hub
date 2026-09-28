@@ -18,6 +18,15 @@ private fun oxanium(weight: Int) = Font(
 
 val Oxanium = FontFamily(oxanium(400), oxanium(500), oxanium(600), oxanium(700), oxanium(800))
 
+private fun literata(weight: Int) = Font(
+    R.font.literata,
+    FontWeight(weight),
+    variationSettings = FontVariation.Settings(FontVariation.weight(weight))
+)
+
+/** Serif for long reading text (episode descriptions); Latin subset, optical size fixed at 12 pt. */
+val Literata = FontFamily(literata(400), literata(600), literata(700))
+
 private fun style(size: Int, weight: Int, tracking: Double = 0.0, lineHeight: Double? = null) = TextStyle(
     fontFamily = Oxanium,
     fontSize = size.sp,
@@ -38,6 +47,7 @@ object DotType {
     val chip = style(12, 600, 1.0)
     val label = style(11, 600, 1.5)
     val meta = style(11, 500, 1.0)
+    val reading = TextStyle(fontFamily = Literata, fontSize = 17.sp, fontWeight = FontWeight(400), lineHeight = 1.65.em)
 }
 
 val Typography = Typography().let { base ->

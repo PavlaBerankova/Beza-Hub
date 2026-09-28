@@ -23,6 +23,16 @@ interface EpisodeDao {
     )
     fun observeAllEpisodesWithFeed(): Flow<List<EpisodeWithFeed>>
 
+    @Query(
+        """
+        SELECT episodes.*, podcast_feeds.title AS podcastTitle, podcast_feeds.imageUrl AS podcastImageUrl
+        FROM episodes
+        INNER JOIN podcast_feeds ON podcast_feeds.id = episodes.feedId
+        WHERE episodes.id = :episodeId
+        """
+    )
+    fun observeEpisodeWithFeed(episodeId: Long): Flow<EpisodeWithFeed?>
+
     @Query("SELECT * FROM episodes WHERE feedId = :feedId ORDER BY pubDateMillis IS NULL, pubDateMillis DESC")
     fun observeEpisodesForFeed(feedId: Long): Flow<List<EpisodeEntity>>
 

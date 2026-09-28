@@ -42,6 +42,8 @@ import com.berpod.app.ui.dot.DotIcon
 import com.berpod.app.ui.dot.DotIconSpec
 import com.berpod.app.ui.dot.DotIcons
 import com.berpod.app.ui.dot.upperCs
+import com.berpod.app.ui.episode.EpisodeDetailScreen
+import com.berpod.app.ui.episode.EpisodeDetailViewModel
 import com.berpod.app.ui.newepisodes.NewEpisodesViewModel
 import com.berpod.app.ui.player.MiniPlayerBar
 import com.berpod.app.ui.player.PlayerScreen
@@ -132,6 +134,7 @@ fun BerpodApp(container: AppContainer) {
             }
         }
     ) { paddingValues ->
+        val openEpisode: (Long) -> Unit = { id -> navController.navigate(Screen.EpisodeDetail.createRoute(id)) }
         NavHost(
             navController = navController,
             startDestination = Screen.Podcasts.route,
@@ -158,6 +161,7 @@ fun BerpodApp(container: AppContainer) {
                         container.tagRepository
                     ),
                     onPodcastClick = { feedId -> navController.navigate(Screen.PodcastEpisodes.createRoute(feedId)) },
+                    onEpisodeClick = openEpisode,
                     section = podcastsSection,
                     onSectionChange = { podcastsSection = it }
                 )
@@ -182,7 +186,34 @@ fun BerpodApp(container: AppContainer) {
                         container.tagRepository,
                         feedId
                     ),
-                    onBack = { navController.popBackStack() }
+                    onBack = { navController.popBackStack() },
+                    onEpisodeClick = openEpisode
+                )
+            }
+            composable(
+                route = Screen.EpisodeDetail.route,
+                arguments = listOf(navArgument(Screen.EpisodeDetail.ARG_EPISODE_ID) { type = NavType.LongType })
+            ) { backStackEntry ->
+                val episodeId = backStackEntry.arguments?.getLong(Screen.EpisodeDetail.ARG_EPISODE_ID) ?: return@composable
+                EpisodeDetailScreen(
+                    viewModelFactory = EpisodeDetailViewModel.factory(
+                        container.episodeRepository,
+                        container.queueRepository,
+                        container.playbackRepository,
+                        episodeId
+                    ),
+                    onBack = { navController.popBackStack() },
+                    onOpenPodcast = { feedId ->
+                        // Coming from that podcast's page: go back to it instead of stacking a second one.
+                        val previous = navController.previousBackStackEntry
+                        if (previous?.destination?.route == Screen.PodcastEpisodes.route &&
+                            previous.arguments?.getLong(Screen.PodcastEpisodes.ARG_FEED_ID) == feedId
+                        ) {
+                            navController.popBackStack()
+                        } else {
+                            navController.navigate(Screen.PodcastEpisodes.createRoute(feedId))
+                        }
+                    }
                 )
             }
             composable(Screen.Player.route) {

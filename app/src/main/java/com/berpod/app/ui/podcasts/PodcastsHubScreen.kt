@@ -51,6 +51,7 @@ fun PodcastsHubScreen(
     queueFactory: ViewModelProvider.Factory,
     newEpisodesFactory: ViewModelProvider.Factory,
     onPodcastClick: (Long) -> Unit,
+    onEpisodeClick: (Long) -> Unit,
     section: PodcastsSection,
     onSectionChange: (PodcastsSection) -> Unit
 ) {
@@ -89,8 +90,8 @@ fun PodcastsHubScreen(
         Box(modifier = Modifier.weight(1f)) {
             when (section) {
                 PodcastsSection.Subscriptions -> PodcastListScreen(subscriptionsFactory, onPodcastClick)
-                PodcastsSection.Queue -> QueueScreen(queueFactory)
-                PodcastsSection.New -> NewEpisodesScreen(newEpisodesFactory)
+                PodcastsSection.Queue -> QueueScreen(queueFactory, onEpisodeClick)
+                PodcastsSection.New -> NewEpisodesScreen(newEpisodesFactory, onEpisodeClick)
             }
         }
     }

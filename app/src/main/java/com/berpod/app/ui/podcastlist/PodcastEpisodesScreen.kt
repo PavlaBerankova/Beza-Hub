@@ -51,7 +51,7 @@ import com.berpod.app.ui.theme.DotTheme
 import com.berpod.app.ui.theme.DotType
 
 @Composable
-fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: () -> Unit) {
+fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: () -> Unit, onEpisodeClick: (Long) -> Unit) {
     val viewModel: PodcastEpisodesViewModel = viewModel(factory = viewModelFactory)
     val uiState by viewModel.uiState.collectAsState()
     val tagAssignState by viewModel.tagAssignment.state.collectAsState()
@@ -135,7 +135,8 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                                 onPlayOrPause = { viewModel.onPlayOrPause(episode) },
                                 isQueued = episode.id in uiState.queuedEpisodeIds,
                                 onAddToQueue = { viewModel.onAddToQueue(episode.id) },
-                                nowMillis = now
+                                nowMillis = now,
+                                onClick = { onEpisodeClick(episode.id) }
                             )
                         }
                     }

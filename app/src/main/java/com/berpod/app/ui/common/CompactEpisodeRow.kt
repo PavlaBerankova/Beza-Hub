@@ -1,6 +1,7 @@
 package com.berpod.app.ui.common
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -43,6 +44,7 @@ fun CompactEpisodeRow(
     isCurrent: Boolean,
     isPlaying: Boolean,
     onPlayOrPause: () -> Unit,
+    onClick: () -> Unit,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
     val c = DotTheme.colors
@@ -53,6 +55,7 @@ fun CompactEpisodeRow(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(16.dp))
                 .background(if (isCurrent) c.surface else c.background)
+                .clickable(onClick = onClick)
                 .padding(start = 10.dp, end = 10.dp, top = 12.dp, bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
