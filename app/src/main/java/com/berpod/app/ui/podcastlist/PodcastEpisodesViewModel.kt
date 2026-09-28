@@ -104,7 +104,9 @@ class PodcastEpisodesViewModel(
         }
     }
 
-    fun onOpenTagDialog() = tagAssignment.open(feedId, _uiState.value.feedTitle)
+    fun onOpenTagDialog() = with(_uiState.value) {
+        tagAssignment.open(feedId, feedTitle, feedImageUrl, feedAuthor)
+    }
 
     /** Swipe right: marks an unplayed episode played (with undo), or a played one unplayed again. */
     fun onTogglePlayed(episode: EpisodeEntity) {

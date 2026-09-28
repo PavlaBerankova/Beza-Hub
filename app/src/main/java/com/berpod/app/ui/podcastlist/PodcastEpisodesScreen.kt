@@ -42,7 +42,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.berpod.app.R
 import com.berpod.app.ui.common.EmptyState
 import com.berpod.app.ui.common.MarkPlayedSwipe
-import com.berpod.app.ui.common.TagAssignDialog
+import com.berpod.app.ui.common.TagPickerSheet
+import com.berpod.app.ui.common.podcastTagTexts
+import com.berpod.app.ui.dot.CoverImage
 import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIcons
 import com.berpod.app.ui.dot.rememberNowMillis
@@ -174,12 +176,18 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
         }
 
         tagAssignState?.let { state ->
-            TagAssignDialog(
-                state = state,
+            TagPickerSheet(
+                title = state.podcastTitle,
+                subtitle = state.subtitle,
+                texts = podcastTagTexts(),
+                tags = state.tags,
+                checkedTagIds = state.checkedTagIds,
                 onToggle = viewModel.tagAssignment::setAssigned,
                 onCreate = viewModel.tagAssignment::createAndAssign,
                 onDelete = viewModel.tagAssignment::deleteTag,
-                onDismiss = viewModel.tagAssignment::dismiss
+                errorMessage = state.errorMessage,
+                onDismiss = viewModel.tagAssignment::dismiss,
+                badge = { CoverImage(state.imageUrl, 48.dp, 10.dp) }
             )
         }
     }

@@ -86,7 +86,8 @@ class PodcastListViewModel(
         _uiState.update { it.copy(selectedTagId = tagId) }
     }
 
-    fun onOpenTagDialog(feed: PodcastFeedEntity) = tagAssignment.open(feed.id, feed.title)
+    fun onOpenTagDialog(feed: PodcastFeedEntity) =
+        tagAssignment.open(feed.id, feed.title, feed.imageUrl, feed.author)
 
     fun onRequestRenameTag(tag: TagEntity) {
         _uiState.update { it.copy(renamingTag = tag, renameError = null) }

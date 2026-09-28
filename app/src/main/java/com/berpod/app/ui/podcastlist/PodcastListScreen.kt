@@ -32,7 +32,8 @@ import com.berpod.app.data.local.PodcastFeedEntity
 import com.berpod.app.ui.common.DeleteTagDialog
 import com.berpod.app.ui.common.EmptyState
 import com.berpod.app.ui.common.RenameTagDialog
-import com.berpod.app.ui.common.TagAssignDialog
+import com.berpod.app.ui.common.TagPickerSheet
+import com.berpod.app.ui.common.podcastTagTexts
 import com.berpod.app.ui.common.TagChipRow
 import com.berpod.app.ui.dot.SectionSeparator
 import com.berpod.app.ui.dot.subscriptionCountText
@@ -113,12 +114,18 @@ fun PodcastListScreen(viewModelFactory: ViewModelProvider.Factory, onPodcastClic
         }
 
         tagAssignState?.let { state ->
-            TagAssignDialog(
-                state = state,
+            TagPickerSheet(
+                title = state.podcastTitle,
+                subtitle = state.subtitle,
+                texts = podcastTagTexts(),
+                tags = state.tags,
+                checkedTagIds = state.checkedTagIds,
                 onToggle = viewModel.tagAssignment::setAssigned,
                 onCreate = viewModel.tagAssignment::createAndAssign,
                 onDelete = viewModel.tagAssignment::deleteTag,
-                onDismiss = viewModel.tagAssignment::dismiss
+                errorMessage = state.errorMessage,
+                onDismiss = viewModel.tagAssignment::dismiss,
+                badge = { CoverImage(state.imageUrl, 48.dp, 10.dp) }
             )
         }
         uiState.renamingTag?.let { tag ->

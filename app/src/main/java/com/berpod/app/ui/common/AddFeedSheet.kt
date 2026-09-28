@@ -19,13 +19,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -49,7 +46,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.berpod.app.R
 import com.berpod.app.ui.dot.DotChip
-import com.berpod.app.ui.dot.DotIcon
 import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIcons
 import com.berpod.app.ui.dot.DotPrimaryButton
@@ -66,10 +62,7 @@ data class AddFeedTexts(
     val searching: String,
     val notFound: String,
     val found: String,
-    val tagsLabel: String,
-    val newTagChip: String,
-    val newTagTitle: String,
-    val newTagLabel: String
+    val tags: TagTexts
 )
 
 /**
@@ -165,12 +158,12 @@ fun <T> AddFeedSheet(
             LookupCard(state.lookup, texts, feedUrlOf, foundContent)
 
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(texts.tagsLabel.upperCs(), style = DotType.label, color = c.textMuted)
+                Text(texts.tags.listTitle.upperCs(), style = DotType.label, color = c.textMuted)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     state.tags.forEach { tag ->
                         DotChip(label = tag.name, selected = tag.id in state.selectedTagIds, onClick = { controller.toggleTag(tag.id) })
                     }
-                    DotChip(label = texts.newTagChip, selected = false, onClick = { isNewTagOpen = true })
+                    DotChip(label = texts.tags.newChip, selected = false, onClick = { isNewTagOpen = true })
                 }
             }
 
@@ -187,7 +180,8 @@ fun <T> AddFeedSheet(
 
     if (isNewTagOpen) {
         NewTagDialog(
-            texts = texts,
+            title = texts.tags.newTitle,
+            nameLabel = texts.tags.nameLabel,
             onConfirm = { name ->
                 controller.createTag(name)
                 isNewTagOpen = false
@@ -242,24 +236,4 @@ private fun <T> LookupCard(
             FeedLookup.Idle -> Unit
         }
     }
-}
-
-@Composable
-private fun NewTagDialog(texts: AddFeedTexts, onConfirm: (String) -> Unit, onDismiss: () -> Unit) {
-    var name by remember { mutableStateOf("") }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(texts.newTagTitle) },
-        text = {
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text(texts.newTagLabel) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
-        },
-        confirmButton = { TextButton(onClick = { onConfirm(name) }, enabled = name.isNotBlank()) { Text(stringResource(R.string.action_add)) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } }
-    )
 }

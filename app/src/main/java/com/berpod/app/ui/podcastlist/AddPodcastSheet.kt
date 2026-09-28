@@ -18,6 +18,7 @@ import com.berpod.app.ui.common.AddFeedController
 import com.berpod.app.ui.common.AddFeedSheet
 import com.berpod.app.ui.common.AddFeedState
 import com.berpod.app.ui.common.AddFeedTexts
+import com.berpod.app.ui.common.podcastTagTexts
 import com.berpod.app.ui.dot.CoverImage
 import com.berpod.app.ui.theme.DotTheme
 import com.berpod.app.ui.theme.DotType
@@ -36,10 +37,7 @@ fun AddPodcastSheet(state: AddFeedState<ParsedFeedMeta>, controller: AddFeedCont
             searching = stringResource(R.string.podcast_searching),
             notFound = stringResource(R.string.podcast_not_found),
             found = stringResource(R.string.podcast_found),
-            tagsLabel = stringResource(R.string.tags),
-            newTagChip = stringResource(R.string.new_tag_chip),
-            newTagTitle = stringResource(R.string.new_tag_title),
-            newTagLabel = stringResource(R.string.tag_name_label)
+            tags = podcastTagTexts()
         ),
         feedUrlOf = { it.feedUrl }
     ) { meta ->

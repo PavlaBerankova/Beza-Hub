@@ -36,7 +36,6 @@
     <string name="filter_all">Všechny</string>
     <string name="tag_filter_empty">Žádné podcasty s tímto štítkem</string>
     <string name="tag_filter_empty_subtitle">Štítek přiřadíte dlouhým stiskem obálky</string>
-    <string name="tag_dialog_new_label">Nový štítek</string>
     <string name="tag_name_label">Název štítku</string>
     <string name="action_manage_tags">Štítky</string>
     <string name="action_done">Hotovo</string>

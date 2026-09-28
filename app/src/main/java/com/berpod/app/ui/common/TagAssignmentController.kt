@@ -16,6 +16,9 @@ import kotlinx.coroutines.launch
 data class TagAssignState(
     val podcastId: Long,
     val podcastTitle: String,
+    /** Shown on the sheet's card beside the title. */
+    val imageUrl: String? = null,
+    val subtitle: String? = null,
     val tags: List<TagEntity> = emptyList(),
     val checkedTagIds: Set<Long> = emptySet(),
     val errorMessage: String? = null
@@ -34,9 +37,9 @@ class TagAssignmentController(
 
     private var observeJob: Job? = null
 
-    fun open(podcastId: Long, podcastTitle: String) {
+    fun open(podcastId: Long, podcastTitle: String, imageUrl: String? = null, subtitle: String? = null) {
         observeJob?.cancel()
-        _state.value = TagAssignState(podcastId, podcastTitle)
+        _state.value = TagAssignState(podcastId, podcastTitle, imageUrl, subtitle)
         observeJob = combine(
             tagRepository.observeTags(),
             tagRepository.observeTagIdsForPodcast(podcastId)

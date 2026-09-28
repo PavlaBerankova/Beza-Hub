@@ -17,6 +17,7 @@ import com.berpod.app.ui.common.AddFeedController
 import com.berpod.app.ui.common.AddFeedSheet
 import com.berpod.app.ui.common.AddFeedState
 import com.berpod.app.ui.common.AddFeedTexts
+import com.berpod.app.ui.common.articleCategoryTexts
 import com.berpod.app.ui.theme.DotTheme
 import com.berpod.app.ui.theme.DotType
 
@@ -34,10 +35,7 @@ fun AddSourceSheet(state: AddFeedState<ParsedArticleFeed>, controller: AddFeedCo
             searching = stringResource(R.string.source_searching),
             notFound = stringResource(R.string.source_not_found),
             found = stringResource(R.string.source_found),
-            tagsLabel = stringResource(R.string.categories),
-            newTagChip = stringResource(R.string.new_category_chip),
-            newTagTitle = stringResource(R.string.new_category_title),
-            newTagLabel = stringResource(R.string.category_name)
+            tags = articleCategoryTexts()
         ),
         feedUrlOf = { it.feedUrl }
     ) { feed ->

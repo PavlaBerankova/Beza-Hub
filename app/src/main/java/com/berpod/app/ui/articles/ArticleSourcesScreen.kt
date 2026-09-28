@@ -32,7 +32,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.berpod.app.R
 import com.berpod.app.ui.common.EmptyState
-import com.berpod.app.ui.common.TagAssignDialog
+import com.berpod.app.ui.common.TagPickerSheet
 import com.berpod.app.ui.common.articleCategoryTexts
 import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIcons
@@ -95,13 +95,18 @@ fun ArticleSourcesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: ()
     }
 
     uiState.categories?.let { state ->
-        TagAssignDialog(
-            state = state,
+        TagPickerSheet(
+            title = state.podcastTitle,
+            subtitle = state.subtitle,
+            texts = articleCategoryTexts(),
+            tags = state.tags,
+            checkedTagIds = state.checkedTagIds,
             onToggle = viewModel::onToggleCategory,
             onCreate = viewModel::onCreateCategory,
             onDelete = viewModel::onDeleteCategory,
+            errorMessage = state.errorMessage,
             onDismiss = viewModel::onDismissCategories,
-            texts = articleCategoryTexts()
+            badge = { SourceBadge(state.podcastTitle) }
         )
     }
     uiState.deleting?.let { feed ->

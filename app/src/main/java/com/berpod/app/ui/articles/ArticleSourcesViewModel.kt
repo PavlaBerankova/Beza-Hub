@@ -50,7 +50,8 @@ class ArticleSourcesViewModel(private val repository: ArticleRepository) : ViewM
 
     fun onOpenCategories(feed: ArticleFeedEntity) {
         categoriesJob?.cancel()
-        _uiState.update { it.copy(categories = TagAssignState(feed.id, feed.title)) }
+        val site = (feed.siteUrl ?: feed.rssUrl).removePrefix("https://").removePrefix("http://").removePrefix("www.").trimEnd('/')
+        _uiState.update { it.copy(categories = TagAssignState(feed.id, feed.title, subtitle = site)) }
         categoriesJob = combine(repository.observeTags(), repository.observeTagIdsForFeed(feed.id)) { tags, ids ->
             tags.map { TagEntity(it.id, it.name) } to ids.toSet()
         }
