@@ -50,6 +50,15 @@ class ArticleRepository(
         )
     }
 
+    private var refreshedThisSession = false
+
+    /** The first call after the app starts refreshes (there is no background sync); later ones do nothing. */
+    suspend fun refreshOncePerSession(): Result<Int>? {
+        if (refreshedThisSession) return null
+        refreshedThisSession = true
+        return refreshAll()
+    }
+
     /** Fetches every source; new articles are added, known ones left as they are. Returns how many failed. */
     suspend fun refreshAll(): Result<Int> = runCatching {
         var failures = 0

@@ -67,6 +67,17 @@ object DotIcons {
     ))
     /** "In the queue": a check with the accent pixel, for outlined buttons. */
     val Queued = DotIconSpec(24f, 24f, listOf(IconPart("M5 12.5l4.5 4.5L19 7.5", IconRole.Primary, 2.4f), px(11f, 19.5f)))
+    val Close = DotIconSpec(24f, 24f, listOf(IconPart("M6 6l12 12M18 6L6 18", IconRole.Primary, 2.6f)))
+    val OpenExternal = DotIconSpec(24f, 24f, listOf(
+        IconPart("M13 5h6v6M19 5l-8 8", IconRole.Primary, 2.4f),
+        IconPart("M17 14v4a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 5 18V8.5A1.5 1.5 0 0 1 6.5 7H10", IconRole.Muted, 2.4f),
+        px(10f, 13f)
+    ))
+    val Trash = DotIconSpec(24f, 24f, listOf(
+        IconPart("M5 7h14M10 7V5h4v2", IconRole.Primary, 2.4f),
+        IconPart("M7 7l1 12.5h8L17 7", IconRole.Muted, 2.4f),
+        px(11f, 12f)
+    ))
     val Forward = DotIconSpec(24f, 24f, listOf(IconPart("M9 5l7 7-7 7", IconRole.Primary, 2.6f)))
     val Download = DotIconSpec(24f, 24f, listOf(
         IconPart("M12 4v9.5M7.5 9L12 13.5 16.5 9", IconRole.Primary, 2.4f),

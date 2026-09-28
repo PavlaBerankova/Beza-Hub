@@ -91,17 +91,17 @@ fun TagChipRow(
 }
 
 @Composable
-fun RenameTagDialog(tag: TagEntity, errorMessage: String?, onConfirm: (String) -> Unit, onDismiss: () -> Unit) {
+fun RenameTagDialog(tag: TagEntity, errorMessage: String?, onConfirm: (String) -> Unit, onDismiss: () -> Unit, texts: TagTexts = podcastTagTexts()) {
     var name by remember(tag.id) { mutableStateOf(tag.name) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.rename_tag_title)) },
+        title = { Text(texts.renameTitle) },
         text = {
             Column {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text(stringResource(R.string.tag_name_label)) },
+                    label = { Text(texts.nameLabel) },
                     singleLine = true,
                     isError = errorMessage != null,
                     modifier = Modifier.fillMaxWidth()
@@ -127,11 +127,11 @@ fun RenameTagDialog(tag: TagEntity, errorMessage: String?, onConfirm: (String) -
 }
 
 @Composable
-fun DeleteTagDialog(tag: TagEntity, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+fun DeleteTagDialog(tag: TagEntity, onConfirm: () -> Unit, onDismiss: () -> Unit, texts: TagTexts = podcastTagTexts()) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.delete_tag_title)) },
-        text = { Text(stringResource(R.string.delete_tag_message, tag.name)) },
+        title = { Text(texts.deleteTitle) },
+        text = { Text(texts.deleteMessage(tag.name)) },
         confirmButton = {
             TextButton(onClick = onConfirm) { Text(stringResource(R.string.action_delete)) }
         },

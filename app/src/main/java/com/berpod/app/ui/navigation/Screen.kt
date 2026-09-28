@@ -12,5 +12,12 @@ sealed class Screen(val route: String) {
         const val ARG_EPISODE_ID = "episodeId"
         fun createRoute(episodeId: Long) = "episode/$episodeId"
     }
+    data object Article : Screen("article/{articleId}?tag={tagId}") {
+        const val ARG_ARTICLE_ID = "articleId"
+        const val ARG_TAG_ID = "tagId"
+        /** [tagId]: the category the list was filtered by (for "Další nepřečtený"); -1 = none. */
+        fun createRoute(articleId: Long, tagId: Long?) = "article/$articleId?tag=${tagId ?: -1}"
+    }
+    data object ArticleSources : Screen("article-sources")
     data object Player : Screen("player")
 }

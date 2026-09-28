@@ -63,4 +63,11 @@ class ArticleFormatTest {
         assertEquals(null, nextUnreadId(order, setOf(3L), currentId = 3))
         assertEquals(2L, nextUnreadId(order, unread, currentId = 99))
     }
+
+    @Test
+    fun `font size cycles through the reader sizes, unknown starts over`() {
+        assertEquals(20, nextFontSize(18))
+        assertEquals(16, nextFontSize(22))
+        assertEquals(16, nextFontSize(17))
+    }
 }

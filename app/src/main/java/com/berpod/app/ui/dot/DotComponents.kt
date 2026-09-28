@@ -144,15 +144,16 @@ fun DotIconButton(
 
 /** Full-width accent button with an uppercase label. */
 @Composable
-fun DotPrimaryButton(label: String, icon: DotIconSpec?, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun DotPrimaryButton(label: String, icon: DotIconSpec?, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
     val c = DotTheme.colors
     Row(
         modifier = modifier
             .fillMaxWidth()
             .height(54.dp)
             .clip(RoundedCornerShape(14.dp))
-            .background(c.accent)
-            .clickable(role = Role.Button, onClick = onClick),
+            // Disabled: the same button, faded, not clickable.
+            .background(if (enabled) c.accent else c.accent.copy(alpha = 0.35f))
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {

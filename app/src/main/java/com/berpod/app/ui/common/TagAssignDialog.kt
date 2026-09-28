@@ -38,7 +38,8 @@ fun TagAssignDialog(
     onToggle: (tagId: Long, assigned: Boolean) -> Unit,
     onCreate: (name: String) -> Unit,
     onDelete: (tagId: Long) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    texts: TagTexts = podcastTagTexts()
 ) {
     var newName by remember(state.podcastId) { mutableStateOf("") }
     var deleting by remember { mutableStateOf<TagEntity?>(null) }
@@ -62,7 +63,7 @@ fun TagAssignDialog(
                         IconButton(onClick = { deleting = tag }) {
                             Icon(
                                 Icons.Outlined.Delete,
-                                contentDescription = stringResource(R.string.action_delete_tag, tag.name),
+                                contentDescription = texts.deleteAction(tag.name),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -75,7 +76,7 @@ fun TagAssignDialog(
                     OutlinedTextField(
                         value = newName,
                         onValueChange = { newName = it },
-                        label = { Text(stringResource(R.string.tag_dialog_new_label)) },
+                        label = { Text(texts.newLabel) },
                         singleLine = true,
                         modifier = Modifier.weight(1f)
                     )
@@ -109,7 +110,8 @@ fun TagAssignDialog(
                 onDelete(tag.id)
                 deleting = null
             },
-            onDismiss = { deleting = null }
+            onDismiss = { deleting = null },
+            texts = texts
         )
     }
 }

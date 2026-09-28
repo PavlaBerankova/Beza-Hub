@@ -1,5 +1,6 @@
 package com.berpod.app.ui.navigation
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,6 +24,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
@@ -42,6 +44,12 @@ import com.berpod.app.ui.dot.DotIcon
 import com.berpod.app.ui.dot.DotIconSpec
 import com.berpod.app.ui.dot.DotIcons
 import com.berpod.app.ui.dot.upperCs
+import com.berpod.app.ui.articles.ArticleReaderScreen
+import com.berpod.app.ui.articles.ArticleReaderViewModel
+import com.berpod.app.ui.articles.ArticleSourcesScreen
+import com.berpod.app.ui.articles.ArticleSourcesViewModel
+import com.berpod.app.ui.articles.ArticlesScreen
+import com.berpod.app.ui.articles.ArticlesViewModel
 import com.berpod.app.ui.episode.EpisodeDetailScreen
 import com.berpod.app.ui.episode.EpisodeDetailViewModel
 import com.berpod.app.ui.newepisodes.NewEpisodesViewModel
@@ -170,7 +178,43 @@ fun BerpodApp(container: AppContainer) {
                 ComingSoonScreen(title = stringResource(R.string.nav_youtube), icon = DotIcons.YouTube)
             }
             composable(Screen.Articles.route) {
-                ComingSoonScreen(title = stringResource(R.string.nav_articles), icon = DotIcons.Articles)
+                ArticlesScreen(
+                    viewModelFactory = ArticlesViewModel.factory(container.articleRepository),
+                    onArticleClick = { id, tagId -> navController.navigate(Screen.Article.createRoute(id, tagId)) },
+                    onOpenSources = { navController.navigate(Screen.ArticleSources.route) }
+                )
+            }
+            composable(
+                route = Screen.Article.route,
+                arguments = listOf(
+                    navArgument(Screen.Article.ARG_ARTICLE_ID) { type = NavType.LongType },
+                    navArgument(Screen.Article.ARG_TAG_ID) { type = NavType.LongType; defaultValue = -1L }
+                )
+            ) { backStackEntry ->
+                val articleId = backStackEntry.arguments?.getLong(Screen.Article.ARG_ARTICLE_ID) ?: return@composable
+                val tagId = backStackEntry.arguments?.getLong(Screen.Article.ARG_TAG_ID)?.takeIf { it >= 0 }
+                val context = LocalContext.current
+                ArticleReaderScreen(
+                    viewModelFactory = ArticleReaderViewModel.factory(
+                        container.articleRepository,
+                        context.getSharedPreferences("reader", Context.MODE_PRIVATE),
+                        articleId,
+                        tagId
+                    ),
+                    onBack = { navController.popBackStack() },
+                    // The next article replaces this one, so Back still returns to the list.
+                    onOpenArticle = { nextId ->
+                        navController.navigate(Screen.Article.createRoute(nextId, tagId)) {
+                            popUpTo(Screen.Article.route) { inclusive = true }
+                        }
+                    }
+                )
+            }
+            composable(Screen.ArticleSources.route) {
+                ArticleSourcesScreen(
+                    viewModelFactory = ArticleSourcesViewModel.factory(container.articleRepository),
+                    onBack = { navController.popBackStack() }
+                )
             }
             composable(
                 route = Screen.PodcastEpisodes.route,

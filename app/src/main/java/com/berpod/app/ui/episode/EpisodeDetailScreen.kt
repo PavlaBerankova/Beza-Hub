@@ -39,13 +39,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,6 +49,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.berpod.app.R
 import com.berpod.app.data.local.EpisodeWithFeed
 import com.berpod.app.ui.common.formatDuration
+import com.berpod.app.ui.common.htmlText
 import com.berpod.app.ui.common.formatPlaybackTime
 import com.berpod.app.ui.dot.CoverImage
 import com.berpod.app.ui.dot.DotIcon
@@ -219,7 +215,7 @@ private fun EpisodeContent(
     // With chapters found, glued chapter times get their line breaks back in the text too.
     val hasChapters = uiState.chapters.isNotEmpty()
     val description = remember(episode.description, hasChapters) {
-        descriptionAnnotated(episode.description?.let { if (hasChapters) unglueChapterTimes(it) else it }, c.accent)
+        htmlText(episode.description?.let { if (hasChapters) unglueChapterTimes(it) else it }, c.accent)
     }
     if (description != null) {
         Column(modifier = Modifier.padding(top = 6.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -267,16 +263,6 @@ private fun EpisodeContent(
         }
         DotIcon(DotIcons.Forward, 20.dp)
     }
-}
-
-/** Description HTML (or plain text with line breaks) as styled text with tappable links; null when empty. */
-private fun descriptionAnnotated(raw: String?, linkColor: androidx.compose.ui.graphics.Color): AnnotatedString? {
-    val text = raw?.trim()?.takeIf { it.isNotEmpty() } ?: return null
-    val html = if (text.contains('<')) text else text.replace("\n", "<br>")
-    return AnnotatedString.fromHtml(
-        html.trim(),
-        linkStyles = TextLinkStyles(style = SpanStyle(color = linkColor, textDecoration = TextDecoration.Underline))
-    ).let { if (it.text.isBlank()) null else it }
 }
 
 @Composable
