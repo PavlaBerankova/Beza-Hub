@@ -13,6 +13,11 @@ import androidx.media3.session.SessionToken
 import com.berpod.app.data.local.EpisodeDao
 import com.berpod.app.data.local.EpisodeEntity
 import com.berpod.app.playback.PlaybackService
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.launchIn
 import com.berpod.app.data.local.QueueItemWithEpisode
@@ -54,10 +59,13 @@ fun resumeStartMs(lastPositionMs: Long, durationSeconds: Int?): Long {
 internal fun shouldPersistPosition(lastPersistedAtMs: Long, nowMs: Long, intervalMs: Long = 5_000L): Boolean =
     nowMs - lastPersistedAtMs >= intervalMs
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class PlaybackRepository(
     context: Context,
     private val episodeDao: EpisodeDao,
-    private val queueDao: QueueDao
+    private val queueDao: QueueDao,
+    private val tagRepository: TagRepository,
+    private val queueFilterRepository: QueueFilterRepository
 ) {
 
     private val appContext = context.applicationContext
@@ -71,7 +79,7 @@ class PlaybackRepository(
     private var positionPollJob: Job? = null
     private var lastPersistedAtMs = 0L
     private val prefs = appContext.getSharedPreferences("playback", Context.MODE_PRIVATE)
-    // Full (unfiltered) queue order; next/previous and auto-advance follow it.
+    // Queue order next/previous and auto-advance follow: the same tag filter as the Fronta screen.
     private var latestQueue: List<QueueItemWithEpisode> = emptyList()
     private var lastPreviousPressAtMs: Long? = null
     private var sleepJob: Job? = null
@@ -123,7 +131,10 @@ class PlaybackRepository(
 
     init {
         _uiState.update { it.copy(speed = prefs.getFloat("speed", 1f)) }
-        queueDao.observeQueue()
+        val filterPodcastIds = queueFilterRepository.selectedTagId.flatMapLatest { tagId ->
+            if (tagId == null) flowOf(null) else tagRepository.observePodcastIdsWithTag(tagId).map { it.toSet() }
+        }
+        combine(queueDao.observeQueue(), filterPodcastIds, ::filterQueueOrder)
             .onEach { queue ->
                 latestQueue = queue
                 updateHasNext()

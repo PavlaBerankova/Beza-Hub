@@ -16,7 +16,9 @@ import com.berpod.app.data.repository.ArticleRepository
 import com.berpod.app.data.repository.EpisodeRepository
 import com.berpod.app.data.repository.PlaybackRepository
 import com.berpod.app.data.repository.PodcastRepository
+import com.berpod.app.data.repository.QueueFilterRepository
 import com.berpod.app.data.repository.QueueRepository
+import com.berpod.app.data.repository.PrefsQueueFilterStorage
 import com.berpod.app.data.repository.TagRepository
 
 interface AppContainer {
@@ -26,6 +28,7 @@ interface AppContainer {
     val playbackRepository: PlaybackRepository
     val tagRepository: TagRepository
     val articleRepository: ArticleRepository
+    val queueFilterRepository: QueueFilterRepository
 }
 
 class DefaultAppContainer(context: Context) : AppContainer {
@@ -53,12 +56,16 @@ class DefaultAppContainer(context: Context) : AppContainer {
     }
 
 
-    override val playbackRepository: PlaybackRepository by lazy {
-        PlaybackRepository(appContext, database.episodeDao(), database.queueDao())
+    override val queueFilterRepository: QueueFilterRepository by lazy {
+        QueueFilterRepository(PrefsQueueFilterStorage(appContext.getSharedPreferences("queueFilter", Context.MODE_PRIVATE)))
     }
 
     override val tagRepository: TagRepository by lazy {
         TagRepository(database.tagDao(), database.podcastFeedDao())
+    }
+
+    override val playbackRepository: PlaybackRepository by lazy {
+        PlaybackRepository(appContext, database.episodeDao(), database.queueDao(), tagRepository, queueFilterRepository)
     }
 
     override val articleRepository: ArticleRepository by lazy {

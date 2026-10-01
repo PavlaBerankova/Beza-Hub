@@ -8,6 +8,7 @@ import com.berpod.app.data.local.RemovedQueueEntry
 import com.berpod.app.data.local.TagEntity
 import com.berpod.app.data.repository.EpisodeRepository
 import com.berpod.app.data.repository.PlaybackRepository
+import com.berpod.app.data.repository.QueueFilterRepository
 import com.berpod.app.data.repository.QueueRepository
 import com.berpod.app.data.repository.TagRepository
 import com.berpod.app.ui.common.PlayedUndo
@@ -48,13 +49,15 @@ class QueueViewModel(
     private val repository: QueueRepository,
     private val playbackRepository: PlaybackRepository,
     private val tagRepository: TagRepository,
-    private val episodeRepository: EpisodeRepository
+    private val episodeRepository: EpisodeRepository,
+    /** The selected tag is shared with playback, so next/previous/auto-advance stay inside the filter. */
+    private val queueFilterRepository: QueueFilterRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(QueueUiState())
     val uiState: StateFlow<QueueUiState> = _uiState.asStateFlow()
 
-    private val selectedTagId = MutableStateFlow<Long?>(null)
+    private val selectedTagId = queueFilterRepository.selectedTagId
 
     init {
         val taggedPodcastIds = selectedTagId.flatMapLatest { tagId ->
@@ -67,8 +70,9 @@ class QueueViewModel(
             .launchIn(viewModelScope)
         tagRepository.observeTagsInUse()
             .onEach { tags ->
-                selectedTagId.value = resolveSelectedTagId(selectedTagId.value, tags)
-                _uiState.update { it.copy(tags = tags, selectedTagId = selectedTagId.value) }
+                val resolved = resolveSelectedTagId(selectedTagId.value, tags)
+                queueFilterRepository.select(resolved)
+                _uiState.update { it.copy(tags = tags, selectedTagId = resolved) }
             }
             .launchIn(viewModelScope)
         playbackRepository.uiState
@@ -81,7 +85,7 @@ class QueueViewModel(
     }
 
     fun onSelectTag(tagId: Long?) {
-        selectedTagId.value = tagId
+        queueFilterRepository.select(tagId)
         _uiState.update { it.copy(selectedTagId = tagId) }
     }
 
@@ -137,11 +141,12 @@ class QueueViewModel(
             repository: QueueRepository,
             playbackRepository: PlaybackRepository,
             tagRepository: TagRepository,
-            episodeRepository: EpisodeRepository
+            episodeRepository: EpisodeRepository,
+            queueFilterRepository: QueueFilterRepository
         ) = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return QueueViewModel(repository, playbackRepository, tagRepository, episodeRepository) as T
+                return QueueViewModel(repository, playbackRepository, tagRepository, episodeRepository, queueFilterRepository) as T
             }
         }
     }

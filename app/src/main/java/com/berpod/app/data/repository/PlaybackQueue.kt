@@ -1,5 +1,7 @@
 package com.berpod.app.data.repository
 
+import com.berpod.app.data.local.QueueItemWithEpisode
+
 /** Queue entry (episode id) after [currentEpisodeId]; the first entry if the current one isn't queued. */
 fun nextInQueue(order: List<Long>, currentEpisodeId: Long?): Long? {
     val index = order.indexOf(currentEpisodeId)
@@ -41,3 +43,7 @@ fun skipTarget(positionMs: Long, deltaMs: Long, durationMs: Long): Long {
     val target = (positionMs + deltaMs).coerceAtLeast(0L)
     return if (durationMs > 0) target.coerceAtMost(durationMs) else target
 }
+
+/** Queue entries whose podcast is in [podcastIds], in queue order; null means no filter (everything). */
+fun filterQueueOrder(queue: List<QueueItemWithEpisode>, podcastIds: Set<Long>?): List<QueueItemWithEpisode> =
+    if (podcastIds == null) queue else queue.filter { it.episode.feedId in podcastIds }

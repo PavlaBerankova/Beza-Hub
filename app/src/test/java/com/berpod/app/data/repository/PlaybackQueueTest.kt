@@ -1,5 +1,7 @@
 package com.berpod.app.data.repository
 
+import com.berpod.app.data.local.EpisodeEntity
+import com.berpod.app.data.local.QueueItemWithEpisode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -29,6 +31,23 @@ class PlaybackQueueTest {
         assertEquals(PreviousAction.Restart, previousAction(lastPressAtMs = null, nowMs = 10_000))
         assertEquals(PreviousAction.PlayPrevious, previousAction(lastPressAtMs = 8_000, nowMs = 10_000))
         assertEquals(PreviousAction.Restart, previousAction(lastPressAtMs = 6_000, nowMs = 10_000))
+    }
+
+    private fun queueItem(episodeId: Long, feedId: Long) = QueueItemWithEpisode(
+        episode = EpisodeEntity(
+            id = episodeId, feedId = feedId, guid = "g$episodeId", title = "T", audioUrl = "u",
+            pubDateMillis = null, durationSeconds = null, description = null, imageUrl = null, dateFetched = 0
+        ),
+        podcastTitle = "P$feedId", podcastImageUrl = null, queueEntryId = episodeId, queuePosition = 0
+    )
+
+    @Test
+    fun `filtering the queue order keeps only the given podcasts, or everything when null`() {
+        val queue = listOf(queueItem(1, feedId = 10), queueItem(2, feedId = 20), queueItem(3, feedId = 10))
+
+        assertEquals(listOf(1L, 3L), filterQueueOrder(queue, setOf(10L)).map { it.episode.id })
+        assertEquals(listOf(1L, 2L, 3L), filterQueueOrder(queue, null).map { it.episode.id })
+        assertEquals(emptyList<Long>(), filterQueueOrder(queue, setOf(99L)).map { it.episode.id })
     }
 
     @Test

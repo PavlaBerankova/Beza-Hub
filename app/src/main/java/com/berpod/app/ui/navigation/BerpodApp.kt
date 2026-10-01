@@ -168,7 +168,8 @@ fun BerpodApp(container: AppContainer) {
                             container.queueRepository,
                             container.playbackRepository,
                             container.tagRepository,
-                            container.episodeRepository
+                            container.episodeRepository,
+                            container.queueFilterRepository
                         ),
                         newEpisodesFactory = NewEpisodesViewModel.factory(
                             container.episodeRepository,
