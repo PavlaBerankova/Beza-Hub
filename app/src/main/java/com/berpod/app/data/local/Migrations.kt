@@ -130,3 +130,26 @@ val MIGRATION_7_8 = object : Migration(7, 8) {
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_article_feed_tags_tagId` ON `article_feed_tags` (`tagId`)")
     }
 }
+
+/** YouTube: channels, their videos, a separate set of categories, and a video-specific queue. */
+val MIGRATION_8_9 = object : Migration(8, 9) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS `youtube_channels` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `rssUrl` TEXT NOT NULL, `channelId` TEXT, `title` TEXT NOT NULL, `channelUrl` TEXT, `thumbnailUrl` TEXT, `dateAdded` INTEGER NOT NULL, `lastFetchedAt` INTEGER NOT NULL)")
+        db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_youtube_channels_rssUrl` ON `youtube_channels` (`rssUrl`)")
+
+        db.execSQL("CREATE TABLE IF NOT EXISTS `youtube_videos` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `feedId` INTEGER NOT NULL, `guid` TEXT NOT NULL, `videoId` TEXT NOT NULL, `title` TEXT NOT NULL, `videoUrl` TEXT NOT NULL, `thumbnailUrl` TEXT, `description` TEXT, `pubDateMillis` INTEGER, `dateFetched` INTEGER NOT NULL, `durationMs` INTEGER, `lastPositionMs` INTEGER NOT NULL, `watchedAtMs` INTEGER, FOREIGN KEY(`feedId`) REFERENCES `youtube_channels`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )")
+        db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_youtube_videos_feedId_guid` ON `youtube_videos` (`feedId`, `guid`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_youtube_videos_feedId` ON `youtube_videos` (`feedId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_youtube_videos_pubDateMillis` ON `youtube_videos` (`pubDateMillis`)")
+
+        db.execSQL("CREATE TABLE IF NOT EXISTS `youtube_tags` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL COLLATE NOCASE)")
+        db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_youtube_tags_name` ON `youtube_tags` (`name`)")
+
+        db.execSQL("CREATE TABLE IF NOT EXISTS `youtube_channel_tags` (`channelId` INTEGER NOT NULL, `tagId` INTEGER NOT NULL, PRIMARY KEY(`channelId`, `tagId`), FOREIGN KEY(`channelId`) REFERENCES `youtube_channels`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`tagId`) REFERENCES `youtube_tags`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_youtube_channel_tags_tagId` ON `youtube_channel_tags` (`tagId`)")
+
+        db.execSQL("CREATE TABLE IF NOT EXISTS `video_queue_entries` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `videoId` INTEGER NOT NULL, `position` INTEGER NOT NULL, `dateAdded` INTEGER NOT NULL, FOREIGN KEY(`videoId`) REFERENCES `youtube_videos`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )")
+        db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_video_queue_entries_videoId` ON `video_queue_entries` (`videoId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_video_queue_entries_position` ON `video_queue_entries` (`position`)")
+    }
+}

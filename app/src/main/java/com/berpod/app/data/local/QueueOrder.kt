@@ -47,3 +47,11 @@ data class RemovedQueueEntry(
     val afterId: Long?,
     val beforeId: Long?
 )
+
+/** What's needed to put a removed video queue entry back between the same neighbours. */
+data class RemovedVideoQueueEntry(
+    val videoId: Long,
+    val dateAdded: Long,
+    val afterId: Long?,
+    val beforeId: Long?
+)

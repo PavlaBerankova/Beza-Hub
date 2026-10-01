@@ -13,9 +13,14 @@ import androidx.room.RoomDatabase
         ArticleFeedEntity::class,
         ArticleEntity::class,
         ArticleTagEntity::class,
-        ArticleFeedTagCrossRef::class
+        ArticleFeedTagCrossRef::class,
+        YoutubeChannelEntity::class,
+        YoutubeVideoEntity::class,
+        YoutubeTagEntity::class,
+        YoutubeChannelTagCrossRef::class,
+        VideoQueueEntryEntity::class
     ],
-    version = 8,
+    version = 9,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -24,4 +29,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun queueDao(): QueueDao
     abstract fun tagDao(): TagDao
     abstract fun articleDao(): ArticleDao
+    abstract fun youtubeDao(): YoutubeDao
+    abstract fun videoQueueDao(): VideoQueueDao
 }

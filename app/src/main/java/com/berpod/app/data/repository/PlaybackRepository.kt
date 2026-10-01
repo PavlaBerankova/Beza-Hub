@@ -56,7 +56,8 @@ fun resumeStartMs(lastPositionMs: Long, durationSeconds: Int?): Long {
     return if (durationMs > 0 && lastPositionMs >= durationMs * 98 / 100) 0L else lastPositionMs
 }
 
-internal fun shouldPersistPosition(lastPersistedAtMs: Long, nowMs: Long, intervalMs: Long = 5_000L): Boolean =
+/** Also used by VideoPlaybackRepository, which persists position on the same 5 s cadence. */
+fun shouldPersistPosition(lastPersistedAtMs: Long, nowMs: Long, intervalMs: Long = 5_000L): Boolean =
     nowMs - lastPersistedAtMs >= intervalMs
 
 @OptIn(ExperimentalCoroutinesApi::class)
