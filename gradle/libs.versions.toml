@@ -15,6 +15,7 @@ media3 = "1.11.1"
 junit = "4.13.2"
 kotlinxCoroutinesTest = "1.11.0"
 reorderable = "3.1.0"
+youtubePlayer = "13.0.0"
 
 [libraries]
 reorderable = { group = "sh.calvin.reorderable", name = "reorderable", version.ref = "reorderable" }
@@ -42,6 +43,7 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
 androidx-media3-session = { group = "androidx.media3", name = "media3-session", version.ref = "media3" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
+youtube-player = { group = "com.pierfrancescosoffritti.androidyoutubeplayer", name = "core", version.ref = "youtubePlayer" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

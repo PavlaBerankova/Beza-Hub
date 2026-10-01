@@ -75,6 +75,8 @@ dependencies {
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.session)
 
+    implementation(libs.youtube.player)
+
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
 }

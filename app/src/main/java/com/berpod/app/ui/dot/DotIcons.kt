@@ -105,6 +105,11 @@ object DotIcons {
         listOf(4.5f, 10.4f, 16.3f).map { y -> px(x, y, 3.2f, IconRole.Muted) }
     })
     val Check = DotIconSpec(24f, 24f, listOf(IconPart("M5 12.5l4.5 4.5L19 7.5", IconRole.OnAccent, 3f)))
+    val Watching = DotIconSpec(24f, 24f, listOf(
+        IconPart("M2.5 12S6.5 5.5 12 5.5 21.5 12 21.5 12 17.5 18.5 12 18.5 2.5 12 2.5 12z", IconRole.Primary, 2.2f),
+        IconPart(circle(12f, 12f, 2.6f), IconRole.Accent)
+    ))
+    val More = DotIconSpec(24f, 24f, listOf(px(11f, 5f, 2.6f, IconRole.Primary), px(11f, 10.7f, 2.6f, IconRole.Primary), px(11f, 16.4f, 2.6f, IconRole.Primary)))
     val Podcasts = DotIconSpec(32f, 32f, listOf(
         IconPart(roundRect(12.5f, 5f, 7f, 13f, 3.5f), IconRole.Primary, 2.4f),
         IconPart(circle(16f, 10f, 1.7f), IconRole.Accent),

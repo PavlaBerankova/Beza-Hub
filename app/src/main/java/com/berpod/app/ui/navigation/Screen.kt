@@ -20,4 +20,13 @@ sealed class Screen(val route: String) {
     }
     data object ArticleSources : Screen("article-sources")
     data object Player : Screen("player")
+    data object YoutubeChannel : Screen("youtube-channel/{channelId}") {
+        const val ARG_CHANNEL_ID = "channelId"
+        fun createRoute(channelId: Long) = "youtube-channel/$channelId"
+    }
+    data object YoutubeVideo : Screen("youtube-video/{videoId}") {
+        const val ARG_VIDEO_ID = "videoId"
+        fun createRoute(videoId: Long) = "youtube-video/$videoId"
+    }
+    data object YoutubeChannelSources : Screen("youtube-channel-sources")
 }

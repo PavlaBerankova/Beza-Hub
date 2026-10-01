@@ -52,7 +52,10 @@ class AddFeedController<T>(
     private val add: suspend (feed: T, tagIds: Set<Long>) -> Result<Unit>,
     private val observeTags: () -> Flow<List<TagEntity>>,
     private val createTagNamed: suspend (name: String) -> Result<Long>,
-    private val onAdded: () -> Unit
+    private val onAdded: () -> Unit,
+    /** Whether typed text looks worth looking up yet; podcasts/articles need a real URL, YouTube
+     *  also accepts a bare @handle (see YoutubeChannelsViewModel). */
+    private val canLookup: (String) -> Boolean = { normalizeSourceUrl(it) != null }
 ) {
     private val _state = MutableStateFlow<AddFeedState<T>?>(null)
     val state: StateFlow<AddFeedState<T>?> = _state.asStateFlow()
@@ -78,7 +81,7 @@ class AddFeedController<T>(
     fun onUrlChange(url: String, immediate: Boolean = false) {
         _state.update { it?.copy(url = url, errorMessage = null) }
         lookupJob?.cancel()
-        if (normalizeSourceUrl(url) == null) {
+        if (!canLookup(url)) {
             _state.update { it?.copy(lookup = FeedLookup.Idle) }
             return
         }

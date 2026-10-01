@@ -39,7 +39,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.berpod.app.R
 import com.berpod.app.di.AppContainer
-import com.berpod.app.ui.comingsoon.ComingSoonScreen
 import com.berpod.app.ui.dot.DotIcon
 import com.berpod.app.ui.dot.DotIconSpec
 import com.berpod.app.ui.dot.DotIcons
@@ -62,6 +61,17 @@ import com.berpod.app.ui.podcastlist.PodcastListViewModel
 import com.berpod.app.ui.podcasts.PodcastsHubScreen
 import com.berpod.app.ui.podcasts.PodcastsSection
 import com.berpod.app.ui.queue.QueueViewModel
+import com.berpod.app.ui.youtube.YoutubeHubScreen
+import com.berpod.app.ui.youtube.YoutubeSection
+import com.berpod.app.ui.youtube.channels.YoutubeChannelScreen
+import com.berpod.app.ui.youtube.channels.YoutubeChannelViewModel
+import com.berpod.app.ui.youtube.channels.YoutubeChannelSourcesScreen
+import com.berpod.app.ui.youtube.channels.YoutubeChannelSourcesViewModel
+import com.berpod.app.ui.youtube.channels.YoutubeChannelsViewModel
+import com.berpod.app.ui.youtube.newvideos.NewVideosViewModel
+import com.berpod.app.ui.youtube.queue.VideoQueueViewModel
+import com.berpod.app.ui.youtube.video.VideoDetailScreen
+import com.berpod.app.ui.youtube.video.VideoDetailViewModel
 import com.berpod.app.ui.theme.DotTheme
 import com.berpod.app.ui.theme.TabAccent
 import com.berpod.app.ui.theme.TabAccentTheme
@@ -96,6 +106,7 @@ fun BerpodApp(container: AppContainer) {
     val playbackState by playerViewModel.uiState.collectAsState()
     // Hoisted so the player's FRONTA button can open Podcasts › Fronta.
     var podcastsSection by rememberSaveable { mutableStateOf(PodcastsSection.Subscriptions) }
+    var youtubeSection by rememberSaveable { mutableStateOf(YoutubeSection.Channels) }
 
     // Everything on screen — including the bottom bar — takes the current tab's accent colour.
     TabAccentTheme(tabAccentFor(currentRoute)) {
@@ -151,6 +162,7 @@ fun BerpodApp(container: AppContainer) {
             }
         ) { paddingValues ->
             val openEpisode: (Long) -> Unit = { id -> navController.navigate(Screen.EpisodeDetail.createRoute(id)) }
+            val openVideo: (Long) -> Unit = { id -> navController.navigate(Screen.YoutubeVideo.createRoute(id)) }
             NavHost(
                 navController = navController,
                 startDestination = Screen.Podcasts.route,
@@ -184,7 +196,20 @@ fun BerpodApp(container: AppContainer) {
                     )
                 }
                 composable(Screen.YouTube.route) {
-                    ComingSoonScreen(title = stringResource(R.string.nav_youtube), icon = DotIcons.YouTube)
+                    YoutubeHubScreen(
+                        channelsFactory = YoutubeChannelsViewModel.factory(container.youtubeRepository),
+                        queueFactory = VideoQueueViewModel.factory(
+                            container.videoQueueRepository,
+                            container.youtubeRepository,
+                            container.videoQueueFilterRepository
+                        ),
+                        newVideosFactory = NewVideosViewModel.factory(container.youtubeRepository, container.videoQueueRepository),
+                        onChannelClick = { channelId -> navController.navigate(Screen.YoutubeChannel.createRoute(channelId)) },
+                        onVideoClick = openVideo,
+                        onOpenChannelSources = { navController.navigate(Screen.YoutubeChannelSources.route) },
+                        section = youtubeSection,
+                        onSectionChange = { youtubeSection = it }
+                    )
                 }
                 composable(Screen.Articles.route) {
                     ArticlesScreen(
@@ -282,6 +307,38 @@ fun BerpodApp(container: AppContainer) {
                                 }
                             }
                         }
+                    )
+                }
+                composable(
+                    route = Screen.YoutubeChannel.route,
+                    arguments = listOf(navArgument(Screen.YoutubeChannel.ARG_CHANNEL_ID) { type = NavType.LongType })
+                ) { backStackEntry ->
+                    val channelId = backStackEntry.arguments?.getLong(Screen.YoutubeChannel.ARG_CHANNEL_ID) ?: return@composable
+                    YoutubeChannelScreen(
+                        viewModelFactory = YoutubeChannelViewModel.factory(container.youtubeRepository, container.videoQueueRepository, channelId),
+                        onBack = { navController.popBackStack() },
+                        onVideoClick = openVideo
+                    )
+                }
+                composable(
+                    route = Screen.YoutubeVideo.route,
+                    arguments = listOf(navArgument(Screen.YoutubeVideo.ARG_VIDEO_ID) { type = NavType.LongType })
+                ) { backStackEntry ->
+                    val videoId = backStackEntry.arguments?.getLong(Screen.YoutubeVideo.ARG_VIDEO_ID) ?: return@composable
+                    VideoDetailScreen(
+                        viewModelFactory = VideoDetailViewModel.factory(container.youtubeRepository, container.videoQueueRepository, videoId),
+                        onBack = { navController.popBackStack() },
+                        onVideoClick = { nextId ->
+                            navController.navigate(Screen.YoutubeVideo.createRoute(nextId)) {
+                                popUpTo(Screen.YoutubeVideo.route) { inclusive = true }
+                            }
+                        }
+                    )
+                }
+                composable(Screen.YoutubeChannelSources.route) {
+                    YoutubeChannelSourcesScreen(
+                        viewModelFactory = YoutubeChannelSourcesViewModel.factory(container.youtubeRepository),
+                        onBack = { navController.popBackStack() }
                     )
                 }
             }
