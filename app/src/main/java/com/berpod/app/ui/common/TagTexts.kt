@@ -49,3 +49,19 @@ fun articleCategoryTexts(): TagTexts {
         deleteAction = { deleteAction.format(it) }
     )
 }
+
+@Composable
+fun youtubeCategoryTexts(): TagTexts {
+    val deleteMessage = stringResource(R.string.delete_channel_category_message)
+    val deleteAction = stringResource(R.string.action_delete_channel_category)
+    return TagTexts(
+        listTitle = stringResource(R.string.categories),
+        newChip = stringResource(R.string.new_category_chip),
+        newTitle = stringResource(R.string.new_category_title),
+        nameLabel = stringResource(R.string.category_name),
+        renameTitle = stringResource(R.string.rename_channel_category_title),
+        deleteTitle = stringResource(R.string.delete_channel_category_title),
+        deleteMessage = { deleteMessage.format(it) },
+        deleteAction = { deleteAction.format(it) }
+    )
+}

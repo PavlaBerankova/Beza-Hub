@@ -134,4 +134,45 @@
     <string name="podcast_not_found">Podcast nenalezen</string>
     <string name="podcast_found">Podcast nalezen</string>
     <string name="section_read">Přečtené</string>
+
+    <string name="nav_channels">Kanály</string>
+    <string name="action_add_channel">Přidat kanál</string>
+    <string name="add_channel_title">Přidat kanál</string>
+    <string name="add_channel_label">Odkaz na kanál, @handle nebo RSS</string>
+    <string name="add_channel_hint">např. @kosmoscz</string>
+    <string name="channel_searching">Hledám kanál…</string>
+    <string name="channel_not_found">Kanál nenalezen</string>
+    <string name="channel_found">Kanál nalezen</string>
+    <string name="channels_empty">Zatím žádné kanály</string>
+    <string name="channels_empty_subtitle">Přidejte kanál tlačítkem +</string>
+    <string name="channels_tag_filter_empty">Žádné kanály s touto kategorií</string>
+    <string name="channels_tag_filter_empty_subtitle">Kategorii přiřadíte dlouhým stiskem obálky</string>
+    <string name="delete_channel_title">Smazat kanál</string>
+    <string name="delete_channel_message">Kanál „%1$s“ zmizí i se všemi svými videi.</string>
+    <string name="action_delete_channel">Smazat kanál %1$s</string>
+    <string name="action_edit_channel_categories">Kategorie kanálu %1$s</string>
+    <string name="rename_channel_category_title">Přejmenovat kategorii</string>
+    <string name="delete_channel_category_title">Smazat kategorii</string>
+    <string name="delete_channel_category_message">Kategorie „%1$s“ zmizí u všech kanálů. Kanály i videa zůstanou.</string>
+    <string name="action_delete_channel_category">Smazat kategorii %1$s</string>
+
+    <string name="new_videos_empty">Zatím žádná nová videa</string>
+    <string name="new_videos_tag_empty">Žádná nová videa s touto kategorií</string>
+
+    <string name="video_queue_empty_title">Fronta videí je prázdná</string>
+    <string name="video_queue_empty_subtitle">Přidejte videa z Nových</string>
+    <string name="video_queue_tag_filter_empty">Ve frontě nejsou videa s touto kategorií</string>
+
+    <string name="status_watched">Zhlédnuto</string>
+    <string name="marked_watched">Označeno jako zhlédnuté</string>
+    <string name="in_youtube_button">V YouTube</string>
+    <string name="channel_missing">Kanál už neexistuje</string>
+
+    <string name="watching_label">Sledujete</string>
+    <string name="video_missing">Video už neexistuje</string>
+    <string name="section_about_video">O videu</string>
+    <string name="section_next_in_queue">Další ve frontě</string>
+    <string name="action_mark_watched">Označit jako zhlédnuté</string>
+    <string name="action_mark_unwatched">Označit jako nezhlédnuté</string>
+    <string name="action_more">Více</string>
 </resources>
