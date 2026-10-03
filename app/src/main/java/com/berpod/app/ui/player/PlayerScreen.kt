@@ -120,9 +120,10 @@ fun PlayerScreen(viewModel: PlayerViewModel, onBack: () -> Unit, onOpenQueue: ()
         onDispose { controller?.isAppearanceLightStatusBars = !systemDark }
     }
 
-    // Only the top of the screen (bar, cover and its ring) sits on the colour, which fades out towards the
-    // title; everything below keeps the normal colours on the normal background.
-    PlayerContent(viewModel, onBack, onOpenQueue, onOpenPodcast, onOpenEpisode, block = blockColor?.let { block }, headerColors = colors.takeIf { blockColor != null })
+    // The whole screen is painted in the cover's colour and everything on it uses the colours made for it.
+    CompositionLocalProvider(LocalDotColors provides colors) {
+        PlayerContent(viewModel, onBack, onOpenQueue, onOpenPodcast, onOpenEpisode, block = blockColor?.let { block }, headerColors = colors.takeIf { blockColor != null })
+    }
 }
 
 @Composable
@@ -130,10 +131,7 @@ private fun PlayerContent(viewModel: PlayerViewModel, onBack: () -> Unit, onOpen
     val state by viewModel.uiState.collectAsState()
     val c = DotTheme.colors
     val t = headerColors ?: c
-    // Where the times under the wave end: the colour stops just below them, so the title, name, wave and times
-    // sit on the colour and the controls on the normal background, whatever the title's length.
-    var colourEndPx by remember { mutableFloatStateOf(0f) }
-    // Spare height on a tall screen is put between the coloured block and the controls.
+    // Spare height on a tall screen is put between the wave and the controls.
     val density = LocalDensity.current
     val scroll = rememberScrollState()
     var gapPx by remember { mutableFloatStateOf(0f) }
@@ -155,10 +153,7 @@ private fun PlayerContent(viewModel: PlayerViewModel, onBack: () -> Unit, onOpen
             .onSizeChanged { screenHeightPx = it.height.toFloat() }
             .background(c.background)
             .drawBehind {
-                if (block != null && colourEndPx > 0f) {
-                    // A sharp edge a little below the times, like the podcast page's header.
-                    drawRect(color = block, size = androidx.compose.ui.geometry.Size(size.width, colourEndPx + 22.dp.toPx()))
-                }
+                if (block != null) drawRect(color = block)
             }
             .statusBarsPadding()
             .navigationBarsPadding()
@@ -250,15 +245,15 @@ private fun PlayerContent(viewModel: PlayerViewModel, onBack: () -> Unit, onOpen
                 )
             }
         }
-        Row(Modifier.fillMaxWidth().padding(top = 8.dp).onGloballyPositioned { colourEndPx = it.positionInRoot().y + it.size.height }) {
+        Row(Modifier.fillMaxWidth().padding(top = 8.dp)) {
             Text(formatPlaybackTime((fraction * duration).toLong()), style = DotType.rowTitle.copy(letterSpacing = 1.sp), color = t.text)
             Spacer(Modifier.weight(1f))
                         if (known) Text("−" + formatPlaybackTime(duration - (fraction * duration).toLong()), style = DotType.rowTitle.copy(letterSpacing = 1.sp), color = t.textMuted)
         }
-        // Spare height on a tall screen goes here, below the coloured block, which moves the controls down.
+        // Spare height on a tall screen goes here, which moves the controls down.
         Spacer(Modifier.height(with(density) { gapPx.toDp() }))
         Row(
-            modifier = Modifier.fillMaxWidth().padding(top = 36.dp),
+            modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
