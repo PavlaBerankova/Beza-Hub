@@ -91,7 +91,7 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
         applyEpisodeView(uiState.episodes, uiState.episodeSort, uiState.episodeFilter)
     }
     val frequency = remember(uiState.episodes) { publishingFrequency(uiState.episodes.map { it.pubDateMillis }) }
-    val blockColor: Color? = HeaderBlockColor
+    val blockColor: Color? = headerBlockColor()
 
     // The system bar icons follow the header block while it is on screen (dark icons on a bright block, light on a deep one).
     val view = LocalView.current

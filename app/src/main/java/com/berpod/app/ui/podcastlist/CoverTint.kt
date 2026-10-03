@@ -1,14 +1,21 @@
 package com.berpod.app.ui.podcastlist
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import com.berpod.app.ui.theme.DotColors
+import com.berpod.app.ui.theme.LocalDarkTheme
+import com.berpod.app.ui.theme.TabAccent
 
 /**
  * The colour of the header blocks of the podcast and episode pages: black, a little see-through so it reads as a
  * dark grey over the light background, whatever the cover looks like.
  */
-val HeaderBlockColor = Color.Black.copy(alpha = 0.86f)
+private val LightHeaderBlock = Color.Black.copy(alpha = 0.86f)
+
+/** The header block's colour: that dark grey in the light theme, the podcasts' purple in the dark one. */
+@Composable
+fun headerBlockColor(): Color = if (LocalDarkTheme.current) TabAccent.Podcasts.lightAccent else LightHeaderBlock
 
 /** Rec. 601 luma, 0..1: how bright a colour looks. */
 fun Color.luma(): Float = 0.299f * red + 0.587f * green + 0.114f * blue

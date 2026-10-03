@@ -61,7 +61,7 @@ import com.berpod.app.ui.dot.DotPrimaryButton
 import com.berpod.app.ui.dot.DotProgress
 import com.berpod.app.ui.theme.LocalDotColors
 import com.berpod.app.ui.podcastlist.isLightTint
-import com.berpod.app.ui.podcastlist.HeaderBlockColor
+import com.berpod.app.ui.podcastlist.headerBlockColor
 import com.berpod.app.ui.podcastlist.colorsOnBlock
 import androidx.core.view.WindowCompat
 import androidx.compose.ui.platform.LocalView
@@ -97,7 +97,7 @@ fun EpisodeDetailScreen(
     }
 
     val item = uiState.item
-    val blockColor: Color? = HeaderBlockColor
+    val blockColor: Color? = headerBlockColor()
 
     // The system bar icons follow the header block while it is on screen (dark on a bright block, light on a deep one).
     val view = LocalView.current

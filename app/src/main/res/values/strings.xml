@@ -222,6 +222,12 @@
     <string name="player_detail">Detail</string>
     <string name="player_open_podcast">Detail podcastu</string>
     <string name="player_open_episode">Detail epizody</string>
-    <string name="theme_to_dark">Tmavý režim</string>
-    <string name="theme_to_light">Světlý režim</string>
+    <string name="nav_settings">Nastavení</string>
+    <string name="settings_appearance">Vzhled</string>
+    <string name="settings_dark_mode">Tmavý režim</string>
+    <string name="settings_dark_mode_hint">Dokud ho nezměníte, aplikace se řídí nastavením telefonu.</string>
+    <string name="settings_about">O aplikaci</string>
+    <string name="settings_app_name">BEZA Hub</string>
+    <string name="settings_app_tagline">Podcasty, videa a články na jednom místě.</string>
+    <string name="settings_version">Verze</string>
 </resources>

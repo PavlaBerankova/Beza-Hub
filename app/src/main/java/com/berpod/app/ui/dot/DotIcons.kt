@@ -44,12 +44,6 @@ object DotIcons {
     val Forward30 = DotIconSpec(24f, 24f, listOf(IconPart("M19.5 12a7.5 7.5 0 1 1-2.2-5.3", IconRole.Primary, 2.2f), IconPart("M17.3 3v3.7H21", IconRole.Muted, 2.2f), px(3.3f, 10.8f, 2.4f)))
     val Speed = DotIconSpec(24f, 24f, listOf(IconPart("M4 17a8 8 0 1 1 16 0", IconRole.Primary, 2.4f), IconPart("M12 7v1.5M6.3 9.3l1 1M17.7 9.3l-1 1", IconRole.Muted, 2.4f), IconPart("M12 17l3.5-4.5", IconRole.Primary, 2.4f), px(11f, 16f)))
     val Sleep = DotIconSpec(24f, 24f, listOf(IconPart("M19 14.5A7.5 7.5 0 1 1 9.5 5a6 6 0 0 0 9.5 9.5z", IconRole.Primary, 2.4f), px(16f, 3.5f), px(19.5f, 7f, 1.8f, IconRole.Muted)))
-    /** Sun, shown while the app is dark (tap to go light). */
-    val Sun = DotIconSpec(24f, 24f, listOf(
-        IconPart(circle(12f, 12f, 4.2f), IconRole.Primary, 2.4f),
-        IconPart("M12 3v2.2M12 18.8V21M3 12h2.2M18.8 12H21M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M5.6 18.4l1.6-1.6M16.8 7.2l1.6-1.6", IconRole.Muted, 2.4f),
-        px(11f, 10.8f, 2f)
-    ))
     /** Solid play triangle for filled (accent) buttons. */
     val PlaySolid = DotIconSpec(24f, 24f, listOf(IconPart("M8 5v14l11-7z", IconRole.OnAccent)))
     val PlayLarge = DotIconSpec(32f, 32f, listOf(
@@ -144,6 +138,12 @@ object DotIcons {
         IconPart("M15 9V4h5", IconRole.Primary, 2.3f),
         IconPart("M20 15h-5v5", IconRole.Primary, 2.3f),
         IconPart("M4 15h5v5", IconRole.Primary, 2.3f)
+    ))
+    /** Settings: two sliders, for the bottom bar. */
+    val Settings = DotIconSpec(32f, 32f, listOf(
+        IconPart("M5 11h22M5 21h22", IconRole.Primary, 2.4f),
+        IconPart(circle(12f, 11f, 3.6f), IconRole.Accent),
+        IconPart(circle(21f, 21f, 3.6f), IconRole.Accent)
     ))
     val Podcasts = DotIconSpec(32f, 32f, listOf(
         IconPart(roundRect(12.5f, 5f, 7f, 13f, 3.5f), IconRole.Primary, 2.4f),

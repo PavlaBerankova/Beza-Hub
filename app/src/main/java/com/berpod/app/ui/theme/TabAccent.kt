@@ -12,7 +12,8 @@ enum class TabAccent(
 ) {
     Podcasts(Color(0xFF5E2E91), Color(0xFFA67CFF)),
     YouTube(Color(0xFFB3261E), Color(0xFFFF6B6B)),
-    Articles(Color(0xFF146B3A), Color(0xFF4ADE80))
+    Articles(Color(0xFF146B3A), Color(0xFF4ADE80)),
+    Settings(Color(0xFF0B4F8A), Color(0xFF5EA8FF))
 }
 
 /** The same palette with this tab's accent; on-accent text stays white on light, near-black on dark. */
@@ -24,5 +25,6 @@ fun tabAccentFor(route: String?): TabAccent = when {
     route == null -> TabAccent.Podcasts
     route.startsWith("youtube") -> TabAccent.YouTube
     route.startsWith("article") -> TabAccent.Articles
+    route.startsWith("settings") -> TabAccent.Settings
     else -> TabAccent.Podcasts
 }

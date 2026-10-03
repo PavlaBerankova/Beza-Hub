@@ -71,6 +71,7 @@ import com.berpod.app.ui.podcastlist.PodcastListViewModel
 import com.berpod.app.ui.podcasts.PodcastsHubScreen
 import com.berpod.app.ui.podcasts.PodcastsSection
 import com.berpod.app.ui.queue.QueueViewModel
+import com.berpod.app.ui.settings.SettingsScreen
 import com.berpod.app.ui.youtube.YoutubeHubScreen
 import com.berpod.app.ui.youtube.YoutubeSection
 import com.berpod.app.ui.youtube.channels.YoutubeChannelScreen
@@ -88,12 +89,13 @@ import com.berpod.app.ui.theme.TabAccentTheme
 import com.berpod.app.ui.theme.tabAccentFor
 import com.berpod.app.ui.theme.DotType
 
-private val bottomTabs = listOf(Screen.Podcasts, Screen.YouTube, Screen.Articles)
+private val bottomTabs = listOf(Screen.Podcasts, Screen.YouTube, Screen.Articles, Screen.Settings)
 
 private fun iconFor(screen: Screen): DotIconSpec = when (screen) {
     Screen.Podcasts -> DotIcons.Podcasts
     Screen.YouTube -> DotIcons.YouTube
     Screen.Articles -> DotIcons.Articles
+    Screen.Settings -> DotIcons.Settings
     else -> DotIcons.Podcasts
 }
 
@@ -102,6 +104,7 @@ private fun labelFor(screen: Screen): String = when (screen) {
     Screen.Podcasts -> stringResource(R.string.nav_podcasts)
     Screen.YouTube -> stringResource(R.string.nav_youtube)
     Screen.Articles -> stringResource(R.string.nav_articles)
+    Screen.Settings -> stringResource(R.string.nav_settings)
     else -> ""
 }
 
@@ -239,6 +242,7 @@ fun BerpodApp(container: AppContainer) {
                         onSectionChange = { youtubeSection = it }
                     )
                 }
+                composable(Screen.Settings.route) { SettingsScreen() }
                 composable(Screen.Articles.route) {
                     ArticlesScreen(
                         viewModelFactory = ArticlesViewModel.factory(container.articleRepository),
