@@ -78,15 +78,6 @@ class ShowPageTest {
         assertEquals(2L, result?.episode?.id)
     }
 
-    @Test
-    fun `header colour prefers the vibrant swatch and falls back down the list`() {
-        assertEquals(1, pickHeaderColor(vibrant = 1, darkVibrant = 2, muted = 3, dominant = 4))
-        assertEquals(2, pickHeaderColor(vibrant = null, darkVibrant = 2, muted = 3, dominant = 4))
-        assertEquals(3, pickHeaderColor(vibrant = null, darkVibrant = null, muted = 3, dominant = 4))
-        assertEquals(4, pickHeaderColor(vibrant = null, darkVibrant = null, muted = null, dominant = 4))
-        assertNull(pickHeaderColor(null, null, null, null))
-    }
-
     private val zone = java.time.ZoneId.of("Europe/Prague")
     private fun day(year: Int, month: Int, dayOfMonth: Int): Long =
         java.time.ZonedDateTime.of(year, month, dayOfMonth, 12, 0, 0, 0, zone).toInstant().toEpochMilli()

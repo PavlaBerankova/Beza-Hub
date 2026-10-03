@@ -33,6 +33,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -59,9 +60,8 @@ import com.berpod.app.ui.dot.DotIcons
 import com.berpod.app.ui.dot.DotPrimaryButton
 import com.berpod.app.ui.dot.DotProgress
 import com.berpod.app.ui.theme.LocalDotColors
-import com.berpod.app.ui.podcastlist.rememberCoverTint
 import com.berpod.app.ui.podcastlist.isLightTint
-import com.berpod.app.ui.podcastlist.headerBlockColor
+import com.berpod.app.ui.podcastlist.HeaderBlockColor
 import com.berpod.app.ui.podcastlist.colorsOnBlock
 import androidx.core.view.WindowCompat
 import androidx.compose.ui.platform.LocalView
@@ -97,7 +97,7 @@ fun EpisodeDetailScreen(
     }
 
     val item = uiState.item
-    val blockColor = rememberCoverTint(item?.let { it.episode.imageUrl ?: it.podcastImageUrl })?.let(::headerBlockColor)
+    val blockColor: Color? = HeaderBlockColor
 
     // The system bar icons follow the header block while it is on screen (dark on a bright block, light on a deep one).
     val view = LocalView.current

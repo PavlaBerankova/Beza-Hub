@@ -39,6 +39,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -90,7 +91,7 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
         applyEpisodeView(uiState.episodes, uiState.episodeSort, uiState.episodeFilter)
     }
     val frequency = remember(uiState.episodes) { publishingFrequency(uiState.episodes.map { it.pubDateMillis }) }
-    val blockColor = rememberCoverTint(uiState.feedImageUrl)?.let(::headerBlockColor)
+    val blockColor: Color? = HeaderBlockColor
 
     // The system bar icons follow the header block while it is on screen (dark icons on a bright block, light on a deep one).
     val view = LocalView.current
