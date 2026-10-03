@@ -28,7 +28,9 @@ fun findFeedLinks(html: String, pageUrl: String): List<String> =
         runCatching { URI(pageUrl).resolve(href.trim()).toString() }.getOrNull()
     }.distinct().toList()
 
-private val feedRoot = Regex("(?is)^\\s*(<\\?xml[^>]*\\?>\\s*)?(<!--.*?-->\\s*)*<(rss|feed|rdf:RDF)\\b")
+// Before the root there may be a BOM, the XML declaration, other processing instructions (rss.com adds
+// <?xml-stylesheet?>) and comments.
+private val feedRoot = Regex("(?is)^\\uFEFF?\\s*((<\\?.*?\\?>|<!--.*?-->)\\s*)*<(rss|feed|rdf:RDF)\\b")
 
 /** Whether a downloaded document is itself a feed (rather than a web page). */
 fun looksLikeFeed(document: String): Boolean = feedRoot.containsMatchIn(document.take(4096))

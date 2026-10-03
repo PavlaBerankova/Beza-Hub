@@ -51,6 +51,10 @@ class FakePodcastFeedDao(initial: List<PodcastFeedEntity> = emptyList()) : Podca
         feeds.map { list -> list.sortedByDescending { it.dateAdded } }
 
     override suspend fun existsByUrl(rssUrl: String) = feeds.value.any { it.rssUrl == rssUrl }
+    override suspend fun existsByUrlExcept(rssUrl: String, feedId: Long) = feeds.value.any { it.rssUrl == rssUrl && it.id != feedId }
+    override suspend fun updateRssUrl(feedId: Long, rssUrl: String) {
+        feeds.value = feeds.value.map { if (it.id == feedId) it.copy(rssUrl = rssUrl) else it }
+    }
     override suspend fun getAll() = feeds.value
     override suspend fun getById(feedId: Long) = feeds.value.find { it.id == feedId }
     override suspend fun insert(feed: PodcastFeedEntity): Long {

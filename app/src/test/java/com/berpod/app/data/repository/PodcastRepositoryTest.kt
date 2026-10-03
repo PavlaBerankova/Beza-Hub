@@ -21,6 +21,13 @@ private class FakeDao : PodcastFeedDao {
     override suspend fun existsByUrl(rssUrl: String): Boolean =
         state.value.any { it.rssUrl == rssUrl }
 
+    override suspend fun existsByUrlExcept(rssUrl: String, feedId: Long): Boolean =
+        state.value.any { it.rssUrl == rssUrl && it.id != feedId }
+
+    override suspend fun updateRssUrl(feedId: Long, rssUrl: String) {
+        state.value = state.value.map { if (it.id == feedId) it.copy(rssUrl = rssUrl) else it }
+    }
+
     override suspend fun insert(feed: PodcastFeedEntity): Long {
         val withId = feed.copy(id = nextId++)
         state.value = state.value + withId
@@ -130,5 +137,39 @@ class PodcastRepositoryTest {
 
         assertEquals("https://example.com/feed.xml", dao.getById(id)?.rssUrl)
         assertTrue(repository.addFeed(meta).isFailure)
+    }
+
+    @Test
+    fun `updateRssUrl repoints a podcast to a working address and keeps it`() = runTest {
+        val dao = FakeDao()
+        val repository = PodcastRepository(dao, FakeFeedFetcher())
+        val id = repository.addFeed("https://example.com/broken.xml").getOrThrow()
+
+        repository.updateRssUrl(id, "example.com/fixed.xml").getOrThrow()
+
+        assertEquals("https://example.com/fixed.xml", dao.getById(id)?.rssUrl)
+        assertEquals("Fake Podcast", dao.getById(id)?.title)
+    }
+
+    @Test
+    fun `updateRssUrl rejects an address that does not fetch and keeps the old one`() = runTest {
+        val dao = FakeDao()
+        val id = PodcastRepository(dao, FakeFeedFetcher()).addFeed("https://example.com/old.xml").getOrThrow()
+
+        val result = PodcastRepository(dao, FakeFeedFetcher(shouldFail = true)).updateRssUrl(id, "https://example.com/new.xml")
+
+        assertTrue(result.isFailure)
+        assertEquals("https://example.com/old.xml", dao.getById(id)?.rssUrl)
+    }
+
+    @Test
+    fun `updateRssUrl rejects an address another podcast already uses`() = runTest {
+        val dao = FakeDao()
+        val repository = PodcastRepository(dao, FakeFeedFetcher())
+        val first = repository.addFeed("https://example.com/a.xml").getOrThrow()
+        repository.addFeed("https://example.com/b.xml").getOrThrow()
+
+        assertTrue(repository.updateRssUrl(first, "https://example.com/b.xml").isFailure)
+        assertEquals("https://example.com/a.xml", dao.getById(first)?.rssUrl)
     }
 }

@@ -34,6 +34,10 @@ class ArticleFeedDiscoveryTest {
     @Test
     fun `a document is a feed when it opens with rss, atom or rdf`() {
         assertEquals(true, looksLikeFeed("<?xml version=\"1.0\"?>\n<rss version=\"2.0\"><channel>"))
+        assertEquals(
+            true,
+            looksLikeFeed("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<?xml-stylesheet type=\"text/xsl\" href=\"style.xsl\"?>\n<rss version=\"2.0\">")
+        )
         assertEquals(true, looksLikeFeed("<feed xmlns=\"http://www.w3.org/2005/Atom\">"))
         assertEquals(true, looksLikeFeed("<rdf:RDF xmlns:rdf=\"…\">"))
         assertEquals(false, looksLikeFeed("<!doctype html><html><head>"))

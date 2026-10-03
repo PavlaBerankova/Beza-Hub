@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -92,9 +93,13 @@ fun PodcastHeader(
         verticalArrangement = Arrangement.spacedBy(22.dp)
     ) {
         PodcastActionsRow(tags, isRefreshing, onBack, onTagClick, onRefresh, onEditRss)
-        Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(18.dp)) {
-            CoverImage(imageUrl, 150.dp, 20.dp)
-            Column(modifier = Modifier.weight(1f).padding(bottom = 4.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
+            CoverImage(imageUrl, 130.dp, 18.dp)
+            // Bottom-aligned beside the cover while it's short; a long title grows the column downwards instead of being cut.
+            Column(
+                modifier = Modifier.weight(1f).heightIn(min = 130.dp).padding(bottom = 4.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.Bottom)
+            ) {
                 Text(
                     listOfNotNull(stringResource(R.string.label_podcast), tags.firstOrNull()).joinToString(" · ").upperCs(),
                     style = DotType.label.copy(letterSpacing = 2.sp),
@@ -102,13 +107,13 @@ fun PodcastHeader(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Text(title.upperCs(), style = DotType.showTitle, color = c.text, maxLines = 4, overflow = TextOverflow.Ellipsis)
+                Text(title.upperCs(), style = DotType.showTitle.copy(fontSize = 30.sp), color = c.text)
                 if (author != null) {
                     Text(
                         author,
                         style = DotType.body.copy(fontWeight = FontWeight.W500),
                         color = c.textMuted,
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
