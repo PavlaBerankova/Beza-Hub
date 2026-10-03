@@ -102,18 +102,20 @@ fun PodcastHeader(
         PodcastActionsRow(isRefreshing, onBack, onTagClick, onRefresh, onEditRss)
         Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
             CoverImage(imageUrl, 130.dp, 18.dp)
-            // Bottom-aligned beside the cover while it's short; a long title grows the column downwards instead of being cut.
+            // Centred beside the cover while it's short; a long title grows the column instead of being cut.
             Column(
-                modifier = Modifier.weight(1f).heightIn(min = 130.dp).padding(bottom = 4.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.Bottom)
+                modifier = Modifier.weight(1f).heightIn(min = 130.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically)
             ) {
-                Text(
-                    listOfNotNull(stringResource(R.string.label_podcast), tags.firstOrNull()).joinToString(" · ").upperCs(),
-                    style = DotType.label.copy(letterSpacing = 2.sp),
-                    color = c.textMuted,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                tags.firstOrNull()?.let {
+                    Text(
+                        it.upperCs(),
+                        style = DotType.label.copy(letterSpacing = 2.sp),
+                        color = c.textMuted,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
                 Text(title.upperCs(), style = DotType.showTitle.copy(fontSize = 30.sp), color = c.text)
                 if (author != null) {
                     Text(
