@@ -2,17 +2,16 @@ package com.berpod.app.ui.podcastlist
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.berpod.app.R
 import com.berpod.app.ui.dot.CoverImage
-import com.berpod.app.ui.dot.DotTagLabel
 import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIconSpec
 import com.berpod.app.ui.dot.DotIcons
@@ -42,10 +40,9 @@ import com.berpod.app.ui.theme.DotType
 /** The play button in the header: its label, icon and action. */
 data class HeaderPlayButton(val label: String, val icon: DotIconSpec, val onClick: () -> Unit)
 
-/** Round-the-header action row: back, the podcast's tags, tag and refresh buttons. */
+/** Round-the-header action row: back, then the tag, edit-RSS and refresh buttons. */
 @Composable
 fun PodcastActionsRow(
-    tags: List<String>,
     isRefreshing: Boolean,
     onBack: () -> Unit,
     onTagClick: () -> Unit,
@@ -56,15 +53,7 @@ fun PodcastActionsRow(
     val c = DotTheme.colors
     Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         DotIconButton(DotIcons.Back, stringResource(R.string.action_back), onBack)
-        // Right-aligned when they fit, scrollable when they don't.
-        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
-            Row(
-                modifier = Modifier.horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                tags.forEach { DotTagLabel(it, onClick = onTagClick) }
-            }
-        }
+        Spacer(Modifier.weight(1f))
         DotIconButton(DotIcons.Tag, stringResource(R.string.action_manage_tags), onTagClick)
         DotIconButton(DotIcons.Edit, stringResource(R.string.action_edit_rss), onEditRss)
         if (isRefreshing) {
@@ -110,7 +99,7 @@ fun PodcastHeader(
             .padding(top = 16.dp, bottom = 20.dp),
         verticalArrangement = Arrangement.spacedBy(22.dp)
     ) {
-        PodcastActionsRow(tags, isRefreshing, onBack, onTagClick, onRefresh, onEditRss)
+        PodcastActionsRow(isRefreshing, onBack, onTagClick, onRefresh, onEditRss)
         Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
             CoverImage(imageUrl, 130.dp, 18.dp)
             // Bottom-aligned beside the cover while it's short; a long title grows the column downwards instead of being cut.
