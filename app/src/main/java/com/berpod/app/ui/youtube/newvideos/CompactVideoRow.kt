@@ -74,7 +74,7 @@ fun CompactVideoRow(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Text(video.title, style = DotType.rowTitle, color = c.text, maxLines = 3, overflow = TextOverflow.Ellipsis)
+                Text(video.title, style = DotType.episodeTitle, color = c.text, maxLines = 3, overflow = TextOverflow.Ellipsis)
                 remainingVideoText(video)?.let {
                     Text(it.upperCs(), style = DotType.chip.copy(fontWeight = FontWeight.W700), color = c.accent, maxLines = 1)
                 }

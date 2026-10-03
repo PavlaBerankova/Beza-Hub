@@ -48,7 +48,6 @@ import com.berpod.app.ui.dot.formatDotDate
 import com.berpod.app.ui.dot.upperCs
 import com.berpod.app.ui.theme.DotTheme
 import com.berpod.app.ui.theme.DotType
-import com.berpod.app.ui.theme.Literata
 
 /** Article reader (canvas "C2 · Článek"). */
 @OptIn(ExperimentalLayoutApi::class)
@@ -124,7 +123,7 @@ fun ArticleReaderScreen(
         if (body != null) {
             Text(
                 body,
-                style = DotType.reading.copy(fontFamily = Literata, fontSize = uiState.fontSize.sp, lineHeight = (uiState.fontSize * 1.7).sp),
+                style = DotType.reading.copy(fontSize = uiState.fontSize.sp, lineHeight = (uiState.fontSize * 1.7).sp),
                 color = c.text
             )
         }
