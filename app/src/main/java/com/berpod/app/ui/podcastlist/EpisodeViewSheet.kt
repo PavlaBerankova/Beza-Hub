@@ -29,6 +29,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.berpod.app.R
@@ -93,9 +94,9 @@ fun EpisodeViewSheet(
             SheetSection(stringResource(R.string.episodes_show_label)) {
                 EpisodeFilter.entries.forEach { DotChip(stringResource(it.labelRes()), selected = filter == it, onClick = { onFilterChange(it) }) }
             }
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                SheetAction(stringResource(R.string.action_mark_all_played), enabled = hasUnplayed, onClick = onMarkAllPlayed)
-                SheetAction(stringResource(R.string.action_mark_all_unplayed), enabled = hasPlayed, onClick = onMarkAllUnplayed)
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                SheetAction(stringResource(R.string.action_mark_all_played), enabled = hasUnplayed, onClick = onMarkAllPlayed, modifier = Modifier.weight(1f))
+                SheetAction(stringResource(R.string.action_mark_all_unplayed), enabled = hasPlayed, onClick = onMarkAllUnplayed, modifier = Modifier.weight(1f))
             }
         }
     }
@@ -112,21 +113,20 @@ private fun SheetSection(title: String, chips: @Composable () -> Unit) {
 }
 
 @Composable
-private fun SheetAction(label: String, enabled: Boolean, onClick: () -> Unit) {
+private fun SheetAction(label: String, enabled: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val c = DotTheme.colors
     val shape = RoundedCornerShape(14.dp)
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
             .heightIn(min = 52.dp)
             .alpha(if (enabled) 1f else 0.4f)
             .clip(shape)
             .border(1.dp, c.outline, shape)
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
-            .padding(horizontal = 16.dp),
-        contentAlignment = Alignment.CenterStart
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        contentAlignment = Alignment.Center
     ) {
-        Text(label.upperCs(), style = DotType.button.copy(fontSize = 13.sp, letterSpacing = 1.sp), color = c.text)
+        Text(label.upperCs(), style = DotType.button.copy(fontSize = 12.sp, letterSpacing = 0.8.sp), color = c.text, textAlign = TextAlign.Center)
     }
 }
 

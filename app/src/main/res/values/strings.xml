@@ -188,11 +188,11 @@
     <string name="episodes_show_label">Zobrazit</string>
     <string name="episodes_filtered_empty">Žádné epizody neodpovídají filtru</string>
     <string name="episodes_filtered_empty_hint">Změňte řazení nebo filtr</string>
-    <string name="action_mark_all_played">Označit všechny jako přehrané</string>
-    <string name="action_mark_all_unplayed">Označit všechny jako nepřehrané</string>
-    <string name="mark_all_played_title">Označit všechny jako přehrané?</string>
+    <string name="action_mark_all_played">Označit vše jako přehrané</string>
+    <string name="action_mark_all_unplayed">Označit vše jako nepřehrané</string>
+    <string name="mark_all_played_title">Označit vše jako přehrané?</string>
     <string name="mark_all_played_message">Epizody se odstraní z fronty a jejich rozposlechnutý postup se vynuluje.</string>
-    <string name="mark_all_unplayed_title">Označit všechny jako nepřehrané?</string>
+    <string name="mark_all_unplayed_title">Označit vše jako nepřehrané?</string>
     <string name="mark_all_unplayed_message">Všechny epizody se vrátí mezi nepřehrané.</string>
     <string name="action_confirm_mark">Označit</string>
 </resources>
