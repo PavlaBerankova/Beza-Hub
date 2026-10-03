@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
@@ -17,6 +18,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,7 +45,26 @@ fun TagChipRow(
     onDeleteRequest: ((TagEntity) -> Unit)? = null
 ) {
     val hasMenu = onRenameRequest != null || onDeleteRequest != null
+    val listState = rememberLazyListState()
+    // "Vše" is item 0, the tags follow. A selection that has scrolled out of sight (or a row that starts at the
+    // left again after leaving the screen) is brought back into view, so the highlighted chip is always visible.
+    val selectedIndex = if (selectedTagId == null) 0 else (tags.indexOfFirst { it.id == selectedTagId } + 1).coerceAtLeast(0)
+    var placed by remember { mutableStateOf(false) }
+    LaunchedEffect(selectedIndex, tags.size) {
+        val info = listState.layoutInfo
+        val item = info.visibleItemsInfo.firstOrNull { it.index == selectedIndex }
+        val fullyVisible = item != null && item.offset >= info.viewportStartOffset && item.offset + item.size <= info.viewportEndOffset
+        if (fullyVisible) {
+            placed = true
+            return@LaunchedEffect
+        }
+        // One chip of context on the left; the first time without animation so the row simply opens in place.
+        val target = (selectedIndex - 1).coerceAtLeast(0)
+        if (placed) listState.animateScrollToItem(target) else listState.scrollToItem(target)
+        placed = true
+    }
     LazyRow(
+        state = listState,
         contentPadding = PaddingValues(horizontal = 20.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
