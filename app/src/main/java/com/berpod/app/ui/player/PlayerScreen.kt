@@ -67,21 +67,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.runtime.mutableFloatStateOf
-import com.berpod.app.ui.theme.DotColors
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.draw.drawBehind
-import com.berpod.app.ui.theme.LocalDotColors
-import com.berpod.app.ui.podcastlist.rememberCoverTint
-import com.berpod.app.ui.podcastlist.isLightTint
-import com.berpod.app.ui.podcastlist.headerBlockColor
-import com.berpod.app.ui.podcastlist.colorsOnBlock
-import androidx.core.view.WindowCompat
-import androidx.compose.ui.platform.LocalView
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.animation.animateColorAsState
-import android.app.Activity
 import com.berpod.app.R
 import com.berpod.app.data.repository.SleepTimer
 import com.berpod.app.ui.common.formatPlaybackTime
@@ -98,39 +84,16 @@ import com.berpod.app.ui.theme.DotTheme
 import com.berpod.app.ui.theme.DotType
 import kotlin.math.abs
 
-/**
- * Dot Matrix player: dot ring around the cover, seekable decorative wave, times and play/pause, on a solid
- * background in the cover's colour (like the podcast page's header) once the cover has loaded.
- */
+/** Dot Matrix player: dot ring around the cover, seekable decorative wave, times and play/pause. */
 @Composable
 fun PlayerScreen(viewModel: PlayerViewModel, onBack: () -> Unit, onOpenQueue: () -> Unit, onOpenPodcast: (Long) -> Unit, onOpenEpisode: (Long) -> Unit) {
-    val state by viewModel.uiState.collectAsState()
-    val base = DotTheme.colors
-    val blockColor = rememberCoverTint(state.artworkUrl)?.let(::headerBlockColor)
-    val block by animateColorAsState(blockColor ?: base.background, label = "playerBlock")
-    val colors = if (blockColor == null) base else colorsOnBlock(base, block)
-
-    // System bar icons follow the background: dark on a bright cover colour, light on a deep one.
-    val view = LocalView.current
-    val systemDark = isSystemInDarkTheme()
-    val lightBlock = blockColor?.let(::isLightTint)
-    DisposableEffect(lightBlock, systemDark) {
-        val controller = (view.context as? Activity)?.window?.let { WindowCompat.getInsetsController(it, view) }
-        controller?.isAppearanceLightStatusBars = lightBlock ?: !systemDark
-        onDispose { controller?.isAppearanceLightStatusBars = !systemDark }
-    }
-
-    // The whole screen is painted in the cover's colour and everything on it uses the colours made for it.
-    CompositionLocalProvider(LocalDotColors provides colors) {
-        PlayerContent(viewModel, onBack, onOpenQueue, onOpenPodcast, onOpenEpisode, block = blockColor?.let { block }, headerColors = colors.takeIf { blockColor != null })
-    }
+    PlayerContent(viewModel, onBack, onOpenQueue, onOpenPodcast, onOpenEpisode)
 }
 
 @Composable
-private fun PlayerContent(viewModel: PlayerViewModel, onBack: () -> Unit, onOpenQueue: () -> Unit, onOpenPodcast: (Long) -> Unit, onOpenEpisode: (Long) -> Unit, block: Color?, headerColors: DotColors?) {
+private fun PlayerContent(viewModel: PlayerViewModel, onBack: () -> Unit, onOpenQueue: () -> Unit, onOpenPodcast: (Long) -> Unit, onOpenEpisode: (Long) -> Unit) {
     val state by viewModel.uiState.collectAsState()
     val c = DotTheme.colors
-    val t = headerColors ?: c
     // Spare height on a tall screen is put between the wave and the controls.
     val density = LocalDensity.current
     val scroll = rememberScrollState()
@@ -152,9 +115,6 @@ private fun PlayerContent(viewModel: PlayerViewModel, onBack: () -> Unit, onOpen
             .fillMaxSize()
             .onSizeChanged { screenHeightPx = it.height.toFloat() }
             .background(c.background)
-            .drawBehind {
-                if (block != null) drawRect(color = block)
-            }
             .statusBarsPadding()
             .navigationBarsPadding()
             // Scrolls on small screens or with large text so the play button stays reachable.
@@ -163,14 +123,13 @@ private fun PlayerContent(viewModel: PlayerViewModel, onBack: () -> Unit, onOpen
             .padding(top = 16.dp, bottom = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        CompositionLocalProvider(LocalDotColors provides t) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             DotIconButton(DotIcons.CloseDown, stringResource(R.string.action_close_player), onBack)
             Row(Modifier.weight(1f), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                 // The label follows the playback: "Přehrává se" while it plays, "Pozastaveno" while it is paused.
-                DotIcon(DotIcons.WaveGlyph, 14.dp, monochrome = if (state.isPlaying) null else t.textMuted)
+                DotIcon(DotIcons.WaveGlyph, 14.dp, monochrome = if (state.isPlaying) null else c.textMuted)
                 Spacer(Modifier.width(8.dp))
-                Text(stringResource(if (state.isPlaying) R.string.now_playing else R.string.now_paused).upperCs(), style = DotType.chip.copy(fontWeight = FontWeight.W700, letterSpacing = 2.5.sp), color = t.text)
+                Text(stringResource(if (state.isPlaying) R.string.now_playing else R.string.now_paused).upperCs(), style = DotType.chip.copy(fontWeight = FontWeight.W700, letterSpacing = 2.5.sp), color = c.text)
             }
             Spacer(Modifier.size(44.dp))
         }
@@ -179,17 +138,17 @@ private fun PlayerContent(viewModel: PlayerViewModel, onBack: () -> Unit, onOpen
                 val scale = size.width / 280f
                 ring.forEach { dot ->
                     drawCircle(
-                        color = when (dot.role) { CellRole.Played -> t.accent; CellRole.Current -> t.text; CellRole.Rest -> t.ringIdle },
+                        color = when (dot.role) { CellRole.Played -> c.accent; CellRole.Current -> c.text; CellRole.Rest -> c.ringIdle },
                         radius = 3f * scale,
                         center = Offset(dot.x * scale, dot.y * scale)
                     )
                 }
             }
             Box(
-                modifier = Modifier.size(210.dp).clip(CircleShape).background(t.divider).border(1.dp, t.divider, CircleShape),
+                modifier = Modifier.size(210.dp).clip(CircleShape).background(c.divider).border(1.dp, c.divider, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                DotIcon(DotIcons.Podcasts, 56.dp, monochrome = t.textMuted)
+                DotIcon(DotIcons.Podcasts, 56.dp, monochrome = c.textMuted)
                 if (state.artworkUrl != null) {
                     AsyncImage(
                         model = state.artworkUrl, contentDescription = null, contentScale = ContentScale.Crop,
@@ -198,10 +157,9 @@ private fun PlayerContent(viewModel: PlayerViewModel, onBack: () -> Unit, onOpen
                 }
             }
         }
-        }
-        Text(state.title, style = DotType.title.copy(fontSize = 20.sp), color = t.text, maxLines = 3, overflow = TextOverflow.Ellipsis,
+        Text(state.title, style = DotType.title.copy(fontSize = 20.sp), color = c.text, maxLines = 3, overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(top = 18.dp))
-        Text(state.podcastTitle.upperCs(), style = DotType.chip.copy(letterSpacing = 2.sp), color = t.textMuted, modifier = Modifier.padding(top = 6.dp))
+        Text(state.podcastTitle.upperCs(), style = DotType.chip.copy(letterSpacing = 2.sp), color = c.textMuted, modifier = Modifier.padding(top = 6.dp))
         val seekLabel = stringResource(R.string.action_seek)
         Canvas(
             Modifier
@@ -238,7 +196,7 @@ private fun PlayerContent(viewModel: PlayerViewModel, onBack: () -> Unit, onOpen
             for (col in 0 until 36) for (row in 0 until 9) {
                 val lit = row >= 9 - heights[col]
                 drawRoundRect(
-                    color = if (!lit) t.waveIdle else if (col < playedColumns) t.accent else t.waveMuted,
+                    color = if (!lit) c.waveIdle else if (col < playedColumns) c.accent else c.waveMuted,
                     topLeft = Offset(col * (cell + gap), row * (cell + gap)),
                     size = Size(cell, cell),
                     cornerRadius = CornerRadius(2.dp.toPx())
@@ -246,9 +204,9 @@ private fun PlayerContent(viewModel: PlayerViewModel, onBack: () -> Unit, onOpen
             }
         }
         Row(Modifier.fillMaxWidth().padding(top = 8.dp)) {
-            Text(formatPlaybackTime((fraction * duration).toLong()), style = DotType.rowTitle.copy(letterSpacing = 1.sp), color = t.text)
+            Text(formatPlaybackTime((fraction * duration).toLong()), style = DotType.rowTitle.copy(letterSpacing = 1.sp), color = c.text)
             Spacer(Modifier.weight(1f))
-                        if (known) Text("−" + formatPlaybackTime(duration - (fraction * duration).toLong()), style = DotType.rowTitle.copy(letterSpacing = 1.sp), color = t.textMuted)
+                        if (known) Text("−" + formatPlaybackTime(duration - (fraction * duration).toLong()), style = DotType.rowTitle.copy(letterSpacing = 1.sp), color = c.textMuted)
         }
         // Spare height on a tall screen goes here, which moves the controls down.
         Spacer(Modifier.height(with(density) { gapPx.toDp() }))
