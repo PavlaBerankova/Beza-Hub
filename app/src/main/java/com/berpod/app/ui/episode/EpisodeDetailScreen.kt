@@ -218,13 +218,25 @@ private fun EpisodeHeader(
     DotPrimaryButton(
         label = when (action) {
             PrimaryAction.Play -> stringResource(R.string.action_play)
-            PrimaryAction.Resume -> stringResource(R.string.resume_from, formatPlaybackTime(uiState.positionMs))
+            PrimaryAction.Resume -> stringResource(R.string.action_resume)
             PrimaryAction.Pause -> stringResource(R.string.action_pause)
             PrimaryAction.PlayAgain -> stringResource(R.string.action_play_again)
         },
         icon = if (action == PrimaryAction.Pause) DotIcons.Pause else DotIcons.PlaySolid,
         onClick = viewModel::onPrimary
     )
+
+    // "26.09.2026 · 24 MIN", centred under the button.
+    val published = listOfNotNull(formatDotDate(episode.pubDateMillis), formatDuration(episode.durationSeconds)?.upperCs()).joinToString(" · ")
+    if (published.isNotEmpty()) {
+        Text(
+            published,
+            style = DotType.label.copy(letterSpacing = 1.5.sp),
+            color = c.textMuted,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
 }
 
 /** The share/queue buttons, the description, chapters and the podcast link, on the normal background. */
