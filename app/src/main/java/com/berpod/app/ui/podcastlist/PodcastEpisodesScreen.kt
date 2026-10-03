@@ -49,6 +49,7 @@ import com.berpod.app.ui.common.podcastTagTexts
 import com.berpod.app.ui.dot.CoverImage
 import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIcons
+import com.berpod.app.ui.dot.rememberNowMillis
 import com.berpod.app.ui.dot.upperCs
 import com.berpod.app.ui.theme.DotTheme
 import com.berpod.app.ui.theme.DotType
@@ -79,6 +80,7 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
     val listState = rememberLazyListState()
     // The header carries its own action row; a compact bar with the title appears once it scrolls away.
     val showCompactBar by remember { derivedStateOf { listState.firstVisibleItemIndex > 0 } }
+    val now = rememberNowMillis()
     val playButton = pickHeaderEpisode(uiState.episodes)?.let { (episode, isResume) ->
         val isThisPlaying = uiState.currentlyPlayingEpisodeId == episode.id && uiState.isPlaying
         HeaderPlayButton(
@@ -141,6 +143,7 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                                 onPlayOrPause = { viewModel.onPlayOrPause(episode) },
                                 isQueued = episode.id in uiState.queuedEpisodeIds,
                                 onAddToQueue = { viewModel.onAddToQueue(episode.id) },
+                                nowMillis = now,
                                 onClick = { onEpisodeClick(episode.id) }
                             )
                         }

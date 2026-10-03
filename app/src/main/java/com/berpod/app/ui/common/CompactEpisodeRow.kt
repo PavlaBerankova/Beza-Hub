@@ -49,6 +49,8 @@ fun CompactEpisodeRow(
     /** False inside a podcast's own page, where the cover (and podcast name) would only repeat. */
     showCover: Boolean = true,
     isPlayed: Boolean = false,
+    /** Shows the "NOVÁ" badge after the date. */
+    isNew: Boolean = false,
     modifier: Modifier = Modifier,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
@@ -67,13 +69,25 @@ fun CompactEpisodeRow(
         ) {
             if (showCover) CoverImage(podcastImageUrl, 64.dp, 12.dp)
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(
-                    listOfNotNull(podcastTitle.takeIf { showCover }, formatDotDate(episode.pubDateMillis)).joinToString(" · ").upperCs(),
-                    style = DotType.meta.copy(fontSize = 10.sp, fontWeight = FontWeight.W600),
-                    color = c.textMuted,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        listOfNotNull(podcastTitle.takeIf { showCover }, formatDotDate(episode.pubDateMillis)).joinToString(" · ").upperCs(),
+                        style = DotType.meta.copy(fontSize = 10.sp, fontWeight = FontWeight.W600),
+                        color = c.textMuted,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+                    if (isNew) {
+                        Text(
+                            stringResource(R.string.badge_new).upperCs(),
+                            style = DotType.label.copy(fontSize = 10.sp, fontWeight = FontWeight.W700, letterSpacing = 1.sp),
+                            color = c.onAccent,
+                            maxLines = 1,
+                            modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(c.accent).padding(horizontal = 8.dp, vertical = 3.dp)
+                        )
+                    }
+                }
                 Text(episode.title, style = DotType.rowTitle, color = if (isPlayed) c.textMuted else c.text, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     if (isPlayed) {

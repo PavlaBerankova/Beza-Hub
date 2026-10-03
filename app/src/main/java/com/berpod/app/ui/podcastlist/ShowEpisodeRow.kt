@@ -5,6 +5,7 @@ import androidx.compose.ui.Modifier
 import com.berpod.app.data.local.EpisodeEntity
 import com.berpod.app.ui.common.AddToQueueButton
 import com.berpod.app.ui.common.CompactEpisodeRow
+import com.berpod.app.ui.dot.isRecentEpisode
 
 /** Episode row of a podcast's own page: the same compact row as Fronta and Nové, minus the cover. */
 @Composable
@@ -14,6 +15,7 @@ fun ShowEpisodeRow(
     onPlayOrPause: () -> Unit,
     isQueued: Boolean,
     onAddToQueue: () -> Unit,
+    nowMillis: Long,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -27,6 +29,8 @@ fun ShowEpisodeRow(
         onClick = onClick,
         showCover = false,
         isPlayed = episode.playedAtMs != null,
+        // A played episode isn't "new" any more, whatever its date.
+        isNew = episode.playedAtMs == null && isRecentEpisode(episode.pubDateMillis, nowMillis),
         modifier = modifier
     ) {
         AddToQueueButton(isQueued, onAddToQueue)
