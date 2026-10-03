@@ -27,6 +27,15 @@ private fun literata(weight: Int) = Font(
 /** Serif for long reading text (episode descriptions); Latin subset, optical size fixed at 12 pt. */
 val Literata = FontFamily(literata(400), literata(600), literata(700))
 
+private fun inter(weight: Int) = Font(
+    R.font.inter,
+    FontWeight(weight),
+    variationSettings = FontVariation.Settings(FontVariation.weight(weight))
+)
+
+/** Neutral grotesque close to Apple's San Francisco (which can't be bundled); used for episode titles. */
+val Inter = FontFamily(inter(400), inter(500), inter(600), inter(700))
+
 private fun style(size: Int, weight: Int, tracking: Double = 0.0, lineHeight: Double? = null) = TextStyle(
     fontFamily = Oxanium,
     fontSize = size.sp,

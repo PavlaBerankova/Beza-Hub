@@ -32,7 +32,7 @@ import com.berpod.app.ui.dot.upperCs
 import com.berpod.app.ui.podcastlist.remainingText
 import com.berpod.app.ui.theme.DotTheme
 import com.berpod.app.ui.theme.DotType
-import com.berpod.app.ui.theme.Literata
+import com.berpod.app.ui.theme.Inter
 
 /**
  * Compact Dot Matrix row (Fronta, Nové): cover, "PODCAST · DATE", title, time with dot progress,
@@ -89,7 +89,7 @@ fun CompactEpisodeRow(
                         )
                     }
                 }
-                Text(episode.title, style = DotType.rowTitle.copy(fontFamily = Literata, fontWeight = FontWeight.W600, fontSize = 16.sp), color = if (isPlayed) c.textMuted else c.text, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text(episode.title, style = DotType.rowTitle.copy(fontFamily = Inter, fontWeight = FontWeight.W600, fontSize = 16.sp, letterSpacing = (-0.2).sp), color = if (isPlayed) c.textMuted else c.text, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     if (isPlayed) {
                         DotIcon(DotIcons.Check, 14.dp, monochrome = c.textMuted)
