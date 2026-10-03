@@ -4,6 +4,9 @@ import com.berpod.app.data.local.EpisodeEntity
 import com.berpod.app.data.local.TagEntity
 import com.berpod.app.ui.common.episodeProgressFraction
 import com.berpod.app.ui.common.formatDuration
+import java.time.DayOfWeek
+import java.time.Instant
+import java.time.ZoneId
 
 /** Below this share played, an episode counts as "in progress"; at or above it, as finished. */
 private const val FINISHED_FRACTION = 0.98f
@@ -64,3 +67,42 @@ fun remainingText(episode: EpisodeEntity): String? {
 /** Names of the podcast's tags, in [tags]' (alphabetical) order; empty when it has none. */
 fun tagNamesFor(tags: List<TagEntity>, assignedIds: Set<Long>): List<String> =
     tags.filter { it.id in assignedIds }.map { it.name }
+
+private const val DAY_MS = 24L * 60 * 60 * 1000
+private const val RECENT_EPISODES = 12
+
+private val everyWeekday = mapOf(
+    DayOfWeek.MONDAY to "každé pondělí",
+    DayOfWeek.TUESDAY to "každé úterý",
+    DayOfWeek.WEDNESDAY to "každou středu",
+    DayOfWeek.THURSDAY to "každý čtvrtek",
+    DayOfWeek.FRIDAY to "každý pátek",
+    DayOfWeek.SATURDAY to "každou sobotu",
+    DayOfWeek.SUNDAY to "každou neděli"
+)
+
+/**
+ * How often a podcast comes out, from the dates of its latest episodes ("každý pátek", "jednou za 2 týdny"…);
+ * null when there are too few dated episodes to tell. [pubDates] may come in any order.
+ */
+fun publishingFrequency(pubDates: List<Long?>, zone: ZoneId = ZoneId.systemDefault()): String? {
+    val dates = pubDates.filterNotNull().sortedDescending().take(RECENT_EPISODES)
+    if (dates.size < 3) return null
+    val gapsInDays = dates.zipWithNext { newer, older -> (newer - older).toDouble() / DAY_MS }.sorted()
+    val median = gapsInDays[gapsInDays.size / 2]
+    return when {
+        median < 1.5 -> {
+            val atWeekend = dates.count { Instant.ofEpochMilli(it).atZone(zone).dayOfWeek >= DayOfWeek.SATURDAY }
+            if (atWeekend * 10 <= dates.size) "ve všední dny" else "denně"
+        }
+        median < 4.5 -> "několikrát týdně"
+        median < 9.5 -> {
+            val weekdays = dates.map { Instant.ofEpochMilli(it).atZone(zone).dayOfWeek }
+            val (day, count) = weekdays.groupingBy { it }.eachCount().maxByOrNull { it.value }!!
+            if (count * 10 >= weekdays.size * 7) everyWeekday.getValue(day) else "jednou týdně"
+        }
+        median < 18 -> "jednou za 2 týdny"
+        median < 40 -> "jednou měsíčně"
+        else -> "nepravidelně"
+    }
+}

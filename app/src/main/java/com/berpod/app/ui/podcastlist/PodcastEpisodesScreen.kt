@@ -86,6 +86,7 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
     // The header carries its own action row; a compact bar with the title appears once it scrolls away.
     val showCompactBar by remember { derivedStateOf { listState.firstVisibleItemIndex > 0 } }
     val now = rememberNowMillis()
+    val frequency = remember(uiState.episodes) { publishingFrequency(uiState.episodes.map { it.pubDateMillis }) }
     val blockColor = rememberCoverTint(uiState.feedImageUrl)?.let(::headerBlockColor)
 
     // The system bar icons follow the header block while it is on screen (dark icons on a bright block, light on a deep one).
@@ -137,6 +138,8 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                         onTagClick = viewModel::onOpenTagDialog,
                         onRefresh = viewModel::onRefresh,
                         onEditRss = viewModel::onEditRss,
+                        episodeCount = uiState.episodes.size,
+                        frequency = frequency,
                         blockColor = blockColor
                     )
                 }

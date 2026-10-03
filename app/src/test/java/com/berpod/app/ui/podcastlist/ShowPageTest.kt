@@ -86,4 +86,37 @@ class ShowPageTest {
         assertEquals(4, pickHeaderColor(vibrant = null, darkVibrant = null, muted = null, dominant = 4))
         assertNull(pickHeaderColor(null, null, null, null))
     }
+
+    private val zone = java.time.ZoneId.of("Europe/Prague")
+    private fun day(year: Int, month: Int, dayOfMonth: Int): Long =
+        java.time.ZonedDateTime.of(year, month, dayOfMonth, 12, 0, 0, 0, zone).toInstant().toEpochMilli()
+
+    @Test
+    fun `a weekly podcast on the same day is named after that day`() {
+        val fridays = listOf(day(2026, 9, 25), day(2026, 9, 18), day(2026, 9, 11), day(2026, 9, 4), day(2026, 8, 28))
+        assertEquals("každý pátek", publishingFrequency(fridays, zone))
+    }
+
+    @Test
+    fun `a weekly podcast on varying days is just weekly`() {
+        val dates = listOf(day(2026, 9, 25), day(2026, 9, 17), day(2026, 9, 12), day(2026, 9, 2), day(2026, 8, 29))
+        assertEquals("jednou týdně", publishingFrequency(dates, zone))
+    }
+
+    @Test
+    fun `other rhythms are told by the typical gap`() {
+        assertEquals("denně", publishingFrequency((0 until 8).map { day(2026, 9, 25 - it) }, zone))
+        // 25.9.2026 is a Friday; 21.9. a Monday: five weekdays in a row, then the weekend off.
+        assertEquals("ve všední dny", publishingFrequency(listOf(25, 24, 23, 22, 21, 18, 17, 16, 15, 14).map { day(2026, 9, it) }, zone))
+        assertEquals("několikrát týdně", publishingFrequency(listOf(day(2026, 9, 25), day(2026, 9, 22), day(2026, 9, 19), day(2026, 9, 16)), zone))
+        assertEquals("jednou za 2 týdny", publishingFrequency(listOf(day(2026, 9, 25), day(2026, 9, 11), day(2026, 8, 28), day(2026, 8, 14)), zone))
+        assertEquals("jednou měsíčně", publishingFrequency(listOf(day(2026, 9, 25), day(2026, 8, 25), day(2026, 7, 25), day(2026, 6, 25)), zone))
+        assertEquals("nepravidelně", publishingFrequency(listOf(day(2026, 9, 25), day(2026, 6, 1), day(2026, 1, 10)), zone))
+    }
+
+    @Test
+    fun `too few dated episodes tell nothing`() {
+        assertNull(publishingFrequency(listOf(day(2026, 9, 25), day(2026, 9, 18)), zone))
+        assertNull(publishingFrequency(listOf(day(2026, 9, 25), null, null, day(2026, 9, 11)), zone))
+    }
 }

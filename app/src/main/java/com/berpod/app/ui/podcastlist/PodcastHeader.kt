@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.berpod.app.R
+import com.berpod.app.ui.articles.czechCount
 import com.berpod.app.ui.dot.CoverImage
 import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIconSpec
@@ -82,6 +83,9 @@ fun PodcastHeader(
     onTagClick: () -> Unit,
     onRefresh: () -> Unit,
     onEditRss: () -> Unit,
+    episodeCount: Int,
+    /** "každý pátek"…; null when it can't be told. */
+    frequency: String?,
     /** The cover's block colour, once known; the header is then a solid block of it, behind the status bar too. */
     blockColor: Color?
 ) {
@@ -133,8 +137,8 @@ fun PodcastHeader(
     }
     // Below the block, in the normal colours.
     SectionSeparator(
-        stringResource(R.string.section_episodes),
-        stringResource(R.string.section_newest),
+        czechCount(episodeCount, "epizoda", "epizody", "epizod"),
+        frequency ?: stringResource(R.string.section_newest),
         modifier = Modifier.padding(horizontal = 20.dp).padding(top = 20.dp, bottom = 8.dp)
     )
     }
