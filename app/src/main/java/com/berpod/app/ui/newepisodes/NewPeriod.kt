@@ -24,3 +24,10 @@ fun <T> filterByPeriod(items: List<T>, period: NewPeriod, nowMillis: Long, zone:
     val start = periodStartMillis(period, nowMillis, zone) ?: return items
     return items.filter { item -> publishedAt(item)?.let { it >= start } == true }
 }
+
+/** [items] newest first (as Nové gets them), or reversed to oldest first; undated ones stay at the end either way. */
+fun <T> sortByPublished(items: List<T>, oldestFirst: Boolean, publishedAt: (T) -> Long?): List<T> {
+    if (!oldestFirst) return items
+    val (dated, undated) = items.partition { publishedAt(it) != null }
+    return dated.sortedBy { publishedAt(it) } + undated
+}

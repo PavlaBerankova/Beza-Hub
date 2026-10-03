@@ -211,4 +211,9 @@
     <string name="new_period_month_title">Za poslední měsíc</string>
     <string name="new_episodes_period_empty">V tomto období nejsou žádné nové epizody</string>
     <string name="new_episodes_period_empty_hint">Zvolte delší období</string>
+    <string name="new_view_title">Filtr a řazení</string>
+    <string name="new_period_label">Období</string>
+    <string name="action_remove_all_new">Odebrat vše z nových</string>
+    <string name="remove_all_new_title">Odebrat z nových?</string>
+    <string name="action_confirm_remove">Odebrat</string>
 </resources>

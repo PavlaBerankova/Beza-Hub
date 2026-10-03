@@ -14,6 +14,7 @@ import com.berpod.app.ui.common.filterByPodcastIds
 import com.berpod.app.ui.common.markPlayed
 import com.berpod.app.ui.common.resolveSelectedTagId
 import com.berpod.app.ui.common.undoMarkPlayed
+import com.berpod.app.ui.podcastlist.EpisodeSort
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -38,6 +39,10 @@ data class NewEpisodesUiState(
     /** null = "Všechny". */
     val selectedTagId: Long? = null,
     val period: NewPeriod = NewPeriod.All,
+    val sort: EpisodeSort = EpisodeSort.NewestFirst,
+    val isViewSheetOpen: Boolean = false,
+    /** How many episodes "Odebrat vše z nových" is about to mark played; null while the confirmation is closed. */
+    val confirmRemoveCount: Int? = null,
     val isRefreshing: Boolean = false,
     val snackbarMessage: String? = null,
     /** Set right after swiping an episode to played, while "Zpět" can undo it. */
@@ -58,6 +63,7 @@ class NewEpisodesViewModel(
 
     private val selectedTagId = MutableStateFlow<Long?>(null)
     private val period = MutableStateFlow(NewPeriod.All)
+    private val sort = MutableStateFlow(EpisodeSort.NewestFirst)
 
     private val _uiState = MutableStateFlow(NewEpisodesUiState())
     val uiState: StateFlow<NewEpisodesUiState> = _uiState.asStateFlow()
@@ -70,10 +76,10 @@ class NewEpisodesViewModel(
         val notQueued = combine(episodeRepository.observeNewEpisodes(), queueRepository.observeQueuedEpisodeIds()) { episodes, queued ->
             episodes.filter { it.episode.id !in queued }
         }
-        combine(notQueued, taggedPodcastIds, period) { episodes, podcastIds, selectedPeriod ->
+        combine(notQueued, taggedPodcastIds, period, sort) { episodes, podcastIds, selectedPeriod, selectedSort ->
             val now = System.currentTimeMillis()
-            val visible = filterByPeriod(filterByPodcastIds(episodes, podcastIds) { it.episode.feedId }, selectedPeriod, now) { it.episode.pubDateMillis }
-            episodes to visible
+            val inPeriod = filterByPeriod(filterByPodcastIds(episodes, podcastIds) { it.episode.feedId }, selectedPeriod, now) { it.episode.pubDateMillis }
+            episodes to sortByPublished(inPeriod, selectedSort == EpisodeSort.OldestFirst) { it.episode.pubDateMillis }
         }
             .onEach { (all, visible) -> _uiState.update { it.copy(episodes = visible, hasAnyEpisodes = all.isNotEmpty()) } }
             .launchIn(viewModelScope)
@@ -129,6 +135,30 @@ class NewEpisodesViewModel(
     fun onSelectPeriod(newPeriod: NewPeriod) {
         period.value = newPeriod
         _uiState.update { it.copy(period = newPeriod) }
+    }
+
+    fun onSelectSort(newSort: EpisodeSort) {
+        sort.value = newSort
+        _uiState.update { it.copy(sort = newSort) }
+    }
+
+    fun onOpenViewSheet() = _uiState.update { it.copy(isViewSheetOpen = true) }
+
+    fun onDismissViewSheet() = _uiState.update { it.copy(isViewSheetOpen = false) }
+
+    fun onRequestRemoveAll() = _uiState.update { it.copy(confirmRemoveCount = it.episodes.size) }
+
+    fun onCancelRemoveAll() = _uiState.update { it.copy(confirmRemoveCount = null) }
+
+    /** Marks everything Nové is listing right now (so the period and tag filters count) played, which takes it out of Nové. */
+    fun onConfirmRemoveAll() {
+        val ids = _uiState.value.episodes.map { it.episode.id }
+        _uiState.update { it.copy(confirmRemoveCount = null, isViewSheetOpen = false) }
+        viewModelScope.launch {
+            // Nové never lists queued episodes, so there is nothing to take out of the queue.
+            episodeRepository.markPlayed(ids)
+            _uiState.update { it.copy(snackbarMessage = "Odebráno z nových: ${ids.size}") }
+        }
     }
 
     fun onRefresh() {

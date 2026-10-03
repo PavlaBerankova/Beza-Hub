@@ -42,4 +42,11 @@ class NewPeriodTest {
         assertEquals(emptyList<Long?>(), filterByPeriod(listOf<Long?>(null), NewPeriod.Month, now, zone) { it })
         assertEquals(1, filterByPeriod(listOf<Long?>(null), NewPeriod.All, now, zone) { it }.size)
     }
+
+    @Test
+    fun `sorting reverses newest first and keeps undated episodes last`() {
+        val newestFirst = listOf(30L, 20L, 10L, null)
+        assertEquals(newestFirst, sortByPublished(newestFirst, oldestFirst = false) { it })
+        assertEquals(listOf(10L, 20L, 30L, null), sortByPublished(newestFirst, oldestFirst = true) { it })
+    }
 }

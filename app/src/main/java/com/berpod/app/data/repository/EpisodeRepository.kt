@@ -19,6 +19,12 @@ class EpisodeRepository(
     /** Marks an episode played now, or clears the mark ([played] = false). */
     suspend fun unplayedIdsForFeed(feedId: Long): List<Long> = episodeDao.unplayedIdsForFeed(feedId)
 
+    /** In batches: SQLite takes at most 999 bound values per statement on older Android versions. */
+    suspend fun markPlayed(episodeIds: List<Long>) {
+        val now = System.currentTimeMillis()
+        episodeIds.chunked(500).forEach { episodeDao.markPlayed(it, now) }
+    }
+
     suspend fun markAllPlayed(feedId: Long) = episodeDao.markAllPlayed(feedId, System.currentTimeMillis())
 
     suspend fun markAllUnplayed(feedId: Long) = episodeDao.markAllUnplayed(feedId)

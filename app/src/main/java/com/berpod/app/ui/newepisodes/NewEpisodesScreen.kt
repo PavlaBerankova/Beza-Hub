@@ -51,6 +51,8 @@ import com.berpod.app.ui.common.MarkPlayedSwipe
 import com.berpod.app.ui.common.AddToQueueButton
 import com.berpod.app.ui.common.TagChipRow
 import com.berpod.app.ui.dot.DotIcons
+import com.berpod.app.ui.podcastlist.labelRes
+import com.berpod.app.ui.podcastlist.EpisodeSort
 import com.berpod.app.ui.theme.DotTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -105,7 +107,8 @@ fun NewEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onEpisodeClic
             if (uiState.hasAnyEpisodes) {
                 PeriodRow(
                     period = uiState.period,
-                    onSelect = viewModel::onSelectPeriod,
+                    sort = uiState.sort,
+                    onClick = viewModel::onOpenViewSheet,
                     modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 8.dp)
                 )
             }
@@ -149,47 +152,32 @@ fun NewEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onEpisodeClic
                 }
             }
         }
+
+        if (uiState.isViewSheetOpen) {
+            NewViewSheet(
+                period = uiState.period,
+                sort = uiState.sort,
+                hasEpisodes = uiState.episodes.isNotEmpty(),
+                onPeriodChange = viewModel::onSelectPeriod,
+                onSortChange = viewModel::onSelectSort,
+                onRemoveAll = viewModel::onRequestRemoveAll,
+                onDismiss = viewModel::onDismissViewSheet
+            )
+        }
+        uiState.confirmRemoveCount?.let { count ->
+            RemoveAllNewDialog(count, onConfirm = viewModel::onConfirmRemoveAll, onDismiss = viewModel::onCancelRemoveAll)
+        }
     }
 }
 
-private fun NewPeriod.shortRes() = when (this) {
-    NewPeriod.All -> R.string.period_all
-    NewPeriod.Today -> R.string.period_today
-    NewPeriod.Week -> R.string.period_week
-    NewPeriod.TwoWeeks -> R.string.period_two_weeks
-    NewPeriod.Month -> R.string.period_month
-}
-
-private fun NewPeriod.titleRes() = when (this) {
-    NewPeriod.All -> R.string.new_period_all_title
-    NewPeriod.Today -> R.string.new_period_today_title
-    NewPeriod.Week -> R.string.new_period_week_title
-    NewPeriod.TwoWeeks -> R.string.new_period_two_weeks_title
-    NewPeriod.Month -> R.string.new_period_month_title
-}
-
-/** "VŠECHNY NOVÉ ——— [VŠE ⌄]": what is listed and the menu that narrows it to recent episodes. */
+/** "VŠECHNY NOVÉ ——— [NEJNOVĚJŠÍ ⌄]": what is listed (the period), and the button for filtering and sorting. */
 @Composable
-private fun PeriodRow(period: NewPeriod, onSelect: (NewPeriod) -> Unit, modifier: Modifier = Modifier) {
+private fun PeriodRow(period: NewPeriod, sort: EpisodeSort, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val c = DotTheme.colors
-    var isOpen by remember { mutableStateOf(false) }
     Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         Box(Modifier.size(7.dp).clip(RoundedCornerShape(1.dp)).background(c.accent))
         Text(stringResource(period.titleRes()).upperCs(), style = DotType.label, color = c.textMuted, maxLines = 1)
         HorizontalDivider(modifier = Modifier.weight(1f), color = c.divider)
-        Box {
-            DotFilterButton(stringResource(period.shortRes()), highlighted = period != NewPeriod.All, onClick = { isOpen = true })
-            DropdownMenu(expanded = isOpen, onDismissRequest = { isOpen = false }) {
-                NewPeriod.entries.forEach { option ->
-                    DropdownMenuItem(
-                        text = { Text(stringResource(option.shortRes()), fontWeight = if (option == period) FontWeight.Bold else FontWeight.Normal) },
-                        onClick = {
-                            isOpen = false
-                            onSelect(option)
-                        }
-                    )
-                }
-            }
-        }
+        DotFilterButton(stringResource(sort.labelRes()), highlighted = period != NewPeriod.All, onClick = onClick)
     }
 }

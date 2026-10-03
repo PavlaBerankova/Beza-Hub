@@ -110,7 +110,7 @@ fun EpisodeViewSheet(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun SheetSection(title: String, chips: @Composable () -> Unit) {
+internal fun SheetSection(title: String, chips: @Composable () -> Unit) {
     val c = DotTheme.colors
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(title.upperCs(), style = DotType.label, color = c.textMuted)
@@ -119,7 +119,7 @@ private fun SheetSection(title: String, chips: @Composable () -> Unit) {
 }
 
 @Composable
-private fun SheetAction(label: String, enabled: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+internal fun SheetAction(label: String, enabled: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val c = DotTheme.colors
     val shape = RoundedCornerShape(14.dp)
     Box(
