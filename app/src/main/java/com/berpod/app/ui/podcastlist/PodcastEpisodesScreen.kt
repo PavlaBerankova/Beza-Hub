@@ -3,6 +3,8 @@ package com.berpod.app.ui.podcastlist
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import android.app.Activity
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,6 +31,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -36,9 +39,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.berpod.app.R
@@ -81,6 +86,19 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
     // The header carries its own action row; a compact bar with the title appears once it scrolls away.
     val showCompactBar by remember { derivedStateOf { listState.firstVisibleItemIndex > 0 } }
     val now = rememberNowMillis()
+    val blockColor = rememberCoverTint(uiState.feedImageUrl)?.let(::headerBlockColor)
+
+    // The system bar icons follow the header block while it is on screen (dark icons on a bright block, light on a deep one).
+    val view = LocalView.current
+    val darkIcons = !isSystemInDarkTheme()
+    val iconsOnBlock = blockColor?.let(::isLightTint)
+    val showIconsOnBlock = iconsOnBlock != null && !showCompactBar
+    DisposableEffect(showIconsOnBlock, iconsOnBlock, darkIcons) {
+        val window = (view.context as? Activity)?.window
+        val controller = window?.let { WindowCompat.getInsetsController(it, view) }
+        controller?.isAppearanceLightStatusBars = if (showIconsOnBlock) iconsOnBlock == true else darkIcons
+        onDispose { controller?.isAppearanceLightStatusBars = darkIcons }
+    }
     val playButton = pickHeaderEpisode(uiState.episodes)?.let { (episode, isResume) ->
         val isThisPlaying = uiState.currentlyPlayingEpisodeId == episode.id && uiState.isPlaying
         HeaderPlayButton(
@@ -118,7 +136,8 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                         onBack = onBack,
                         onTagClick = viewModel::onOpenTagDialog,
                         onRefresh = viewModel::onRefresh,
-                        onEditRss = viewModel::onEditRss
+                        onEditRss = viewModel::onEditRss,
+                        blockColor = blockColor
                     )
                 }
                 if (uiState.episodes.isEmpty()) {

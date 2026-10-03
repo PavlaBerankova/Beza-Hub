@@ -16,10 +16,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -36,6 +37,7 @@ import com.berpod.app.ui.dot.DotPrimaryButton
 import com.berpod.app.ui.dot.SectionSeparator
 import com.berpod.app.ui.dot.upperCs
 import com.berpod.app.ui.theme.DotTheme
+import com.berpod.app.ui.theme.LocalDotColors
 import com.berpod.app.ui.theme.DotType
 
 /** The play button in the header: its label, icon and action. */
@@ -91,18 +93,21 @@ fun PodcastHeader(
     onBack: () -> Unit,
     onTagClick: () -> Unit,
     onRefresh: () -> Unit,
-    onEditRss: () -> Unit
+    onEditRss: () -> Unit,
+    /** The cover's block colour, once known; the header is then a solid block of it, behind the status bar too. */
+    blockColor: Color?
 ) {
-    val c = DotTheme.colors
-    // The cover's colour washes over the header and fades out towards the episodes (behind the status bar too).
-    val tint by animateColorAsState(rememberCoverTint(imageUrl) ?: Color.Transparent, label = "headerTint")
+    val base = DotTheme.colors
+    val block by animateColorAsState(blockColor ?: base.background, label = "headerBlock")
+    val c = if (blockColor == null) base else colorsOnBlock(base, block)
+    CompositionLocalProvider(LocalDotColors provides c) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Brush.verticalGradient(listOf(tint.copy(alpha = 0.5f), tint.copy(alpha = 0f))))
+            .background(block, RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp))
             .statusBarsPadding()
             .padding(horizontal = 20.dp)
-            .padding(top = 16.dp, bottom = 8.dp),
+            .padding(top = 16.dp, bottom = 20.dp),
         verticalArrangement = Arrangement.spacedBy(22.dp)
     ) {
         PodcastActionsRow(tags, isRefreshing, onBack, onTagClick, onRefresh, onEditRss)
@@ -134,5 +139,6 @@ fun PodcastHeader(
         }
         if (playButton != null) DotPrimaryButton(playButton.label, playButton.icon, playButton.onClick)
         SectionSeparator(stringResource(R.string.section_episodes), stringResource(R.string.section_newest))
+    }
     }
 }
