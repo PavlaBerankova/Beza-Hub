@@ -68,14 +68,6 @@ fun PodcastListScreen(viewModelFactory: ViewModelProvider.Factory, onPodcastClic
         }
     ) { paddingValues ->
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            if (uiState.hasAnyPodcasts) {
-                val tagName = uiState.tags.firstOrNull { it.id == uiState.selectedTagId }?.name
-                SectionSeparator(
-                    left = subscriptionCountText(uiState.feeds.size),
-                    right = tagName,
-                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 16.dp)
-                )
-            }
             if (uiState.tags.isNotEmpty()) {
                 TagChipRow(
                     tags = uiState.tags,
@@ -83,6 +75,14 @@ fun PodcastListScreen(viewModelFactory: ViewModelProvider.Factory, onPodcastClic
                     onSelect = viewModel::onSelectTag,
                     onRenameRequest = viewModel::onRequestRenameTag,
                     onDeleteRequest = viewModel::onRequestDeleteTag
+                )
+            }
+            if (uiState.hasAnyPodcasts) {
+                val tagName = uiState.tags.firstOrNull { it.id == uiState.selectedTagId }?.name
+                SectionSeparator(
+                    left = subscriptionCountText(uiState.feeds.size),
+                    right = tagName,
+                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 16.dp)
                 )
             }
             when {

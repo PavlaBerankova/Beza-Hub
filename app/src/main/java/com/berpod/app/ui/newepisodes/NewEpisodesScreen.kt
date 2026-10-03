@@ -99,15 +99,15 @@ fun NewEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onEpisodeClic
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+            if (uiState.tags.isNotEmpty()) {
+                TagChipRow(tags = uiState.tags, selectedTagId = uiState.selectedTagId, onSelect = viewModel::onSelectTag)
+            }
             if (uiState.hasAnyEpisodes) {
                 PeriodRow(
                     period = uiState.period,
                     onSelect = viewModel::onSelectPeriod,
-                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 8.dp)
+                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 8.dp)
                 )
-            }
-            if (uiState.tags.isNotEmpty()) {
-                TagChipRow(tags = uiState.tags, selectedTagId = uiState.selectedTagId, onSelect = viewModel::onSelectTag)
             }
             when {
                 !uiState.hasAnyEpisodes -> EmptyState(

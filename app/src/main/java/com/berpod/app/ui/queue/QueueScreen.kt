@@ -95,18 +95,18 @@ fun QueueScreen(viewModelFactory: ViewModelProvider.Factory, onEpisodeClick: (Lo
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            if (uiState.visibleItems.isNotEmpty()) {
-                SectionSeparator(
-                    left = episodeCountText(uiState.visibleItems.size),
-                    right = queueTotalText(uiState.visibleItems)?.let { stringResource(R.string.queue_total, it) },
-                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 16.dp)
-                )
-            }
             if (uiState.tags.isNotEmpty()) {
                 TagChipRow(
                     tags = uiState.tags,
                     selectedTagId = uiState.selectedTagId,
                     onSelect = viewModel::onSelectTag
+                )
+            }
+            if (uiState.visibleItems.isNotEmpty()) {
+                SectionSeparator(
+                    left = episodeCountText(uiState.visibleItems.size),
+                    right = queueTotalText(uiState.visibleItems)?.let { stringResource(R.string.queue_total, it) },
+                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 8.dp)
                 )
             }
             when {
