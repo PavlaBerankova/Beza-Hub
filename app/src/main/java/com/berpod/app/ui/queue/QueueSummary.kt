@@ -11,12 +11,12 @@ fun episodeCountText(count: Int): String = when {
     else -> "$count epizod"
 }
 
-/** "3 epizody · celkem 1 h 1 min" for the listed entries; null when there are none. */
+/** "3 epizody · 1 h 1 min" for the listed entries; null when there are none. */
 fun queueSummary(items: List<QueueItemWithEpisode>): String? {
     if (items.isEmpty()) return null
     val total = items.sumOf { remainingSeconds(it.episode) ?: 0 }
     val totalText = formatDuration(total)
-    return episodeCountText(items.size) + (totalText?.let { " · celkem $it" } ?: "")
+    return episodeCountText(items.size) + (totalText?.let { " · $it" } ?: "")
 }
 
 /** Total time left to listen across [items], e.g. "1 h 1 min"; null when nothing is known. */

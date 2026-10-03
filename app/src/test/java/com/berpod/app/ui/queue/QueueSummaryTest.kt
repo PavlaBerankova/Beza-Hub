@@ -22,7 +22,7 @@ class QueueSummaryTest {
     fun `summary adds up remaining time`() {
         val items = listOf(item(1, 1500, positionMs = 60_000), item(2, 900), item(3, 1320))
         // 24 + 15 + 22 min = 61 min
-        assertEquals("3 epizody · celkem 1 h 1 min", queueSummary(items))
+        assertEquals("3 epizody · 1 h 1 min", queueSummary(items))
     }
 
     @Test

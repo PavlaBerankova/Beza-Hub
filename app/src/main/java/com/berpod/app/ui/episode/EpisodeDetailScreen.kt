@@ -192,7 +192,7 @@ private fun EpisodeContent(
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         EpisodeActionButton(DotIcons.Download, stringResource(R.string.action_download), active = false, onClick = {}, modifier = Modifier.weight(1f))
         EpisodeActionButton(
-            icon = if (uiState.isQueued) DotIcons.Queued else DotIcons.Queue,
+            icon = if (uiState.isQueued) DotIcons.Queued else DotIcons.AddToQueue,
             label = stringResource(if (uiState.isQueued) R.string.in_queue else R.string.to_queue),
             active = uiState.isQueued,
             onClick = viewModel::onToggleQueue,

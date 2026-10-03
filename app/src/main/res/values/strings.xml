@@ -217,7 +217,5 @@
     <string name="remove_all_new_title">Odebrat z nových?</string>
     <string name="action_confirm_remove">Odebrat</string>
     <string name="queue_order_custom">Vlastní</string>
-    <string name="queue_sort_title">Řazení fronty</string>
-    <string name="queue_sort_hint">Fronta se přeuspořádá a přehrává se v tomto pořadí. Pořadí můžete dál měnit přetažením.</string>
     <string name="queue_sorted">Fronta přeřazena</string>
 </resources>

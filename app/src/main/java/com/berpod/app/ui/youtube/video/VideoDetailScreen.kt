@@ -268,7 +268,7 @@ private fun VideoContent(
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             VideoActionButton(
-                icon = if (uiState.isQueued) DotIcons.Queued else DotIcons.Queue,
+                icon = if (uiState.isQueued) DotIcons.Queued else DotIcons.AddToQueue,
                 label = stringResource(if (uiState.isQueued) R.string.in_queue else R.string.to_queue),
                 active = uiState.isQueued,
                 onClick = viewModel::onToggleQueue,

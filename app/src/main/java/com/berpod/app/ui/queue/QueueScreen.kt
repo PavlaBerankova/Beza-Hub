@@ -121,7 +121,7 @@ fun QueueScreen(viewModelFactory: ViewModelProvider.Factory, onEpisodeClick: (Lo
                 QueueInfoRow(
                     text = queueSummary(uiState.visibleItems).orEmpty(),
                     order = queueOrderOf(uiState.items),
-                    onClick = viewModel::onOpenSortSheet,
+                    onClick = viewModel::onToggleSort,
                     modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 8.dp)
                 )
             }
@@ -138,10 +138,6 @@ fun QueueScreen(viewModelFactory: ViewModelProvider.Factory, onEpisodeClick: (Lo
                 )
                 else -> ReorderableQueueList(uiState = uiState, viewModel = viewModel, onEpisodeClick = onEpisodeClick)
             }
-        }
-
-        if (uiState.isSortSheetOpen) {
-            QueueSortSheet(order = queueOrderOf(uiState.items), onSort = viewModel::onSortQueue, onDismiss = viewModel::onDismissSortSheet)
         }
     }
 }
@@ -294,7 +290,7 @@ private fun QueueInfoRow(text: String, order: QueueOrder, onClick: () -> Unit, m
                 modifier = Modifier.weight(1f, fill = false).background(c.background).padding(end = 10.dp)
             )
             Box(Modifier.background(c.background).padding(start = 10.dp)) {
-                DotFilterButton(label, highlighted = false, onClick = onClick)
+                DotFilterButton(label, highlighted = false, onClick = onClick, flipped = order == QueueOrder.OldestFirst)
             }
         }
     }

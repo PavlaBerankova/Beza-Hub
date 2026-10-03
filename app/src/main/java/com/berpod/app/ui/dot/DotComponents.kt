@@ -24,6 +24,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.runtime.getValue
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -257,9 +260,9 @@ fun CoverImage(url: String?, size: Dp?, radius: Dp, modifier: Modifier = Modifie
     }
 }
 
-/** Borderless "label ⌄" button opening a menu or sheet; a dot before the label shows a filter is on, the chevron is accent-coloured. */
+/** Borderless "label ⌄" button opening a menu or sheet, or toggling a value ([flipped] turns the chevron over); a dot before the label shows a filter is on, the chevron is accent-coloured. */
 @Composable
-fun DotFilterButton(label: String, highlighted: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun DotFilterButton(label: String, highlighted: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier, flipped: Boolean = false) {
     val c = DotTheme.colors
     Row(
         modifier = modifier
@@ -273,6 +276,7 @@ fun DotFilterButton(label: String, highlighted: Boolean, onClick: () -> Unit, mo
     ) {
         if (highlighted) Box(Modifier.size(7.dp).clip(RoundedCornerShape(1.dp)).background(c.accent))
         Text(label.upperCs(), style = DotType.label.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.W700), color = c.text, maxLines = 1)
-        DotIcon(DotIcons.CloseDown, 16.dp, monochrome = c.accent)
+        val angle by animateFloatAsState(if (flipped) 180f else 0f, label = "chevron")
+        DotIcon(DotIcons.CloseDown, 16.dp, modifier = Modifier.rotate(angle), monochrome = c.accent)
     }
 }

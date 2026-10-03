@@ -42,7 +42,6 @@ data class QueueUiState(
     val removedEntry: RemovedQueueEntry? = null,
     /** The last episode swiped to "played", while its "Zpět" snackbar can still undo it. */
     val playedUndo: PlayedUndo? = null,
-    val isSortSheetOpen: Boolean = false,
     /** The queue order before the last "Nejnovější/Nejstarší", while its "Zpět" snackbar can still restore it. */
     val sortUndo: List<Long>? = null
 )
@@ -92,14 +91,12 @@ class QueueViewModel(
         _uiState.update { it.copy(selectedTagId = tagId) }
     }
 
-    fun onOpenSortSheet() = _uiState.update { it.copy(isSortSheetOpen = true) }
-
-    fun onDismissSortSheet() = _uiState.update { it.copy(isSortSheetOpen = false) }
+    /** One tap flips the order: newest → oldest, oldest → newest; a hand-made order goes to newest first. */
+    fun onToggleSort() = onSortQueue(oldestFirst = queueOrderOf(_uiState.value.items) == QueueOrder.NewestFirst)
 
     /** Re-orders the whole queue (playback follows the queue) and keeps the old order for "Zpět". */
     fun onSortQueue(oldestFirst: Boolean) {
         val items = _uiState.value.items
-        _uiState.update { it.copy(isSortSheetOpen = false) }
         viewModelScope.launch {
             val before = repository.orderedEntryIds()
             repository.applyOrder(sortedQueueEntryIds(items, oldestFirst))

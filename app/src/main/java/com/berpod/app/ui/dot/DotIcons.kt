@@ -60,6 +60,12 @@ object DotIcons {
         IconPart("M4 16h6", IconRole.Muted, 2.4f),
         px(14f, 13.5f, 1.9f), px(16.2f, 15.6f, 1.9f), px(14f, 17.7f, 1.9f)
     ))
+    /** "Add to queue": the queue's lines with a plus, so it reads as adding rather than as the queue itself. */
+    val AddToQueue = DotIconSpec(24f, 24f, listOf(
+        IconPart("M4 6h12M4 11h12", IconRole.Primary, 2.4f),
+        IconPart("M4 16h5", IconRole.Muted, 2.4f),
+        IconPart("M17 13v7M13.5 16.5h7", IconRole.Accent, 2.4f)
+    ))
     val Share = DotIconSpec(24f, 24f, listOf(
         IconPart("M12 4v10M8 7.5L12 4l4 3.5", IconRole.Primary, 2.4f),
         IconPart("M6 12v6.5A1.5 1.5 0 0 0 7.5 20h9a1.5 1.5 0 0 0 1.5-1.5V12", IconRole.Muted, 2.4f),
