@@ -1,5 +1,7 @@
 package com.berpod.app.ui.podcastlist
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,12 +11,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -88,8 +94,15 @@ fun PodcastHeader(
     onEditRss: () -> Unit
 ) {
     val c = DotTheme.colors
+    // The cover's colour washes over the header and fades out towards the episodes (behind the status bar too).
+    val tint by animateColorAsState(rememberCoverTint(imageUrl) ?: Color.Transparent, label = "headerTint")
     Column(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(top = 16.dp, bottom = 8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Brush.verticalGradient(listOf(tint.copy(alpha = 0.5f), tint.copy(alpha = 0f))))
+            .statusBarsPadding()
+            .padding(horizontal = 20.dp)
+            .padding(top = 16.dp, bottom = 8.dp),
         verticalArrangement = Arrangement.spacedBy(22.dp)
     ) {
         PodcastActionsRow(tags, isRefreshing, onBack, onTagClick, onRefresh, onEditRss)

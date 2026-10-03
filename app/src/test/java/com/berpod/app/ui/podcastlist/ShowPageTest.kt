@@ -77,4 +77,13 @@ class ShowPageTest {
         val result = pickHeaderEpisode(listOf(ep(3).copy(playedAtMs = 1L), ep(2), ep(1)))
         assertEquals(2L, result?.episode?.id)
     }
+
+    @Test
+    fun `header colour prefers the vibrant swatch and falls back down the list`() {
+        assertEquals(1, pickHeaderColor(vibrant = 1, darkVibrant = 2, muted = 3, dominant = 4))
+        assertEquals(2, pickHeaderColor(vibrant = null, darkVibrant = 2, muted = 3, dominant = 4))
+        assertEquals(3, pickHeaderColor(vibrant = null, darkVibrant = null, muted = 3, dominant = 4))
+        assertEquals(4, pickHeaderColor(vibrant = null, darkVibrant = null, muted = null, dominant = 4))
+        assertNull(pickHeaderColor(null, null, null, null))
+    }
 }

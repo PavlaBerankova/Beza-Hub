@@ -7,7 +7,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.exclude
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,6 +18,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -112,6 +116,12 @@ fun BerpodApp(container: AppContainer) {
     TabAccentTheme(tabAccentFor(currentRoute)) {
         Scaffold(
             containerColor = DotTheme.colors.background,
+            // A podcast's page tints its header up behind the status bar, so it pads for the bar itself.
+            contentWindowInsets = if (currentRoute == Screen.PodcastEpisodes.route) {
+                ScaffoldDefaults.contentWindowInsets.exclude(WindowInsets.statusBars)
+            } else {
+                ScaffoldDefaults.contentWindowInsets
+            },
             bottomBar = {
                 val showNavigation = bottomTabs.any { it.route == currentRoute }
                 Column {
