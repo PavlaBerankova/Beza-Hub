@@ -122,10 +122,10 @@ fun BerpodApp(container: AppContainer) {
     TabAccentTheme(tabAccentFor(currentRoute)) {
         Scaffold(
             containerColor = DotTheme.colors.background,
-            // A podcast's page tints its header up behind the status bar, and the player paints its whole screen
+            // A podcast's and an episode's page tint their header up behind the status bar, and the player paints its whole screen
             // in the cover's colour, so both pad for the system bars themselves.
             contentWindowInsets = when (currentRoute) {
-                Screen.PodcastEpisodes.route -> ScaffoldDefaults.contentWindowInsets.exclude(WindowInsets.statusBars)
+                Screen.PodcastEpisodes.route, Screen.EpisodeDetail.route -> ScaffoldDefaults.contentWindowInsets.exclude(WindowInsets.statusBars)
                 Screen.Player.route -> WindowInsets(0, 0, 0, 0)
                 else -> ScaffoldDefaults.contentWindowInsets
             },

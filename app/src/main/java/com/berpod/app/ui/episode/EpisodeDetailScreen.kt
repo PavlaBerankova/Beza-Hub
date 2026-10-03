@@ -58,6 +58,18 @@ import com.berpod.app.ui.dot.DotIconSpec
 import com.berpod.app.ui.dot.DotIcons
 import com.berpod.app.ui.dot.DotPrimaryButton
 import com.berpod.app.ui.dot.DotProgress
+import com.berpod.app.ui.theme.LocalDotColors
+import com.berpod.app.ui.podcastlist.rememberCoverTint
+import com.berpod.app.ui.podcastlist.isLightTint
+import com.berpod.app.ui.podcastlist.headerBlockColor
+import com.berpod.app.ui.podcastlist.colorsOnBlock
+import androidx.core.view.WindowCompat
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.animation.animateColorAsState
+import android.app.Activity
 import com.berpod.app.ui.dot.SectionSeparator
 import com.berpod.app.ui.dot.formatDotDate
 import com.berpod.app.ui.dot.upperCs
@@ -83,6 +95,19 @@ fun EpisodeDetailScreen(
         }
     }
 
+    val item = uiState.item
+    val blockColor = rememberCoverTint(item?.let { it.episode.imageUrl ?: it.podcastImageUrl })?.let(::headerBlockColor)
+
+    // The system bar icons follow the header block while it is on screen (dark on a bright block, light on a deep one).
+    val view = LocalView.current
+    val systemDark = isSystemInDarkTheme()
+    val lightBlock = blockColor?.let(::isLightTint)
+    DisposableEffect(lightBlock, systemDark) {
+        val controller = (view.context as? Activity)?.window?.let { WindowCompat.getInsetsController(it, view) }
+        controller?.isAppearanceLightStatusBars = lightBlock ?: !systemDark
+        onDispose { controller?.isAppearanceLightStatusBars = !systemDark }
+    }
+
     Scaffold(
         contentWindowInsets = WindowInsets(0),
         containerColor = c.background,
@@ -92,50 +117,81 @@ fun EpisodeDetailScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .statusBarsPadding()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp)
-                .padding(top = 16.dp, bottom = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                DotIconButton(DotIcons.Back, stringResource(R.string.action_back), onBack)
-                Text(
-                    stringResource(R.string.episode).upperCs(),
-                    style = DotType.chip.copy(fontWeight = FontWeight.W700, letterSpacing = 2.5.sp),
-                    color = c.text,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.weight(1f)
-                )
-                // Balances the back button so the title stays centred.
-                Spacer(Modifier.size(44.dp))
-            }
-            val item = uiState.item
-            when {
-                item != null -> EpisodeContent(item, uiState, viewModel, onOpenPodcast)
-                // Plain text: EmptyState fills the height, which a scrolling column can't give it.
-                uiState.isLoaded -> Text(
-                    stringResource(R.string.episode_missing),
-                    style = DotType.body,
-                    color = c.textMuted,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth().padding(top = 48.dp)
-                )
+            if (item != null) {
+                // Like the podcast page: a solid block of the cover's colour behind the status bar, the rest below it.
+                val base = DotTheme.colors
+                val block by animateColorAsState(blockColor ?: base.background, label = "episodeBlock")
+                val onBlock = if (blockColor == null) base else colorsOnBlock(base, block)
+                CompositionLocalProvider(LocalDotColors provides onBlock) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(block)
+                            .statusBarsPadding()
+                            .padding(horizontal = 20.dp)
+                            .padding(top = 16.dp, bottom = 20.dp),
+                        verticalArrangement = Arrangement.spacedBy(20.dp)
+                    ) {
+                        EpisodeTopBar(onBack)
+                        EpisodeHeader(item, uiState, viewModel)
+                    }
+                }
+                Column(
+                    modifier = Modifier.padding(horizontal = 20.dp).padding(top = 20.dp, bottom = 32.dp),
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
+                    EpisodeBody(item, uiState, viewModel, onOpenPodcast)
+                }
+            } else {
+                Column(
+                    modifier = Modifier.statusBarsPadding().padding(horizontal = 20.dp).padding(top = 16.dp, bottom = 32.dp),
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
+                    EpisodeTopBar(onBack)
+                    // Plain text: EmptyState fills the height, which a scrolling column can't give it.
+                    if (uiState.isLoaded) {
+                        Text(
+                            stringResource(R.string.episode_missing),
+                            style = DotType.body,
+                            color = c.textMuted,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth().padding(top = 48.dp)
+                        )
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-private fun EpisodeContent(
+private fun EpisodeTopBar(onBack: () -> Unit) {
+    val c = DotTheme.colors
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        DotIconButton(DotIcons.Back, stringResource(R.string.action_back), onBack)
+        Text(
+            stringResource(R.string.episode).upperCs(),
+            style = DotType.chip.copy(fontWeight = FontWeight.W700, letterSpacing = 2.5.sp),
+            color = c.text,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.weight(1f)
+        )
+        // Balances the back button so the title stays centred.
+        Spacer(Modifier.size(44.dp))
+    }
+}
+
+/** Cover, podcast, date, title, progress and the main button: what sits on the coloured block. */
+@Composable
+private fun EpisodeHeader(
     item: EpisodeWithFeed,
     uiState: EpisodeDetailUiState,
-    viewModel: EpisodeDetailViewModel,
-    onOpenPodcast: (Long) -> Unit
+    viewModel: EpisodeDetailViewModel
 ) {
     val c = DotTheme.colors
     val episode = item.episode
-    val context = LocalContext.current
 
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
         CoverImage(episode.imageUrl ?: item.podcastImageUrl, 104.dp, 18.dp)
@@ -187,6 +243,19 @@ private fun EpisodeContent(
         icon = if (action == PrimaryAction.Pause) DotIcons.Pause else DotIcons.PlaySolid,
         onClick = viewModel::onPrimary
     )
+}
+
+/** The share/queue buttons, the description, chapters and the podcast link, on the normal background. */
+@Composable
+private fun EpisodeBody(
+    item: EpisodeWithFeed,
+    uiState: EpisodeDetailUiState,
+    viewModel: EpisodeDetailViewModel,
+    onOpenPodcast: (Long) -> Unit
+) {
+    val c = DotTheme.colors
+    val episode = item.episode
+    val context = LocalContext.current
 
     val shareTitle = stringResource(R.string.action_share)
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
