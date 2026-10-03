@@ -183,7 +183,7 @@ private fun EpisodeTopBar(onBack: () -> Unit) {
     }
 }
 
-/** Cover, podcast, date, title, progress and the main button: what sits on the coloured block. */
+/** Title, progress and the main button: what sits on the coloured block. */
 @Composable
 private fun EpisodeHeader(
     item: EpisodeWithFeed,
@@ -192,24 +192,6 @@ private fun EpisodeHeader(
 ) {
     val c = DotTheme.colors
     val episode = item.episode
-
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-        CoverImage(episode.imageUrl ?: item.podcastImageUrl, 104.dp, 18.dp)
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(
-                item.podcastTitle.upperCs(),
-                style = DotType.chip.copy(fontWeight = FontWeight.W700, letterSpacing = 1.5.sp),
-                color = c.accent,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                listOfNotNull(formatDotDate(episode.pubDateMillis), formatDuration(episode.durationSeconds)?.upperCs()).joinToString("\n"),
-                style = DotType.label.copy(lineHeight = 17.sp),
-                color = c.textMuted
-            )
-        }
-    }
 
     Text(
         episode.title,
