@@ -17,3 +17,10 @@ suspend fun undoMarkPlayed(undo: PlayedUndo, episodes: EpisodeRepository, queue:
     episodes.setPlayed(undo.episodeId, played = false)
     undo.removedFromQueue?.let { queue.restore(it) }
 }
+
+/** Marks every unplayed episode of a podcast played and takes them out of the queue, like finishing them would. */
+suspend fun markAllPlayed(feedId: Long, episodes: EpisodeRepository, queue: QueueRepository) {
+    val ids = episodes.unplayedIdsForFeed(feedId)
+    episodes.markAllPlayed(feedId)
+    ids.forEach { queue.removeEpisode(it) }
+}

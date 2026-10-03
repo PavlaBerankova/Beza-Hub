@@ -40,6 +40,16 @@ interface EpisodeDao {
     @Query("UPDATE episodes SET playedAtMs = :playedAtMs, lastPositionMs = CASE WHEN :playedAtMs IS NULL THEN lastPositionMs ELSE 0 END WHERE id = :episodeId")
     suspend fun setPlayed(episodeId: Long, playedAtMs: Long?)
 
+    @Query("SELECT id FROM episodes WHERE feedId = :feedId AND playedAtMs IS NULL")
+    suspend fun unplayedIdsForFeed(feedId: Long): List<Long>
+
+    /** Marks every unplayed episode of the podcast played, restarting each from 0 like [setPlayed] does. */
+    @Query("UPDATE episodes SET playedAtMs = :playedAtMs, lastPositionMs = 0 WHERE feedId = :feedId AND playedAtMs IS NULL")
+    suspend fun markAllPlayed(feedId: Long, playedAtMs: Long)
+
+    @Query("UPDATE episodes SET playedAtMs = NULL WHERE feedId = :feedId AND playedAtMs IS NOT NULL")
+    suspend fun markAllUnplayed(feedId: Long)
+
     @Query("UPDATE episodes SET lastPositionMs = :positionMs WHERE id = :episodeId")
     suspend fun updatePosition(episodeId: Long, positionMs: Long)
 }

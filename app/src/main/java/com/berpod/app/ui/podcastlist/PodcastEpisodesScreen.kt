@@ -86,6 +86,9 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
     // The header carries its own action row; a compact bar with the title appears once it scrolls away.
     val showCompactBar by remember { derivedStateOf { listState.firstVisibleItemIndex > 0 } }
     val now = rememberNowMillis()
+    val visibleEpisodes = remember(uiState.episodes, uiState.episodeSort, uiState.episodeFilter) {
+        applyEpisodeView(uiState.episodes, uiState.episodeSort, uiState.episodeFilter)
+    }
     val frequency = remember(uiState.episodes) { publishingFrequency(uiState.episodes.map { it.pubDateMillis }) }
     val blockColor = rememberCoverTint(uiState.feedImageUrl)?.let(::headerBlockColor)
 
@@ -140,6 +143,9 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                         onEditRss = viewModel::onEditRss,
                         episodeCount = uiState.episodes.size,
                         frequency = frequency,
+                        sort = uiState.episodeSort,
+                        isFiltered = uiState.episodeFilter != EpisodeFilter.All,
+                        onViewClick = viewModel::onOpenViewSheet,
                         blockColor = blockColor
                     )
                 }
@@ -153,8 +159,18 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                             )
                         }
                     }
+                } else if (visibleEpisodes.isEmpty()) {
+                    item(key = "filtered-empty") {
+                        Column(modifier = Modifier.fillMaxWidth().padding(top = 48.dp)) {
+                            EmptyState(
+                                icon = DotIcons.Podcasts,
+                                title = stringResource(R.string.episodes_filtered_empty),
+                                subtitle = stringResource(R.string.episodes_filtered_empty_hint)
+                            )
+                        }
+                    }
                 } else {
-                    items(uiState.episodes, key = { it.id }) { episode ->
+                    items(visibleEpisodes, key = { it.id }) { episode ->
                         MarkPlayedSwipe(
                             onToggle = { viewModel.onTogglePlayed(episode) },
                             modifier = Modifier.padding(horizontal = 10.dp).clip(RoundedCornerShape(16.dp))
@@ -202,6 +218,23 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                     HorizontalDivider(color = c.divider)
                 }
             }
+        }
+
+        if (uiState.isViewSheetOpen) {
+            EpisodeViewSheet(
+                sort = uiState.episodeSort,
+                filter = uiState.episodeFilter,
+                hasUnplayed = uiState.episodes.any { it.playedAtMs == null },
+                hasPlayed = uiState.episodes.any { it.playedAtMs != null },
+                onSortChange = viewModel::onSortChange,
+                onFilterChange = viewModel::onFilterChange,
+                onMarkAllPlayed = { viewModel.onRequestMarkAll(true) },
+                onMarkAllUnplayed = { viewModel.onRequestMarkAll(false) },
+                onDismiss = viewModel::onDismissViewSheet
+            )
+        }
+        uiState.confirmMarkAllPlayed?.let { markPlayed ->
+            MarkAllDialog(markPlayed, onConfirm = viewModel::onConfirmMarkAll, onDismiss = viewModel::onCancelMarkAll)
         }
 
         if (uiState.isEditingRss) {

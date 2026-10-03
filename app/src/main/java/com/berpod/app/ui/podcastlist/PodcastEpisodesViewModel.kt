@@ -12,6 +12,7 @@ import com.berpod.app.data.repository.TagRepository
 import com.berpod.app.ui.common.PlayedUndo
 import com.berpod.app.ui.common.TagAssignmentController
 import com.berpod.app.ui.common.feedLookupMessage
+import com.berpod.app.ui.common.markAllPlayed
 import com.berpod.app.ui.common.markPlayed
 import com.berpod.app.ui.common.undoMarkPlayed
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,6 +29,11 @@ data class PodcastEpisodesUiState(
     val feedImageUrl: String? = null,
     val feedAuthor: String? = null,
     val feedRssUrl: String = "",
+    val episodeSort: EpisodeSort = EpisodeSort.NewestFirst,
+    val episodeFilter: EpisodeFilter = EpisodeFilter.All,
+    val isViewSheetOpen: Boolean = false,
+    /** Set while the "mark all" confirmation is up: true to mark played, false to mark unplayed. */
+    val confirmMarkAllPlayed: Boolean? = null,
     /** The edit-RSS dialog is open; [rssError] is why the last save was refused. */
     val isEditingRss: Boolean = false,
     val isSavingRss: Boolean = false,
@@ -112,6 +118,29 @@ class PodcastEpisodesViewModel(
                         it.copy(isRefreshing = false, snackbarMessage = error.message ?: "Aktualizace selhala")
                     }
                 }
+        }
+    }
+
+    fun onOpenViewSheet() = _uiState.update { it.copy(isViewSheetOpen = true) }
+
+    fun onDismissViewSheet() = _uiState.update { it.copy(isViewSheetOpen = false) }
+
+    fun onSortChange(sort: EpisodeSort) = _uiState.update { it.copy(episodeSort = sort) }
+
+    fun onFilterChange(filter: EpisodeFilter) = _uiState.update { it.copy(episodeFilter = filter) }
+
+    fun onRequestMarkAll(played: Boolean) = _uiState.update { it.copy(confirmMarkAllPlayed = played) }
+
+    fun onCancelMarkAll() = _uiState.update { it.copy(confirmMarkAllPlayed = null) }
+
+    fun onConfirmMarkAll() {
+        val played = _uiState.value.confirmMarkAllPlayed ?: return
+        _uiState.update { it.copy(confirmMarkAllPlayed = null, isViewSheetOpen = false) }
+        viewModelScope.launch {
+            if (played) markAllPlayed(feedId, episodeRepository, queueRepository) else episodeRepository.markAllUnplayed(feedId)
+            _uiState.update {
+                it.copy(snackbarMessage = if (played) "Všechny epizody označeny jako přehrané" else "Všechny epizody označeny jako nepřehrané")
+            }
         }
     }
 

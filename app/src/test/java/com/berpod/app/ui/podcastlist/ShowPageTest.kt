@@ -119,4 +119,23 @@ class ShowPageTest {
         assertNull(publishingFrequency(listOf(day(2026, 9, 25), day(2026, 9, 18)), zone))
         assertNull(publishingFrequency(listOf(day(2026, 9, 25), null, null, day(2026, 9, 11)), zone))
     }
+
+    private fun dated(id: Long, millis: Long?, played: Boolean = false) =
+        episode(id = id, feedId = 1).copy(pubDateMillis = millis, playedAtMs = if (played) 1L else null)
+
+    // Newest first, as the database returns them; 4 has no date and sorts last.
+    private val listed = listOf(dated(1, 300), dated(2, 200, played = true), dated(3, 100), dated(4, null))
+
+    @Test
+    fun `episode view keeps the order newest first and can reverse it`() {
+        assertEquals(listOf(1L, 2L, 3L, 4L), applyEpisodeView(listed, EpisodeSort.NewestFirst, EpisodeFilter.All).map { it.id })
+        assertEquals(listOf(3L, 2L, 1L, 4L), applyEpisodeView(listed, EpisodeSort.OldestFirst, EpisodeFilter.All).map { it.id })
+    }
+
+    @Test
+    fun `episode view filters played and unplayed`() {
+        assertEquals(listOf(1L, 3L, 4L), applyEpisodeView(listed, EpisodeSort.NewestFirst, EpisodeFilter.Unplayed).map { it.id })
+        assertEquals(listOf(2L), applyEpisodeView(listed, EpisodeSort.OldestFirst, EpisodeFilter.Played).map { it.id })
+        assertEquals(listOf(3L, 1L, 4L), applyEpisodeView(listed, EpisodeSort.OldestFirst, EpisodeFilter.Unplayed).map { it.id })
+    }
 }

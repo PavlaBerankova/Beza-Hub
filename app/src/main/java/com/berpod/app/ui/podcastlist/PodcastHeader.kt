@@ -18,7 +18,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Modifier
+import com.berpod.app.ui.dot.DotIcon
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.draw.clip
+import androidx.compose.material3.minimumInteractiveComponentSize
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -32,7 +41,6 @@ import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIconSpec
 import com.berpod.app.ui.dot.DotIcons
 import com.berpod.app.ui.dot.DotPrimaryButton
-import com.berpod.app.ui.dot.SectionSeparator
 import com.berpod.app.ui.dot.upperCs
 import com.berpod.app.ui.theme.DotTheme
 import com.berpod.app.ui.theme.LocalDotColors
@@ -86,6 +94,10 @@ fun PodcastHeader(
     episodeCount: Int,
     /** "každý pátek"…; null when it can't be told. */
     frequency: String?,
+    sort: EpisodeSort,
+    /** A played/unplayed filter is on; marked with a dot on the button. */
+    isFiltered: Boolean,
+    onViewClick: () -> Unit,
     /** The cover's block colour, once known; the header is then a solid block of it, behind the status bar too. */
     blockColor: Color?
 ) {
@@ -136,10 +148,52 @@ fun PodcastHeader(
     }
     }
     // Below the block, in the normal colours.
-    SectionSeparator(
-        czechCount(episodeCount, "epizoda", "epizody", "epizod"),
-        frequency ?: stringResource(R.string.section_newest),
-        modifier = Modifier.padding(horizontal = 20.dp).padding(top = 20.dp, bottom = 8.dp)
+    EpisodesRow(
+        text = listOfNotNull(czechCount(episodeCount, "epizoda", "epizody", "epizod"), frequency?.upperCs()).joinToString(" · "),
+        sortLabel = stringResource(sort.labelRes()),
+        isFiltered = isFiltered,
+        onClick = onViewClick,
+        modifier = Modifier.padding(horizontal = 20.dp).padding(top = 8.dp)
     )
+    }
+}
+
+/**
+ * "37 EPIZOD · KAŽDÝ PÁTEK ——— [NEJNOVĚJŠÍ ⌄]": the count and rhythm, and the button for sorting and filtering.
+ * The line runs behind both ends so the text takes the room it needs and is only cut when it really doesn't fit.
+ */
+@Composable
+private fun EpisodesRow(text: String, sortLabel: String, isFiltered: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val c = DotTheme.colors
+    val shape = RoundedCornerShape(10.dp)
+    Box(modifier = modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        HorizontalDivider(color = c.divider)
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(
+                text,
+                style = DotType.label,
+                color = c.textMuted,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false).background(c.background).padding(end = 10.dp)
+            )
+            Box(Modifier.background(c.background).padding(start = 10.dp)) {
+                Row(
+                    modifier = Modifier
+                        .minimumInteractiveComponentSize()
+                        .clip(shape)
+                        .border(1.dp, if (isFiltered) c.accent else c.outline, shape)
+                        .clickable(role = Role.Button, onClick = onClick)
+                        .padding(start = 10.dp, end = 6.dp)
+                        .height(32.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    if (isFiltered) Box(Modifier.size(7.dp).clip(RoundedCornerShape(1.dp)).background(c.accent))
+                    Text(sortLabel.upperCs(), style = DotType.label.copy(fontWeight = FontWeight.W700), color = c.text, maxLines = 1)
+                    DotIcon(DotIcons.CloseDown, 16.dp)
+                }
+            }
+        }
     }
 }

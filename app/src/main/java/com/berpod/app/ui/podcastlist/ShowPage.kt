@@ -106,3 +106,21 @@ fun publishingFrequency(pubDates: List<Long?>, zone: ZoneId = ZoneId.systemDefau
         else -> "nepravidelně"
     }
 }
+
+enum class EpisodeSort { NewestFirst, OldestFirst }
+enum class EpisodeFilter { All, Unplayed, Played }
+
+/**
+ * The episodes as the podcast page lists them. [episodes] comes newest first; undated ones always stay at the end,
+ * whichever way the list is sorted.
+ */
+fun applyEpisodeView(episodes: List<EpisodeEntity>, sort: EpisodeSort, filter: EpisodeFilter): List<EpisodeEntity> {
+    val shown = when (filter) {
+        EpisodeFilter.All -> episodes
+        EpisodeFilter.Unplayed -> episodes.filter { it.playedAtMs == null }
+        EpisodeFilter.Played -> episodes.filter { it.playedAtMs != null }
+    }
+    if (sort == EpisodeSort.NewestFirst) return shown
+    val (dated, undated) = shown.partition { it.pubDateMillis != null }
+    return dated.sortedBy { it.pubDateMillis } + undated
+}

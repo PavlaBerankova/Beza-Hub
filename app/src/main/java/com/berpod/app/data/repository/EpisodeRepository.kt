@@ -17,6 +17,12 @@ class EpisodeRepository(
     fun observeNewEpisodes(): Flow<List<EpisodeWithFeed>> = episodeDao.observeAllEpisodesWithFeed()
 
     /** Marks an episode played now, or clears the mark ([played] = false). */
+    suspend fun unplayedIdsForFeed(feedId: Long): List<Long> = episodeDao.unplayedIdsForFeed(feedId)
+
+    suspend fun markAllPlayed(feedId: Long) = episodeDao.markAllPlayed(feedId, System.currentTimeMillis())
+
+    suspend fun markAllUnplayed(feedId: Long) = episodeDao.markAllUnplayed(feedId)
+
     suspend fun setPlayed(episodeId: Long, played: Boolean) =
         episodeDao.setPlayed(episodeId, if (played) System.currentTimeMillis() else null)
 

@@ -180,4 +180,19 @@
     <string name="edit_rss_title">Upravit RSS adresu</string>
     <string name="edit_rss_label">RSS adresa</string>
     <string name="edit_rss_checking">Ověřuji…</string>
+    <string name="sort_oldest">Nejstarší</string>
+    <string name="filter_unplayed">Nepřehrané</string>
+    <string name="filter_played">Přehrané</string>
+    <string name="episodes_view_title">Řazení a filtr</string>
+    <string name="episodes_sort_label">Řazení</string>
+    <string name="episodes_show_label">Zobrazit</string>
+    <string name="episodes_filtered_empty">Žádné epizody neodpovídají filtru</string>
+    <string name="episodes_filtered_empty_hint">Změňte řazení nebo filtr</string>
+    <string name="action_mark_all_played">Označit všechny jako přehrané</string>
+    <string name="action_mark_all_unplayed">Označit všechny jako nepřehrané</string>
+    <string name="mark_all_played_title">Označit všechny jako přehrané?</string>
+    <string name="mark_all_played_message">Epizody se odstraní z fronty a jejich rozposlechnutý postup se vynuluje.</string>
+    <string name="mark_all_unplayed_title">Označit všechny jako nepřehrané?</string>
+    <string name="mark_all_unplayed_message">Všechny epizody se vrátí mezi nepřehrané.</string>
+    <string name="action_confirm_mark">Označit</string>
 </resources>
