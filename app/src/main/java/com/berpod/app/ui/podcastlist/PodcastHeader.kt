@@ -95,6 +95,7 @@ fun PodcastHeader(
     /** "každý pátek"…; null when it can't be told. */
     frequency: String?,
     sort: EpisodeSort,
+    filter: EpisodeFilter,
     /** A played/unplayed filter is on; marked with a dot on the button. */
     isFiltered: Boolean,
     onViewClick: () -> Unit,
@@ -142,6 +143,14 @@ fun PodcastHeader(
                         overflow = TextOverflow.Ellipsis
                     )
                 }
+                // "37 EPIZOD · KAŽDÝ PÁTEK"
+                Text(
+                    listOfNotNull(czechCount(episodeCount, "epizoda", "epizody", "epizod"), frequency?.upperCs()).joinToString(" · "),
+                    style = DotType.label.copy(letterSpacing = 1.5.sp),
+                    color = c.textMuted,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
         if (playButton != null) DotPrimaryButton(playButton.label, playButton.icon, playButton.onClick)
@@ -149,7 +158,7 @@ fun PodcastHeader(
     }
     // Below the block, in the normal colours.
     EpisodesRow(
-        text = listOfNotNull(czechCount(episodeCount, "epizoda", "epizody", "epizod"), frequency?.upperCs()).joinToString(" · "),
+        text = stringResource(filter.shownRes()).upperCs(),
         sortLabel = stringResource(sort.labelRes()),
         isFiltered = isFiltered,
         onClick = onViewClick,
@@ -159,7 +168,7 @@ fun PodcastHeader(
 }
 
 /**
- * "37 EPIZOD · KAŽDÝ PÁTEK ——— [NEJNOVĚJŠÍ ⌄]": the count and rhythm, and the button for sorting and filtering.
+ * "VŠECHNY EPIZODY ——— [NEJNOVĚJŠÍ ⌄]": what is listed, and the button for sorting and filtering.
  * The line runs behind both ends so the text takes the room it needs and is only cut when it really doesn't fit.
  */
 @Composable

@@ -144,6 +144,7 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                         episodeCount = uiState.episodes.size,
                         frequency = frequency,
                         sort = uiState.episodeSort,
+                        filter = uiState.episodeFilter,
                         isFiltered = uiState.episodeFilter != EpisodeFilter.All,
                         onViewClick = viewModel::onOpenViewSheet,
                         blockColor = blockColor

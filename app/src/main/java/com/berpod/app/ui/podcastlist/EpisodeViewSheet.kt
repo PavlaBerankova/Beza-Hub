@@ -29,7 +29,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.berpod.app.R
@@ -43,6 +42,13 @@ import com.berpod.app.ui.theme.DotType
 fun EpisodeSort.labelRes(): Int = when (this) {
     EpisodeSort.NewestFirst -> R.string.section_newest
     EpisodeSort.OldestFirst -> R.string.sort_oldest
+}
+
+/** What the list under the header currently shows, for the label beside the sort button. */
+fun EpisodeFilter.shownRes(): Int = when (this) {
+    EpisodeFilter.All -> R.string.shown_all
+    EpisodeFilter.Unplayed -> R.string.shown_unplayed
+    EpisodeFilter.Played -> R.string.shown_played
 }
 
 fun EpisodeFilter.labelRes(): Int = when (this) {
@@ -94,9 +100,9 @@ fun EpisodeViewSheet(
             SheetSection(stringResource(R.string.episodes_show_label)) {
                 EpisodeFilter.entries.forEach { DotChip(stringResource(it.labelRes()), selected = filter == it, onClick = { onFilterChange(it) }) }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                SheetAction(stringResource(R.string.action_mark_all_played), enabled = hasUnplayed, onClick = onMarkAllPlayed, modifier = Modifier.weight(1f))
-                SheetAction(stringResource(R.string.action_mark_all_unplayed), enabled = hasPlayed, onClick = onMarkAllUnplayed, modifier = Modifier.weight(1f))
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                SheetAction(stringResource(R.string.action_mark_all_played), enabled = hasUnplayed, onClick = onMarkAllPlayed, modifier = Modifier.fillMaxWidth())
+                SheetAction(stringResource(R.string.action_mark_all_unplayed), enabled = hasPlayed, onClick = onMarkAllUnplayed, modifier = Modifier.fillMaxWidth())
             }
         }
     }
@@ -123,10 +129,10 @@ private fun SheetAction(label: String, enabled: Boolean, onClick: () -> Unit, mo
             .clip(shape)
             .border(1.dp, c.outline, shape)
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        contentAlignment = Alignment.Center
+            .padding(horizontal = 16.dp),
+        contentAlignment = Alignment.CenterStart
     ) {
-        Text(label.upperCs(), style = DotType.button.copy(fontSize = 12.sp, letterSpacing = 0.8.sp), color = c.text, textAlign = TextAlign.Center)
+        Text(label.upperCs(), style = DotType.button.copy(fontSize = 13.sp, letterSpacing = 1.sp), color = c.text)
     }
 }
 
