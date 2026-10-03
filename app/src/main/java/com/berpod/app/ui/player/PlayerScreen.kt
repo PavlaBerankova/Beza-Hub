@@ -326,7 +326,7 @@ private fun PlayerContent(viewModel: PlayerViewModel, onBack: () -> Unit, onOpen
                 var detailOpen by remember { mutableStateOf(false) }
                 val scope = rememberCoroutineScope()
                 OptionButton(
-                    DotIcons.Podcasts,
+                    DotIcons.Info,
                     null,
                     active = false,
                     onClick = { detailOpen = true },

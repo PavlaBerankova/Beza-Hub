@@ -67,6 +67,12 @@ object DotIcons {
         IconPart("M4 16h6", IconRole.Muted, 2.4f),
         px(14f, 13.5f, 1.9f), px(16.2f, 15.6f, 1.9f), px(14f, 17.7f, 1.9f)
     ))
+    /** "i" in a circle: details of what is playing. */
+    val Info = DotIconSpec(24f, 24f, listOf(
+        IconPart(circle(12f, 12f, 9f), IconRole.Primary, 2.3f),
+        IconPart("M12 11v6", IconRole.Primary, 2.4f),
+        px(11f, 6.6f, 2.2f)
+    ))
     val Share = DotIconSpec(24f, 24f, listOf(
         IconPart("M12 4v10M8 7.5L12 4l4 3.5", IconRole.Primary, 2.4f),
         IconPart("M6 12v6.5A1.5 1.5 0 0 0 7.5 20h9a1.5 1.5 0 0 0 1.5-1.5V12", IconRole.Muted, 2.4f),
