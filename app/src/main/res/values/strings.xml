@@ -33,7 +33,7 @@
     <string name="action_play">Přehrát</string>
     <string name="action_pause">Pozastavit</string>
 
-    <string name="filter_all">Všechny</string>
+    <string name="filter_all">Vše</string>
     <string name="tag_filter_empty">Žádné podcasty s tímto štítkem</string>
     <string name="tag_filter_empty_subtitle">Štítek přiřadíte dlouhým stiskem obálky</string>
     <string name="tag_name_label">Název štítku</string>
@@ -47,7 +47,7 @@
     <string name="action_delete_tag">Smazat štítek %1$s</string>
     <string name="delete_tag_message">Štítek „%1$s“ zmizí u všech podcastů. Podcasty zůstanou.</string>
     <string name="queue_tag_filter_empty">Ve frontě nejsou epizody s tímto štítkem</string>
-    <string name="queue_tag_filter_empty_subtitle">Vyberte jiný štítek nebo Všechny</string>
+    <string name="queue_tag_filter_empty_subtitle">Vyberte jiný štítek nebo Vše</string>
     <string name="queue_removed">Odebráno z fronty</string>
     <string name="action_undo">Zpět</string>
     <string name="action_resume">Pokračovat</string>
@@ -180,7 +180,7 @@
     <string name="edit_rss_title">Upravit RSS adresu</string>
     <string name="edit_rss_label">RSS adresa</string>
     <string name="edit_rss_checking">Ověřuji…</string>
-    <string name="shown_all">Vše</string>
+    <string name="shown_all">Všechny epizody</string>
     <string name="shown_unplayed">Nepřehrané</string>
     <string name="shown_played">Přehrané</string>
     <string name="filter_everything">Vše</string>
