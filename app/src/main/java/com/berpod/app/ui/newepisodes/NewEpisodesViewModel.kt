@@ -15,12 +15,14 @@ import com.berpod.app.ui.common.markPlayed
 import com.berpod.app.ui.common.resolveSelectedTagId
 import com.berpod.app.ui.common.undoMarkPlayed
 import com.berpod.app.ui.podcastlist.EpisodeSort
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -81,6 +83,8 @@ class NewEpisodesViewModel(
             val inPeriod = filterByPeriod(filterByPodcastIds(episodes, podcastIds) { it.episode.feedId }, selectedPeriod, now) { it.episode.pubDateMillis }
             episodes to sortByPublished(inPeriod, selectedSort == EpisodeSort.OldestFirst) { it.episode.pubDateMillis }
         }
+            // Filtering and sorting thousands of episodes happens off the main thread.
+            .flowOn(Dispatchers.Default)
             .onEach { (all, visible) -> _uiState.update { it.copy(episodes = visible, hasAnyEpisodes = all.isNotEmpty()) } }
             .launchIn(viewModelScope)
         tagRepository.observeTagsInUse()

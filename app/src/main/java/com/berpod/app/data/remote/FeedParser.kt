@@ -2,6 +2,8 @@ package com.berpod.app.data.remote
 
 import com.prof18.rssparser.RssParser
 import com.prof18.rssparser.model.RssItem
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
@@ -59,6 +61,11 @@ class FeedParser(
 
     override suspend fun fetchAndParse(url: String): ParsedFeedMeta {
         val document = documentLoader.resolve(url)
+        // Parsing a feed of thousands of episodes is real work: keep it off the main thread.
+        return withContext(Dispatchers.Default) { toParsedMeta(document) }
+    }
+
+    private suspend fun toParsedMeta(document: FeedDocument): ParsedFeedMeta {
         val channel = rssParser.parse(document.text)
         val title = channel.title?.takeIf { it.isNotBlank() } ?: document.url
         val imageUrl = channel.image?.url ?: channel.itunesChannelData?.image

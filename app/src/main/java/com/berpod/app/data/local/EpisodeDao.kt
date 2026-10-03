@@ -6,6 +6,15 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 
+/**
+ * What counts as "new" for a podcast: episodes published up to a week before it was added, plus anything that
+ * arrives later. Its older back catalogue stays out of Nové (it is all in the podcast's own page).
+ */
+private const val NEW_GRACE_MS = 7L * 24 * 60 * 60 * 1000
+
+/** Undated episodes fetched by the first sync right after adding count as back catalogue, not as new. */
+private const val FIRST_SYNC_MS = 60_000L
+
 @Dao
 interface EpisodeDao {
 
@@ -18,6 +27,10 @@ interface EpisodeDao {
         FROM episodes
         INNER JOIN podcast_feeds ON podcast_feeds.id = episodes.feedId
         WHERE episodes.playedAtMs IS NULL
+          AND (
+            episodes.pubDateMillis >= podcast_feeds.dateAdded - $NEW_GRACE_MS
+            OR (episodes.pubDateMillis IS NULL AND episodes.dateFetched > podcast_feeds.dateAdded + $FIRST_SYNC_MS)
+          )
         ORDER BY episodes.pubDateMillis IS NULL, episodes.pubDateMillis DESC
         """
     )
