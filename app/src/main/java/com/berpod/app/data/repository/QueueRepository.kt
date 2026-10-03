@@ -26,6 +26,10 @@ class QueueRepository(private val queueDao: QueueDao) {
     suspend fun moveEntry(movedId: Long, afterId: Long?, beforeId: Long?) =
         queueDao.moveEntry(movedId, afterId, beforeId)
 
+    suspend fun orderedEntryIds(): List<Long> = queueDao.getOrderedIds()
+
+    suspend fun applyOrder(entryIds: List<Long>) = queueDao.applyOrder(entryIds)
+
     suspend fun queueAtFront(episodeId: Long) = queueDao.queueAtFront(episodeId)
 
     suspend fun removeEpisode(episodeId: Long): RemovedQueueEntry? = queueDao.removeEpisode(episodeId)

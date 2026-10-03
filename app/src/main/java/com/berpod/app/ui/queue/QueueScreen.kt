@@ -57,7 +57,15 @@ import com.berpod.app.ui.common.EmptyState
 import com.berpod.app.ui.common.MarkPlayedBackground
 import com.berpod.app.ui.common.TagChipRow
 import com.berpod.app.ui.dot.DotIcons
-import com.berpod.app.ui.dot.SectionSeparator
+import com.berpod.app.ui.theme.DotType
+import com.berpod.app.ui.dot.upperCs
+import com.berpod.app.ui.dot.DotFilterButton
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.material3.Text
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Arrangement
 import com.berpod.app.ui.theme.DotTheme
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -88,6 +96,13 @@ fun QueueScreen(viewModelFactory: ViewModelProvider.Factory, onEpisodeClick: (Lo
         if (result == SnackbarResult.ActionPerformed) viewModel.onUndoMarkPlayed() else viewModel.onPlayedMessageDismissed()
     }
 
+    val sortedMessage = stringResource(R.string.queue_sorted)
+    LaunchedEffect(uiState.sortUndo) {
+        if (uiState.sortUndo == null) return@LaunchedEffect
+        val result = snackbarHostState.showSnackbar(sortedMessage, actionLabel = undoLabel, duration = SnackbarDuration.Long)
+        if (result == SnackbarResult.ActionPerformed) viewModel.onUndoSort() else viewModel.onSortMessageDismissed()
+    }
+
     Scaffold(
         // Embedded in the Podcasts tab, which draws the title and the section switcher.
         contentWindowInsets = WindowInsets(0),
@@ -103,9 +118,10 @@ fun QueueScreen(viewModelFactory: ViewModelProvider.Factory, onEpisodeClick: (Lo
                 )
             }
             if (uiState.visibleItems.isNotEmpty()) {
-                SectionSeparator(
-                    left = episodeCountText(uiState.visibleItems.size),
-                    right = queueTotalText(uiState.visibleItems)?.let { stringResource(R.string.queue_total, it) },
+                QueueInfoRow(
+                    text = queueSummary(uiState.visibleItems).orEmpty(),
+                    order = queueOrderOf(uiState.items),
+                    onClick = viewModel::onOpenSortSheet,
                     modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 8.dp)
                 )
             }
@@ -122,6 +138,10 @@ fun QueueScreen(viewModelFactory: ViewModelProvider.Factory, onEpisodeClick: (Lo
                 )
                 else -> ReorderableQueueList(uiState = uiState, viewModel = viewModel, onEpisodeClick = onEpisodeClick)
             }
+        }
+
+        if (uiState.isSortSheetOpen) {
+            QueueSortSheet(order = queueOrderOf(uiState.items), onSort = viewModel::onSortQueue, onDismiss = viewModel::onDismissSortSheet)
         }
     }
 }
@@ -250,4 +270,32 @@ private fun QueueRow(item: QueueItemWithEpisode, uiState: QueueUiState, viewMode
         onPlayOrPause = { viewModel.onPlayOrPause(item) },
         onClick = onClick
     )
+}
+
+/** "3 EPIZODY · CELKEM 2 H 28 MIN ——— [NEJNOVĚJŠÍ ⌄]": the queue's size and listening time, and its sort button. */
+@Composable
+private fun QueueInfoRow(text: String, order: QueueOrder, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val c = DotTheme.colors
+    val label = when (order) {
+        QueueOrder.NewestFirst -> stringResource(R.string.section_newest)
+        QueueOrder.OldestFirst -> stringResource(R.string.sort_oldest)
+        QueueOrder.Custom -> stringResource(R.string.queue_order_custom)
+    }
+    // The line runs behind both ends so the text takes the room it needs and is only cut when it really doesn't fit.
+    Box(modifier = modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        HorizontalDivider(color = c.divider)
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(
+                text.upperCs(),
+                style = DotType.label,
+                color = c.textMuted,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false).background(c.background).padding(end = 10.dp)
+            )
+            Box(Modifier.background(c.background).padding(start = 10.dp)) {
+                DotFilterButton(label, highlighted = false, onClick = onClick)
+            }
+        }
+    }
 }

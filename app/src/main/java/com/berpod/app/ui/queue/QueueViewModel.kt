@@ -41,7 +41,10 @@ data class QueueUiState(
     /** The last swiped-away entry, while its "Zpět" snackbar can still restore it. */
     val removedEntry: RemovedQueueEntry? = null,
     /** The last episode swiped to "played", while its "Zpět" snackbar can still undo it. */
-    val playedUndo: PlayedUndo? = null
+    val playedUndo: PlayedUndo? = null,
+    val isSortSheetOpen: Boolean = false,
+    /** The queue order before the last "Nejnovější/Nejstarší", while its "Zpět" snackbar can still restore it. */
+    val sortUndo: List<Long>? = null
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -88,6 +91,29 @@ class QueueViewModel(
         queueFilterRepository.select(tagId)
         _uiState.update { it.copy(selectedTagId = tagId) }
     }
+
+    fun onOpenSortSheet() = _uiState.update { it.copy(isSortSheetOpen = true) }
+
+    fun onDismissSortSheet() = _uiState.update { it.copy(isSortSheetOpen = false) }
+
+    /** Re-orders the whole queue (playback follows the queue) and keeps the old order for "Zpět". */
+    fun onSortQueue(oldestFirst: Boolean) {
+        val items = _uiState.value.items
+        _uiState.update { it.copy(isSortSheetOpen = false) }
+        viewModelScope.launch {
+            val before = repository.orderedEntryIds()
+            repository.applyOrder(sortedQueueEntryIds(items, oldestFirst))
+            if (repository.orderedEntryIds() != before) _uiState.update { it.copy(sortUndo = before) }
+        }
+    }
+
+    fun onUndoSort() {
+        val before = _uiState.value.sortUndo ?: return
+        _uiState.update { it.copy(sortUndo = null) }
+        viewModelScope.launch { repository.applyOrder(before) }
+    }
+
+    fun onSortMessageDismissed() = _uiState.update { it.copy(sortUndo = null) }
 
     fun onMoveEntry(movedId: Long, afterId: Long?, beforeId: Long?) {
         viewModelScope.launch { repository.moveEntry(movedId, afterId, beforeId) }

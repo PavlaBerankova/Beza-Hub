@@ -58,6 +58,19 @@ interface QueueDao {
         reordered.forEachIndexed { index, id -> updatePosition(id, index) }
     }
 
+    /**
+     * Puts the queue in [preferred] order. Entries that are no longer queued are skipped and entries that
+     * aren't named keep their relative order at the end, so a stale list can't corrupt the positions.
+     */
+    @Transaction
+    suspend fun applyOrder(preferred: List<Long>) {
+        val current = getOrderedIds()
+        val present = current.toSet()
+        val final = preferred.filter { it in present }.distinct().let { named -> named + current.filter { it !in named.toSet() } }
+        if (final == current) return
+        final.forEachIndexed { index, id -> updatePosition(id, index) }
+    }
+
     /** Deletes the entry and returns what [restoreEntry] needs to put it back, or null if it's gone. */
     @Transaction
     suspend fun removeEntry(queueEntryId: Long): RemovedQueueEntry? {
