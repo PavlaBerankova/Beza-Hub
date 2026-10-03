@@ -37,6 +37,7 @@ data class NewEpisodesUiState(
     val tags: List<TagEntity> = emptyList(),
     /** null = "Všechny". */
     val selectedTagId: Long? = null,
+    val period: NewPeriod = NewPeriod.All,
     val isRefreshing: Boolean = false,
     val snackbarMessage: String? = null,
     /** Set right after swiping an episode to played, while "Zpět" can undo it. */
@@ -56,6 +57,7 @@ class NewEpisodesViewModel(
 ) : ViewModel() {
 
     private val selectedTagId = MutableStateFlow<Long?>(null)
+    private val period = MutableStateFlow(NewPeriod.All)
 
     private val _uiState = MutableStateFlow(NewEpisodesUiState())
     val uiState: StateFlow<NewEpisodesUiState> = _uiState.asStateFlow()
@@ -64,8 +66,14 @@ class NewEpisodesViewModel(
         val taggedPodcastIds = selectedTagId.flatMapLatest { tagId ->
             if (tagId == null) flowOf(null) else tagRepository.observePodcastIdsWithTag(tagId).map { it.toSet() }
         }
-        combine(episodeRepository.observeNewEpisodes(), taggedPodcastIds) { episodes, podcastIds ->
-            episodes to filterByPodcastIds(episodes, podcastIds) { it.episode.feedId }
+        // An episode that is in the queue is no longer "new": it has been picked, and leaves again if it is taken out unplayed.
+        val notQueued = combine(episodeRepository.observeNewEpisodes(), queueRepository.observeQueuedEpisodeIds()) { episodes, queued ->
+            episodes.filter { it.episode.id !in queued }
+        }
+        combine(notQueued, taggedPodcastIds, period) { episodes, podcastIds, selectedPeriod ->
+            val now = System.currentTimeMillis()
+            val visible = filterByPeriod(filterByPodcastIds(episodes, podcastIds) { it.episode.feedId }, selectedPeriod, now) { it.episode.pubDateMillis }
+            episodes to visible
         }
             .onEach { (all, visible) -> _uiState.update { it.copy(episodes = visible, hasAnyEpisodes = all.isNotEmpty()) } }
             .launchIn(viewModelScope)
@@ -116,6 +124,11 @@ class NewEpisodesViewModel(
     fun onSelectTag(tagId: Long?) {
         selectedTagId.value = tagId
         _uiState.update { it.copy(selectedTagId = tagId) }
+    }
+
+    fun onSelectPeriod(newPeriod: NewPeriod) {
+        period.value = newPeriod
+        _uiState.update { it.copy(period = newPeriod) }
     }
 
     fun onRefresh() {

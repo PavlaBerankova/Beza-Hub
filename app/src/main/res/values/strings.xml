@@ -199,4 +199,16 @@
     <string name="mark_all_unplayed_title">Označit vše jako nepřehrané?</string>
     <string name="mark_all_unplayed_message">Všechny epizody se vrátí mezi nepřehrané.</string>
     <string name="action_confirm_mark">Označit</string>
+    <string name="period_all">Vše</string>
+    <string name="period_today">Dnes</string>
+    <string name="period_week">Týden</string>
+    <string name="period_two_weeks">14 dní</string>
+    <string name="period_month">Měsíc</string>
+    <string name="new_period_all_title">Všechny nové</string>
+    <string name="new_period_today_title">Dnešní nové</string>
+    <string name="new_period_week_title">Za posledních 7 dní</string>
+    <string name="new_period_two_weeks_title">Za posledních 14 dní</string>
+    <string name="new_period_month_title">Za poslední měsíc</string>
+    <string name="new_episodes_period_empty">V tomto období nejsou žádné nové epizody</string>
+    <string name="new_episodes_period_empty_hint">Zvolte delší období</string>
 </resources>

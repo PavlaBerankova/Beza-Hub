@@ -25,6 +25,20 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.berpod.app.ui.theme.DotType
+import com.berpod.app.ui.dot.upperCs
+import com.berpod.app.ui.dot.DotFilterButton
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.Alignment
+import androidx.compose.material3.Text
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -37,7 +51,6 @@ import com.berpod.app.ui.common.MarkPlayedSwipe
 import com.berpod.app.ui.common.AddToQueueButton
 import com.berpod.app.ui.common.TagChipRow
 import com.berpod.app.ui.dot.DotIcons
-import com.berpod.app.ui.dot.SectionSeparator
 import com.berpod.app.ui.theme.DotTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -87,11 +100,10 @@ fun NewEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onEpisodeClic
     ) { paddingValues ->
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
             if (uiState.hasAnyEpisodes) {
-                SectionSeparator(
-                    stringResource(R.string.section_today),
-                    stringResource(R.string.section_newest),
-                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 16.dp),
-                    leadingSquare = true
+                PeriodRow(
+                    period = uiState.period,
+                    onSelect = viewModel::onSelectPeriod,
+                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 8.dp)
                 )
             }
             if (uiState.tags.isNotEmpty()) {
@@ -102,6 +114,11 @@ fun NewEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onEpisodeClic
                     icon = DotIcons.Refresh,
                     title = stringResource(R.string.new_episodes_empty),
                     subtitle = stringResource(R.string.action_refresh)
+                )
+                uiState.episodes.isEmpty() && uiState.period != NewPeriod.All -> EmptyState(
+                    icon = DotIcons.Refresh,
+                    title = stringResource(R.string.new_episodes_period_empty),
+                    subtitle = stringResource(R.string.new_episodes_period_empty_hint)
                 )
                 uiState.episodes.isEmpty() -> EmptyState(
                     icon = DotIcons.Tag,
@@ -129,6 +146,48 @@ fun NewEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onEpisodeClic
                             }
                         }
                     }
+                }
+            }
+        }
+    }
+}
+
+private fun NewPeriod.shortRes() = when (this) {
+    NewPeriod.All -> R.string.period_all
+    NewPeriod.Today -> R.string.period_today
+    NewPeriod.Week -> R.string.period_week
+    NewPeriod.TwoWeeks -> R.string.period_two_weeks
+    NewPeriod.Month -> R.string.period_month
+}
+
+private fun NewPeriod.titleRes() = when (this) {
+    NewPeriod.All -> R.string.new_period_all_title
+    NewPeriod.Today -> R.string.new_period_today_title
+    NewPeriod.Week -> R.string.new_period_week_title
+    NewPeriod.TwoWeeks -> R.string.new_period_two_weeks_title
+    NewPeriod.Month -> R.string.new_period_month_title
+}
+
+/** "VŠECHNY NOVÉ ——— [VŠE ⌄]": what is listed and the menu that narrows it to recent episodes. */
+@Composable
+private fun PeriodRow(period: NewPeriod, onSelect: (NewPeriod) -> Unit, modifier: Modifier = Modifier) {
+    val c = DotTheme.colors
+    var isOpen by remember { mutableStateOf(false) }
+    Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Box(Modifier.size(7.dp).clip(RoundedCornerShape(1.dp)).background(c.accent))
+        Text(stringResource(period.titleRes()).upperCs(), style = DotType.label, color = c.textMuted, maxLines = 1)
+        HorizontalDivider(modifier = Modifier.weight(1f), color = c.divider)
+        Box {
+            DotFilterButton(stringResource(period.shortRes()), highlighted = period != NewPeriod.All, onClick = { isOpen = true })
+            DropdownMenu(expanded = isOpen, onDismissRequest = { isOpen = false }) {
+                NewPeriod.entries.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(stringResource(option.shortRes()), fontWeight = if (option == period) FontWeight.Bold else FontWeight.Normal) },
+                        onClick = {
+                            isOpen = false
+                            onSelect(option)
+                        }
+                    )
                 }
             }
         }

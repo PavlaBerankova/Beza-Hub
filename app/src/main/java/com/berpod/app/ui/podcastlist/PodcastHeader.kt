@@ -20,7 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Modifier
-import com.berpod.app.ui.dot.DotIcon
+import com.berpod.app.ui.dot.DotFilterButton
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.draw.clip
 import androidx.compose.material3.minimumInteractiveComponentSize
@@ -188,21 +188,7 @@ private fun EpisodesRow(text: String, sortLabel: String, isFiltered: Boolean, on
                 modifier = Modifier.weight(1f, fill = false).background(c.background).padding(end = 10.dp)
             )
             Box(Modifier.background(c.background).padding(start = 10.dp)) {
-                Row(
-                    modifier = Modifier
-                        .minimumInteractiveComponentSize()
-                        .clip(shape)
-                        .border(1.dp, if (isFiltered) c.accent else c.outline, shape)
-                        .clickable(role = Role.Button, onClick = onClick)
-                        .padding(start = 10.dp, end = 6.dp)
-                        .height(32.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    if (isFiltered) Box(Modifier.size(7.dp).clip(RoundedCornerShape(1.dp)).background(c.accent))
-                    Text(sortLabel.upperCs(), style = DotType.label.copy(fontWeight = FontWeight.W700), color = c.text, maxLines = 1)
-                    DotIcon(DotIcons.CloseDown, 16.dp)
-                }
+                DotFilterButton(sortLabel, highlighted = isFiltered, onClick = onClick)
             }
         }
     }
