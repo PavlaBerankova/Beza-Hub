@@ -58,12 +58,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.runtime.mutableFloatStateOf
 import com.berpod.app.ui.theme.DotColors
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.draw.drawBehind
 import com.berpod.app.ui.theme.LocalDotColors
 import com.berpod.app.ui.podcastlist.rememberCoverTint
@@ -125,9 +128,14 @@ private fun PlayerContent(viewModel: PlayerViewModel, onBack: () -> Unit, onOpen
     val state by viewModel.uiState.collectAsState()
     val c = DotTheme.colors
     val t = headerColors ?: c
-    // Where the podcast's name ends: the colour fades out just below it, so the title and name sit on the colour
+    // Where the podcast's name ends: the colour stops just below it, so the title and name sit on the colour
     // and the wave starts on the normal background, whatever the title's length.
     var colourEndPx by remember { mutableFloatStateOf(0f) }
+    // Spare height on a tall screen is put between the coloured top and the wave, which moves the rest down.
+    val density = LocalDensity.current
+    val scroll = rememberScrollState()
+    var gapPx by remember { mutableFloatStateOf(0f) }
+    var screenHeightPx by remember { mutableFloatStateOf(0f) }
     var draggingFraction by remember { mutableStateOf<Float?>(null) }
     val known = state.durationMs > 0L
     val duration = state.durationMs.coerceAtLeast(1L)
@@ -138,25 +146,22 @@ private fun PlayerContent(viewModel: PlayerViewModel, onBack: () -> Unit, onOpen
     val ringStep = (fraction * 56).toInt()
     val ring = remember(ringStep) { ringDots(56, center = 140f, radius = 132f, fraction = ringStep / 56f + 0.0001f) }
 
+    val navBarPx = WindowInsets.navigationBars.getBottom(density)
     Column(
         Modifier
             .fillMaxSize()
+            .onSizeChanged { screenHeightPx = it.height.toFloat() }
             .background(c.background)
             .drawBehind {
                 if (block != null && colourEndPx > 0f) {
-                    // Solid to the bottom of the podcast's name, then a short fade that is over before the wave.
-                    val fade = 20.dp.toPx()
-                    val end = colourEndPx + fade
-                    drawRect(
-                        brush = Brush.verticalGradient(0f to block, (end - fade) / end to block, 1f to block.copy(alpha = 0f), startY = 0f, endY = end),
-                        size = androidx.compose.ui.geometry.Size(size.width, end)
-                    )
+                    // A sharp edge a little below the podcast's name, like the podcast page's header.
+                    drawRect(color = block, size = androidx.compose.ui.geometry.Size(size.width, colourEndPx + 22.dp.toPx()))
                 }
             }
             .statusBarsPadding()
             .navigationBarsPadding()
             // Scrolls on small screens or with large text so the play button stays reachable.
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scroll)
             .padding(horizontal = 20.dp)
             .padding(top = 16.dp, bottom = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -200,6 +205,7 @@ private fun PlayerContent(viewModel: PlayerViewModel, onBack: () -> Unit, onOpen
         Text(state.title, style = DotType.title.copy(fontSize = 20.sp), color = t.text, maxLines = 3, overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(top = 18.dp))
         Text(state.podcastTitle.upperCs(), style = DotType.chip.copy(letterSpacing = 2.sp), color = t.textMuted, modifier = Modifier.padding(top = 6.dp).onGloballyPositioned { colourEndPx = it.positionInRoot().y + it.size.height })
+        Spacer(Modifier.height(with(density) { gapPx.toDp() }))
         val seekLabel = stringResource(R.string.action_seek)
         Canvas(
             Modifier
@@ -264,7 +270,17 @@ private fun PlayerContent(viewModel: PlayerViewModel, onBack: () -> Unit, onOpen
             TransportButton(DotIcons.Next, stringResource(R.string.action_next), enabled = state.hasNext, onClick = viewModel::playNext)
             SkipButton(DotIcons.Forward30, "30", stringResource(R.string.action_forward_30), viewModel::skipForward)
         }
-        Row(Modifier.fillMaxWidth().padding(top = 18.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            Modifier.fillMaxWidth().padding(top = 18.dp).onGloballyPositioned { coords ->
+                // Not while the screen is scrolled: positions are then shifted and would change the gap.
+                if (scroll.value == 0 && screenHeightPx > 0f) {
+                    val optionsBottom = coords.positionInRoot().y + coords.size.height
+                    val free = screenHeightPx - navBarPx - with(density) { 24.dp.toPx() } - (optionsBottom - gapPx)
+                    gapPx = (free * 0.7f).coerceAtLeast(0f)
+                }
+            },
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             OptionButton(
                 icon = DotIcons.Speed,
                 label = formatSpeed(state.speed),
