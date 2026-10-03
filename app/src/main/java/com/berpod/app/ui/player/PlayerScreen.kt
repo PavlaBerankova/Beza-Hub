@@ -130,10 +130,10 @@ private fun PlayerContent(viewModel: PlayerViewModel, onBack: () -> Unit, onOpen
     val state by viewModel.uiState.collectAsState()
     val c = DotTheme.colors
     val t = headerColors ?: c
-    // Where the podcast's name ends: the colour stops just below it, so the title and name sit on the colour
-    // and the wave starts on the normal background, whatever the title's length.
+    // Where the times under the wave end: the colour stops just below them, so the title, name, wave and times
+    // sit on the colour and the controls on the normal background, whatever the title's length.
     var colourEndPx by remember { mutableFloatStateOf(0f) }
-    // Spare height on a tall screen is put between the coloured top and the wave, which moves the rest down.
+    // Spare height on a tall screen is put between the coloured block and the controls.
     val density = LocalDensity.current
     val scroll = rememberScrollState()
     var gapPx by remember { mutableFloatStateOf(0f) }
@@ -156,7 +156,7 @@ private fun PlayerContent(viewModel: PlayerViewModel, onBack: () -> Unit, onOpen
             .background(c.background)
             .drawBehind {
                 if (block != null && colourEndPx > 0f) {
-                    // A sharp edge a little below the podcast's name, like the podcast page's header.
+                    // A sharp edge a little below the times, like the podcast page's header.
                     drawRect(color = block, size = androidx.compose.ui.geometry.Size(size.width, colourEndPx + 22.dp.toPx()))
                 }
             }
@@ -206,8 +206,7 @@ private fun PlayerContent(viewModel: PlayerViewModel, onBack: () -> Unit, onOpen
         }
         Text(state.title, style = DotType.title.copy(fontSize = 20.sp), color = t.text, maxLines = 3, overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(top = 18.dp))
-        Text(state.podcastTitle.upperCs(), style = DotType.chip.copy(letterSpacing = 2.sp), color = t.textMuted, modifier = Modifier.padding(top = 6.dp).onGloballyPositioned { colourEndPx = it.positionInRoot().y + it.size.height })
-        Spacer(Modifier.height(with(density) { gapPx.toDp() }))
+        Text(state.podcastTitle.upperCs(), style = DotType.chip.copy(letterSpacing = 2.sp), color = t.textMuted, modifier = Modifier.padding(top = 6.dp))
         val seekLabel = stringResource(R.string.action_seek)
         Canvas(
             Modifier
@@ -244,20 +243,22 @@ private fun PlayerContent(viewModel: PlayerViewModel, onBack: () -> Unit, onOpen
             for (col in 0 until 36) for (row in 0 until 9) {
                 val lit = row >= 9 - heights[col]
                 drawRoundRect(
-                    color = if (!lit) c.waveIdle else if (col < playedColumns) c.accent else c.waveMuted,
+                    color = if (!lit) t.waveIdle else if (col < playedColumns) t.accent else t.waveMuted,
                     topLeft = Offset(col * (cell + gap), row * (cell + gap)),
                     size = Size(cell, cell),
                     cornerRadius = CornerRadius(2.dp.toPx())
                 )
             }
         }
-        Row(Modifier.fillMaxWidth().padding(top = 8.dp)) {
-            Text(formatPlaybackTime((fraction * duration).toLong()), style = DotType.rowTitle.copy(letterSpacing = 1.sp), color = c.text)
+        Row(Modifier.fillMaxWidth().padding(top = 8.dp).onGloballyPositioned { colourEndPx = it.positionInRoot().y + it.size.height }) {
+            Text(formatPlaybackTime((fraction * duration).toLong()), style = DotType.rowTitle.copy(letterSpacing = 1.sp), color = t.text)
             Spacer(Modifier.weight(1f))
-                        if (known) Text("−" + formatPlaybackTime(duration - (fraction * duration).toLong()), style = DotType.rowTitle.copy(letterSpacing = 1.sp), color = c.textMuted)
+                        if (known) Text("−" + formatPlaybackTime(duration - (fraction * duration).toLong()), style = DotType.rowTitle.copy(letterSpacing = 1.sp), color = t.textMuted)
         }
+        // Spare height on a tall screen goes here, below the coloured block, which moves the controls down.
+        Spacer(Modifier.height(with(density) { gapPx.toDp() }))
         Row(
-            modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
+            modifier = Modifier.fillMaxWidth().padding(top = 36.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
