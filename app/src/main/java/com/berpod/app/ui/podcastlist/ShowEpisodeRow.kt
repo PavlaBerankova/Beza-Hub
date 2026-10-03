@@ -1,39 +1,12 @@
 package com.berpod.app.ui.podcastlist
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.berpod.app.R
 import com.berpod.app.data.local.EpisodeEntity
 import com.berpod.app.ui.common.AddToQueueButton
-import com.berpod.app.ui.dot.DotIcon
-import com.berpod.app.ui.dot.DotIconButton
-import com.berpod.app.ui.dot.DotIcons
-import com.berpod.app.ui.dot.formatDayMonth
-import com.berpod.app.ui.dot.formatYear
-import com.berpod.app.ui.dot.isRecentEpisode
-import com.berpod.app.ui.dot.upperCs
-import com.berpod.app.ui.theme.DotTheme
-import com.berpod.app.ui.theme.DotType
+import com.berpod.app.ui.common.CompactEpisodeRow
 
-/** Dot Matrix episode row: date (accent + "NOVÁ" when recent), title, description, download/queue (until queued), time and play. */
+/** Episode row of a podcast's own page: the same compact row as Fronta and Nové, minus the cover. */
 @Composable
 fun ShowEpisodeRow(
     episode: EpisodeEntity,
@@ -41,66 +14,21 @@ fun ShowEpisodeRow(
     onPlayOrPause: () -> Unit,
     isQueued: Boolean,
     onAddToQueue: () -> Unit,
-    nowMillis: Long,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    val c = DotTheme.colors
-    val played = episode.playedAtMs != null
-    // A played episode isn't "new" any more, whatever its date.
-    val recent = !played && isRecentEpisode(episode.pubDateMillis, nowMillis)
-    Column(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 20.dp).padding(top = 16.dp, bottom = 18.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+    CompactEpisodeRow(
+        episode = episode,
+        podcastTitle = null,
+        podcastImageUrl = null,
+        isCurrent = isCurrentlyPlaying,
+        isPlaying = isCurrentlyPlaying,
+        onPlayOrPause = onPlayOrPause,
+        onClick = onClick,
+        showCover = false,
+        isPlayed = episode.playedAtMs != null,
+        modifier = modifier
     ) {
-        EpisodeDateLine(episode, recent)
-        Text(episode.title, style = DotType.title, color = if (played) c.textMuted else c.text)
-        descriptionSnippet(episode.description)?.let {
-            Text(it, style = DotType.body, color = c.textMuted, maxLines = 2, overflow = TextOverflow.Ellipsis)
-        }
-        Row(modifier = Modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            DotIconButton(DotIcons.Download, stringResource(R.string.action_download), {}, radius = 12.dp, iconSize = 22.dp)
-            AddToQueueButton(isQueued, onAddToQueue)
-            Spacer(Modifier.weight(1f))
-            if (played) {
-                DotIcon(DotIcons.Check, 16.dp, monochrome = c.textMuted)
-                Text(stringResource(R.string.status_played).upperCs(), style = DotType.rowTitle.copy(letterSpacing = 1.sp), color = c.textMuted, maxLines = 1)
-            } else {
-                remainingText(episode)?.let {
-                    Text(it.upperCs(), style = DotType.rowTitle.copy(letterSpacing = 1.sp), color = c.text, maxLines = 1)
-                }
-            }
-            DotIconButton(
-                if (isCurrentlyPlaying) DotIcons.Equalizer else DotIcons.Play,
-                stringResource(if (isCurrentlyPlaying) R.string.action_pause else R.string.action_play),
-                onPlayOrPause,
-                size = 50.dp,
-                iconSize = 22.dp,
-                accentBorder = recent || isCurrentlyPlaying
-            )
-        }
-    }
-    HorizontalDivider(modifier = Modifier.padding(horizontal = 20.dp), color = c.divider)
-}
-
-/** "27.09  2026 … [NOVÁ]": accent date and badge for episodes from the last 7 days. */
-@Composable
-private fun EpisodeDateLine(episode: EpisodeEntity, recent: Boolean) {
-    val c = DotTheme.colors
-    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        formatDayMonth(episode.pubDateMillis)?.let {
-            Text(it, style = DotType.rowTitle.copy(fontWeight = FontWeight.W700, letterSpacing = 1.sp), color = if (recent) c.accent else c.text)
-        }
-        formatYear(episode.pubDateMillis)?.let {
-            Text(it, style = DotType.meta.copy(fontSize = 12.sp), color = c.textMuted)
-        }
-        Spacer(Modifier.weight(1f))
-        if (recent) {
-            Text(
-                stringResource(R.string.badge_new).upperCs(),
-                style = DotType.label.copy(fontSize = 10.sp, fontWeight = FontWeight.W700, letterSpacing = 1.sp),
-                color = c.onAccent,
-                modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(c.accent).padding(horizontal = 8.dp, vertical = 3.dp)
-            )
-        }
+        AddToQueueButton(isQueued, onAddToQueue)
     }
 }

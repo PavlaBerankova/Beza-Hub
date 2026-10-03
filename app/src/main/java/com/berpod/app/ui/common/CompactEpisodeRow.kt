@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import com.berpod.app.R
 import com.berpod.app.data.local.EpisodeEntity
 import com.berpod.app.ui.dot.CoverImage
+import com.berpod.app.ui.dot.DotIcon
 import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIcons
 import com.berpod.app.ui.dot.DotProgress
@@ -39,17 +40,21 @@ import com.berpod.app.ui.theme.DotType
 @Composable
 fun CompactEpisodeRow(
     episode: EpisodeEntity,
-    podcastTitle: String,
+    podcastTitle: String?,
     podcastImageUrl: String?,
     isCurrent: Boolean,
     isPlaying: Boolean,
     onPlayOrPause: () -> Unit,
     onClick: () -> Unit,
+    /** False inside a podcast's own page, where the cover (and podcast name) would only repeat. */
+    showCover: Boolean = true,
+    isPlayed: Boolean = false,
+    modifier: Modifier = Modifier,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
     val c = DotTheme.colors
     val fraction = episodeProgressFraction(episode.lastPositionMs, episode.durationSeconds)
-    Column {
+    Column(modifier) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -60,21 +65,24 @@ fun CompactEpisodeRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            CoverImage(podcastImageUrl, 64.dp, 12.dp)
+            if (showCover) CoverImage(podcastImageUrl, 64.dp, 12.dp)
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
-                    listOfNotNull(podcastTitle, formatDotDate(episode.pubDateMillis)).joinToString(" · ").upperCs(),
+                    listOfNotNull(podcastTitle.takeIf { showCover }, formatDotDate(episode.pubDateMillis)).joinToString(" · ").upperCs(),
                     style = DotType.meta.copy(fontSize = 10.sp, fontWeight = FontWeight.W600),
                     color = c.textMuted,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Text(episode.title, style = DotType.rowTitle, color = c.text, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text(episode.title, style = DotType.rowTitle, color = if (isPlayed) c.textMuted else c.text, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    remainingText(episode)?.let {
+                    if (isPlayed) {
+                        DotIcon(DotIcons.Check, 14.dp, monochrome = c.textMuted)
+                        Text(stringResource(R.string.status_played).upperCs(), style = DotType.chip.copy(fontWeight = FontWeight.W700), color = c.textMuted, maxLines = 1)
+                    } else remainingText(episode)?.let {
                         Text(it.upperCs(), style = DotType.chip.copy(fontWeight = FontWeight.W700), color = c.accent, maxLines = 1)
                     }
-                    if (fraction != null) DotProgress(fraction, cells = 16, modifier = Modifier.weight(1f))
+                    if (!isPlayed && fraction != null) DotProgress(fraction, cells = 16, modifier = Modifier.weight(1f))
                 }
             }
             actions()

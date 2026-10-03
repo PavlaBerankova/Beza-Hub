@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -47,7 +49,6 @@ import com.berpod.app.ui.common.podcastTagTexts
 import com.berpod.app.ui.dot.CoverImage
 import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIcons
-import com.berpod.app.ui.dot.rememberNowMillis
 import com.berpod.app.ui.dot.upperCs
 import com.berpod.app.ui.theme.DotTheme
 import com.berpod.app.ui.theme.DotType
@@ -78,7 +79,6 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
     val listState = rememberLazyListState()
     // The header carries its own action row; a compact bar with the title appears once it scrolls away.
     val showCompactBar by remember { derivedStateOf { listState.firstVisibleItemIndex > 0 } }
-    val now = rememberNowMillis()
     val playButton = pickHeaderEpisode(uiState.episodes)?.let { (episode, isResume) ->
         val isThisPlaying = uiState.currentlyPlayingEpisodeId == episode.id && uiState.isPlaying
         HeaderPlayButton(
@@ -131,14 +131,16 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                     }
                 } else {
                     items(uiState.episodes, key = { it.id }) { episode ->
-                        MarkPlayedSwipe(onToggle = { viewModel.onTogglePlayed(episode) }) {
+                        MarkPlayedSwipe(
+                            onToggle = { viewModel.onTogglePlayed(episode) },
+                            modifier = Modifier.padding(horizontal = 10.dp).clip(RoundedCornerShape(16.dp))
+                        ) {
                             ShowEpisodeRow(
                                 episode = episode,
                                 isCurrentlyPlaying = uiState.currentlyPlayingEpisodeId == episode.id && uiState.isPlaying,
                                 onPlayOrPause = { viewModel.onPlayOrPause(episode) },
                                 isQueued = episode.id in uiState.queuedEpisodeIds,
                                 onAddToQueue = { viewModel.onAddToQueue(episode.id) },
-                                nowMillis = now,
                                 onClick = { onEpisodeClick(episode.id) }
                             )
                         }
