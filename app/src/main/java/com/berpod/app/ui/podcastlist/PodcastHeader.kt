@@ -19,7 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -100,11 +99,12 @@ fun PodcastHeader(
     val base = DotTheme.colors
     val block by animateColorAsState(blockColor ?: base.background, label = "headerBlock")
     val c = if (blockColor == null) base else colorsOnBlock(base, block)
+    Column {
     CompositionLocalProvider(LocalDotColors provides c) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(block, RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp))
+            .background(block)
             .statusBarsPadding()
             .padding(horizontal = 20.dp)
             .padding(top = 16.dp, bottom = 20.dp),
@@ -138,7 +138,13 @@ fun PodcastHeader(
             }
         }
         if (playButton != null) DotPrimaryButton(playButton.label, playButton.icon, playButton.onClick)
-        SectionSeparator(stringResource(R.string.section_episodes), stringResource(R.string.section_newest))
     }
+    }
+    // Below the block, in the normal colours.
+    SectionSeparator(
+        stringResource(R.string.section_episodes),
+        stringResource(R.string.section_newest),
+        modifier = Modifier.padding(horizontal = 20.dp).padding(top = 20.dp, bottom = 8.dp)
+    )
     }
 }
