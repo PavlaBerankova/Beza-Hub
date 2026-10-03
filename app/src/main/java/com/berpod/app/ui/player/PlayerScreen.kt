@@ -296,7 +296,7 @@ private fun PlayerContent(viewModel: PlayerViewModel, onBack: () -> Unit, onOpen
                 OptionButton(
                     icon = DotIcons.Sleep,
                     label = when (val t = state.sleepTimer) {
-                        null -> stringResource(R.string.sleep)
+                        null -> null
                         SleepTimer.EndOfEpisode -> stringResource(R.string.sleep_end_short)
                         is SleepTimer.At -> formatPlaybackTime(state.sleepRemainingMs ?: 0L)
                     },
@@ -320,14 +320,14 @@ private fun PlayerContent(viewModel: PlayerViewModel, onBack: () -> Unit, onOpen
                     }
                 }
             }
-            OptionButton(DotIcons.QueueList, stringResource(R.string.queue), active = false, onClick = onOpenQueue, modifier = Modifier.weight(1f), description = stringResource(R.string.queue))
+            OptionButton(DotIcons.QueueList, null, active = false, onClick = onOpenQueue, modifier = Modifier.weight(1f), description = stringResource(R.string.queue))
             // Where the episode and its podcast can be read about.
             Box(Modifier.weight(1f)) {
                 var detailOpen by remember { mutableStateOf(false) }
                 val scope = rememberCoroutineScope()
                 OptionButton(
                     DotIcons.Podcasts,
-                    stringResource(R.string.player_detail),
+                    null,
                     active = false,
                     onClick = { detailOpen = true },
                     modifier = Modifier.fillMaxWidth(),
@@ -381,7 +381,7 @@ private fun TransportButton(icon: DotIconSpec, description: String, enabled: Boo
 }
 
 @Composable
-private fun OptionButton(icon: DotIconSpec, label: String, active: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier, description: String = label) {
+private fun OptionButton(icon: DotIconSpec, label: String?, active: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier, description: String = label.orEmpty()) {
     val c = DotTheme.colors
     val shape = RoundedCornerShape(12.dp)
     Row(
@@ -394,15 +394,18 @@ private fun OptionButton(icon: DotIconSpec, label: String, active: Boolean, onCl
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        DotIcon(icon, 18.dp)
-        Spacer(Modifier.width(6.dp))
-        Text(
-            label.upperCs(),
-            style = DotType.segment.copy(fontWeight = if (active) FontWeight.W700 else FontWeight.W600, letterSpacing = 1.sp),
-            color = if (active) c.accent else c.textStrong,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
+        DotIcon(icon, 20.dp)
+        // Icon-only unless there is a value to show (the speed, a running sleep timer).
+        if (label != null) {
+            Spacer(Modifier.width(6.dp))
+            Text(
+                label.upperCs(),
+                style = DotType.segment.copy(fontWeight = if (active) FontWeight.W700 else FontWeight.W600, letterSpacing = 1.sp),
+                color = if (active) c.accent else c.textStrong,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
     }
 }
 
