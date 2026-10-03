@@ -240,7 +240,7 @@ fun PlayerScreen(viewModel: PlayerViewModel, onBack: () -> Unit, onOpenQueue: ()
                     }
                 }
             }
-            OptionButton(DotIcons.Queue, stringResource(R.string.queue), active = false, onClick = onOpenQueue, modifier = Modifier.weight(1f), description = stringResource(R.string.queue))
+            OptionButton(DotIcons.QueueList, stringResource(R.string.queue), active = false, onClick = onOpenQueue, modifier = Modifier.weight(1f), description = stringResource(R.string.queue))
         }
     }
 }
