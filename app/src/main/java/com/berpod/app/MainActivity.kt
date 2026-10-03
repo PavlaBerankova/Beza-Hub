@@ -7,6 +7,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import com.berpod.app.ui.navigation.BerpodApp
 import com.berpod.app.ui.theme.BerpodTheme
 
@@ -26,7 +29,13 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            BerpodTheme {
+            val darkMode by container.themeSettings.darkMode.collectAsState()
+            val systemDark = isSystemInDarkTheme()
+            BerpodTheme(
+                darkOverride = darkMode,
+                // Flips what is showing now, so the first tap on a light app always makes it dark.
+                onToggle = { container.themeSettings.setDarkMode(!(darkMode ?: systemDark)) }
+            ) {
                 BerpodApp(container = container)
             }
         }

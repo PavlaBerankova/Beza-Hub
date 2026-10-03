@@ -27,6 +27,7 @@ import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIcons
 import com.berpod.app.ui.dot.DotSegmented
 import com.berpod.app.ui.dot.DotTitle
+import com.berpod.app.ui.dot.ThemeToggleButton
 import com.berpod.app.ui.newepisodes.NewEpisodesScreen
 import com.berpod.app.ui.newepisodes.NewEpisodesViewModel
 import com.berpod.app.ui.podcastlist.PodcastListScreen
@@ -68,6 +69,7 @@ fun PodcastsHubScreen(
             verticalAlignment = Alignment.Bottom
         ) {
             DotTitle(stringResource(R.string.nav_podcasts), Modifier.weight(1f))
+            ThemeToggleButton()
             when (section) {
                 PodcastsSection.Subscriptions -> Unit
                 PodcastsSection.New -> if (newEpisodesState.isRefreshing) {

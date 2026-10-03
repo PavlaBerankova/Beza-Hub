@@ -51,6 +51,7 @@ import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIcons
 import com.berpod.app.ui.dot.CenteredSeparator
 import com.berpod.app.ui.dot.DotTitle
+import com.berpod.app.ui.dot.ThemeToggleButton
 import com.berpod.app.ui.dot.rememberNowMillis
 import com.berpod.app.ui.dot.upperCs
 import com.berpod.app.ui.theme.DotTheme
@@ -99,6 +100,7 @@ fun ArticlesScreen(
             ) {
                 DotTitle(stringResource(R.string.nav_articles), Modifier.weight(1f))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    ThemeToggleButton()
                     DotIconButton(DotIcons.Sources, stringResource(R.string.sources), onOpenSources)
                     if (uiState.isRefreshing) {
                         Box(Modifier.size(44.dp), contentAlignment = Alignment.Center) {

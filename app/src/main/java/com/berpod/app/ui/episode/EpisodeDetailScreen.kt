@@ -67,7 +67,6 @@ import androidx.core.view.WindowCompat
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.animation.animateColorAsState
 import android.app.Activity
 import com.berpod.app.ui.dot.SectionSeparator
@@ -75,6 +74,7 @@ import com.berpod.app.ui.dot.formatDotDate
 import com.berpod.app.ui.dot.rememberNowMillis
 import com.berpod.app.ui.dot.upperCs
 import com.berpod.app.ui.theme.DotTheme
+import com.berpod.app.ui.theme.LocalDarkTheme
 import com.berpod.app.ui.theme.DotType
 
 /** Dot Matrix episode detail (canvas "E1 · Detail epizody"). */
@@ -101,7 +101,7 @@ fun EpisodeDetailScreen(
 
     // The system bar icons follow the header block while it is on screen (dark on a bright block, light on a deep one).
     val view = LocalView.current
-    val systemDark = isSystemInDarkTheme()
+    val systemDark = LocalDarkTheme.current
     val lightBlock = blockColor?.let(::isLightTint)
     DisposableEffect(lightBlock, systemDark) {
         val controller = (view.context as? Activity)?.window?.let { WindowCompat.getInsetsController(it, view) }

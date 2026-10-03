@@ -23,6 +23,7 @@ import com.berpod.app.data.repository.QueueFilterRepository
 import com.berpod.app.data.repository.QueueRepository
 import com.berpod.app.data.repository.PrefsQueueFilterStorage
 import com.berpod.app.data.repository.TagRepository
+import com.berpod.app.data.repository.ThemeSettings
 import com.berpod.app.data.repository.VideoQueueRepository
 import com.berpod.app.data.repository.YoutubeRepository
 
@@ -38,6 +39,7 @@ interface AppContainer {
     val videoQueueRepository: VideoQueueRepository
     /** The Fronta tag filter video Fronta remembers, kept separate from the podcast one. */
     val videoQueueFilterRepository: QueueFilterRepository
+    val themeSettings: ThemeSettings
 }
 
 class DefaultAppContainer(context: Context) : AppContainer {
@@ -87,6 +89,10 @@ class DefaultAppContainer(context: Context) : AppContainer {
 
     override val videoQueueRepository: VideoQueueRepository by lazy {
         VideoQueueRepository(database.videoQueueDao())
+    }
+
+    override val themeSettings: ThemeSettings by lazy {
+        ThemeSettings(appContext.getSharedPreferences("settings", Context.MODE_PRIVATE))
     }
 
     override val videoQueueFilterRepository: QueueFilterRepository by lazy {

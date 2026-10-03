@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import android.app.Activity
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -58,6 +57,7 @@ import com.berpod.app.ui.dot.DotIcons
 import com.berpod.app.ui.dot.rememberNowMillis
 import com.berpod.app.ui.dot.upperCs
 import com.berpod.app.ui.theme.DotTheme
+import com.berpod.app.ui.theme.LocalDarkTheme
 import com.berpod.app.ui.theme.DotType
 
 @Composable
@@ -95,7 +95,7 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
 
     // The system bar icons follow the header block while it is on screen (dark icons on a bright block, light on a deep one).
     val view = LocalView.current
-    val darkIcons = !isSystemInDarkTheme()
+    val darkIcons = !LocalDarkTheme.current
     val iconsOnBlock = blockColor?.let(::isLightTint)
     val showIconsOnBlock = iconsOnBlock != null && !showCompactBar
     DisposableEffect(showIconsOnBlock, iconsOnBlock, darkIcons) {

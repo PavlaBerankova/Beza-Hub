@@ -26,6 +26,7 @@ import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIcons
 import com.berpod.app.ui.dot.DotSegmented
 import com.berpod.app.ui.dot.DotTitle
+import com.berpod.app.ui.dot.ThemeToggleButton
 import com.berpod.app.ui.youtube.channels.YoutubeChannelsScreen
 import com.berpod.app.ui.youtube.newvideos.NewVideosScreen
 import com.berpod.app.ui.youtube.newvideos.NewVideosViewModel
@@ -62,6 +63,7 @@ fun YoutubeHubScreen(
             verticalAlignment = Alignment.Bottom
         ) {
             DotTitle(stringResource(R.string.nav_youtube), Modifier.weight(1f))
+            ThemeToggleButton()
             when (section) {
                 YoutubeSection.Channels -> DotIconButton(DotIcons.Sources, stringResource(R.string.sources), onOpenChannelSources)
                 YoutubeSection.New -> if (newVideosState.isRefreshing) {
