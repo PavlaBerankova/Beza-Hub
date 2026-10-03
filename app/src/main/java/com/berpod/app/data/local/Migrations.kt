@@ -153,3 +153,11 @@ val MIGRATION_8_9 = object : Migration(8, 9) {
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_video_queue_entries_position` ON `video_queue_entries` (`position`)")
     }
 }
+
+/** Episode number and audio file size, as the feeds state them. */
+val MIGRATION_9_10 = object : Migration(9, 10) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `episodes` ADD COLUMN `episodeNumber` INTEGER")
+        db.execSQL("ALTER TABLE `episodes` ADD COLUMN `fileSizeBytes` INTEGER")
+    }
+}

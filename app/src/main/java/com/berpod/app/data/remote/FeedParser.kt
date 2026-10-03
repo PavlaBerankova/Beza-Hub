@@ -25,7 +25,9 @@ data class ParsedEpisode(
     val pubDateMillis: Long?,
     val durationSeconds: Int?,
     val description: String?,
-    val imageUrl: String?
+    val imageUrl: String?,
+    val episodeNumber: Int? = null,
+    val fileSizeBytes: Long? = null
 )
 
 /** The first non-blank of the iTunes author and the iTunes owner name, trimmed; null if neither. */
@@ -89,7 +91,9 @@ class FeedParser(
             pubDateMillis = item.pubDate?.let(::parseFeedDateMillis),
             durationSeconds = item.itunesItemData?.duration?.let(::parseItunesDuration),
             description = item.description?.takeIf { it.isNotBlank() } ?: item.itunesItemData?.summary,
-            imageUrl = item.image ?: item.itunesItemData?.image
+            imageUrl = item.image ?: item.itunesItemData?.image,
+            episodeNumber = item.itunesItemData?.episode?.trim()?.toIntOrNull(),
+            fileSizeBytes = item.rawEnclosure?.length?.takeIf { it > 0 }
         )
     }
 

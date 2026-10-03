@@ -11,6 +11,7 @@ import com.berpod.app.data.local.MIGRATION_5_6
 import com.berpod.app.data.local.MIGRATION_6_7
 import com.berpod.app.data.local.MIGRATION_7_8
 import com.berpod.app.data.local.MIGRATION_8_9
+import com.berpod.app.data.local.MIGRATION_9_10
 import com.berpod.app.data.remote.ArticleFeedLoader
 import com.berpod.app.data.remote.FeedParser
 import com.berpod.app.data.remote.YoutubeChannelLoader
@@ -45,7 +46,7 @@ class DefaultAppContainer(context: Context) : AppContainer {
 
     private val database: AppDatabase by lazy {
         Room.databaseBuilder(appContext, AppDatabase::class.java, "berpod.db")
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10)
             .build()
     }
 

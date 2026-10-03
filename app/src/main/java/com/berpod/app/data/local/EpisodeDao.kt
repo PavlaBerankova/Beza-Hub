@@ -57,6 +57,16 @@ interface EpisodeDao {
     @Query("UPDATE episodes SET playedAtMs = :playedAtMs, lastPositionMs = 0 WHERE id IN (:episodeIds) AND playedAtMs IS NULL")
     suspend fun markPlayed(episodeIds: List<Long>, playedAtMs: Long)
 
+    /** Sets the number and size on an episode stored earlier (inserts ignore existing rows); only if they differ. */
+    @Query(
+        """
+        UPDATE episodes SET episodeNumber = :episodeNumber, fileSizeBytes = :fileSizeBytes
+        WHERE feedId = :feedId AND guid = :guid
+          AND (episodeNumber IS NOT :episodeNumber OR fileSizeBytes IS NOT :fileSizeBytes)
+        """
+    )
+    suspend fun updateNumberAndSize(feedId: Long, guid: String, episodeNumber: Int?, fileSizeBytes: Long?)
+
     @Query("SELECT feedId FROM episodes WHERE id = :episodeId")
     suspend fun feedIdOf(episodeId: Long): Long?
 

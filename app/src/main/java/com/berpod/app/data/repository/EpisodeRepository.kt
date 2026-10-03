@@ -59,10 +59,16 @@ class EpisodeRepository(
                     durationSeconds = ep.durationSeconds,
                     description = ep.description,
                     imageUrl = ep.imageUrl,
-                    dateFetched = now
+                    dateFetched = now,
+                    episodeNumber = ep.episodeNumber,
+                    fileSizeBytes = ep.fileSizeBytes
                 )
             }
         )
+        // Episodes stored before the number and size were kept get them on the next refresh.
+        meta.episodes.filter { it.episodeNumber != null || it.fileSizeBytes != null }.forEach { ep ->
+            episodeDao.updateNumberAndSize(feed.id, ep.guid, ep.episodeNumber, ep.fileSizeBytes)
+        }
     }
 
     suspend fun syncEpisodesForFeedId(feedId: Long): Result<Unit> = runCatching {

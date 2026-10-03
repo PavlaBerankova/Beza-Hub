@@ -34,5 +34,9 @@ data class EpisodeEntity(
     val dateFetched: Long,
     val lastPositionMs: Long = 0L,
     /** When the episode was finished or marked as played; null = not played. */
-    val playedAtMs: Long? = null
+    val playedAtMs: Long? = null,
+    /** The feed's own episode number (itunes:episode), when it gives one. */
+    val episodeNumber: Int? = null,
+    /** Size of the audio file in bytes (the enclosure's length), when the feed says. */
+    val fileSizeBytes: Long? = null
 )

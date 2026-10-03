@@ -20,7 +20,7 @@ import androidx.room.RoomDatabase
         YoutubeChannelTagCrossRef::class,
         VideoQueueEntryEntity::class
     ],
-    version = 9,
+    version = 10,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {

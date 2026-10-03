@@ -56,3 +56,37 @@ fun primaryAction(episode: EpisodeEntity, isCurrent: Boolean, isPlaying: Boolean
     episode.lastPositionMs > 0 -> PrimaryAction.Resume
     else -> PrimaryAction.Play
 }
+
+/** "dnes", "včera", "před 3 dny", "před týdnem", "před 3 týdny", "před měsícem", "před 5 měsíci", "před rokem"… */
+fun episodeAgeText(publishedMillis: Long?, nowMillis: Long, zone: java.time.ZoneId = java.time.ZoneId.systemDefault()): String? {
+    val published = publishedMillis ?: return null
+    val today = java.time.LocalDate.ofInstant(java.time.Instant.ofEpochMilli(nowMillis), zone)
+    val day = java.time.LocalDate.ofInstant(java.time.Instant.ofEpochMilli(published), zone)
+    val days = java.time.temporal.ChronoUnit.DAYS.between(day, today).toInt()
+    return when {
+        days < 0 -> null
+        days == 0 -> "dnes"
+        days == 1 -> "včera"
+        days < 7 -> "před ${czechUnit(days, "dnem", "dny", "dny")}".replace("před 2 dny", "před 2 dny")
+        days < 14 -> "před týdnem"
+        days < 30 -> "před ${days / 7} týdny"
+        days < 60 -> "před měsícem"
+        days < 365 -> "před ${days / 30} ${if (days / 30 in 2..4) "měsíci" else "měsíci"}"
+        days < 730 -> "před rokem"
+        else -> "před ${days / 365} ${if (days / 365 in 2..4) "lety" else "lety"}"
+    }
+}
+
+private fun czechUnit(count: Int, one: String, few: String, many: String): String =
+    "$count ${when (count) { 1 -> one; in 2..4 -> few; else -> many }}"
+
+/** "41,6 MB", "812 kB", "1,2 GB" (decimal units, comma as the decimal mark); null when the size is unknown. */
+fun formatFileSize(bytes: Long?): String? {
+    if (bytes == null || bytes <= 0) return null
+    val locale = java.util.Locale.forLanguageTag("cs")
+    return when {
+        bytes >= 1_000_000_000L -> String.format(locale, "%.1f GB", bytes / 1e9)
+        bytes >= 1_000_000L -> String.format(locale, "%.1f MB", bytes / 1e6)
+        else -> String.format(locale, "%d kB", (bytes / 1000).coerceAtLeast(1))
+    }
+}

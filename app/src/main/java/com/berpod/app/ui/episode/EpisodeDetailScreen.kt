@@ -72,6 +72,7 @@ import androidx.compose.animation.animateColorAsState
 import android.app.Activity
 import com.berpod.app.ui.dot.SectionSeparator
 import com.berpod.app.ui.dot.formatDotDate
+import com.berpod.app.ui.dot.rememberNowMillis
 import com.berpod.app.ui.dot.upperCs
 import com.berpod.app.ui.theme.DotTheme
 import com.berpod.app.ui.theme.DotType
@@ -193,6 +194,14 @@ private fun EpisodeHeader(
     val c = DotTheme.colors
     val episode = item.episode
 
+    // "EPIZODA 188" above the title, when the feed numbers its episodes.
+    episode.episodeNumber?.let { number ->
+        Text(
+            "${stringResource(R.string.episode)} $number".upperCs(),
+            style = DotType.label.copy(letterSpacing = 2.sp, fontWeight = FontWeight.W700),
+            color = c.textMuted
+        )
+    }
     Text(
         episode.title,
         style = DotType.title.copy(fontSize = 24.sp, lineHeight = 31.sp),
@@ -226,8 +235,14 @@ private fun EpisodeHeader(
         onClick = viewModel::onPrimary
     )
 
-    // "26.09.2026 · 24 MIN", centred under the button.
-    val published = listOfNotNull(formatDotDate(episode.pubDateMillis), formatDuration(episode.durationSeconds)?.upperCs()).joinToString(" · ")
+    // "26.09.2026 · VČERA · 24 MIN · 41,6 MB", centred under the button.
+    val now = rememberNowMillis()
+    val published = listOfNotNull(
+        formatDotDate(episode.pubDateMillis),
+        episodeAgeText(episode.pubDateMillis, now)?.upperCs(),
+        formatDuration(episode.durationSeconds)?.upperCs(),
+        formatFileSize(episode.fileSizeBytes)
+    ).joinToString(" · ")
     if (published.isNotEmpty()) {
         Text(
             published,
