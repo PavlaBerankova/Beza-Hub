@@ -167,18 +167,10 @@ fun BerpodApp(container: AppContainer) {
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                         verticalArrangement = Arrangement.Center
                                     ) {
-                                        // Selected: the icon sits on an accent-tinted pill in its own colour roles and the
-                                        // label turns accent and bold; unselected: all muted.
-                                        Box(
-                                            modifier = Modifier
-                                                .size(width = 60.dp, height = 34.dp)
-                                                .clip(RoundedCornerShape(17.dp))
-                                                .background(if (selected) c.accent.copy(alpha = 0.16f) else Color.Transparent),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            DotIcon(iconFor(screen), 28.dp, monochrome = if (selected) null else c.textMuted)
-                                        }
-                                        Spacer(Modifier.height(4.dp))
+                                        // Selected: the icon in its own colour roles and the label in the accent colour, bolder;
+                                        // unselected: all muted. No pill behind it.
+                                        DotIcon(iconFor(screen), 30.dp, monochrome = if (selected) null else c.textMuted)
+                                        Spacer(Modifier.height(6.dp))
                                         Text(
                                             labelFor(screen).upperCs(),
                                             style = DotType.label.copy(fontWeight = if (selected) FontWeight.W800 else FontWeight.W600),
