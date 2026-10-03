@@ -235,13 +235,12 @@ private fun EpisodeHeader(
         onClick = viewModel::onPrimary
     )
 
-    // "26.09.2026 · VČERA · 24 MIN · 41,6 MB", centred under the button.
+    // "26.09.2026 · VČERA · 24 MIN", centred under the button.
     val now = rememberNowMillis()
     val published = listOfNotNull(
         formatDotDate(episode.pubDateMillis),
         episodeAgeText(episode.pubDateMillis, now)?.upperCs(),
-        formatDuration(episode.durationSeconds)?.upperCs(),
-        formatFileSize(episode.fileSizeBytes)
+        formatDuration(episode.durationSeconds)?.upperCs()
     ).joinToString(" · ")
     if (published.isNotEmpty()) {
         Text(
@@ -268,7 +267,14 @@ private fun EpisodeBody(
 
     val shareTitle = stringResource(R.string.action_share)
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        EpisodeActionButton(DotIcons.Download, stringResource(R.string.action_download), active = false, onClick = {}, modifier = Modifier.weight(1f))
+        EpisodeActionButton(
+            DotIcons.Download,
+            stringResource(R.string.action_download),
+            active = false,
+            onClick = {},
+            modifier = Modifier.weight(1f),
+            detail = formatFileSize(episode.fileSizeBytes)
+        )
         EpisodeActionButton(
             icon = if (uiState.isQueued) DotIcons.Queued else DotIcons.Queue,
             label = stringResource(if (uiState.isQueued) R.string.in_queue else R.string.to_queue),
@@ -350,7 +356,9 @@ private fun EpisodeActionButton(
     active: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    description: String = label
+    description: String = label,
+    /** A smaller second line under the label, e.g. the file size of the download. */
+    detail: String? = null
 ) {
     val c = DotTheme.colors
     val shape = RoundedCornerShape(12.dp)
@@ -365,7 +373,12 @@ private fun EpisodeActionButton(
     ) {
         DotIcon(icon, 20.dp)
         Spacer(Modifier.width(6.dp))
-        Text(label.upperCs(), style = DotType.label.copy(fontWeight = FontWeight.W700, letterSpacing = 1.sp), color = c.text, maxLines = 1)
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(label.upperCs(), style = DotType.label.copy(fontWeight = FontWeight.W700, letterSpacing = 1.sp), color = c.text, maxLines = 1)
+            if (detail != null) {
+                Text(detail, style = DotType.meta.copy(fontSize = 10.sp, letterSpacing = 0.5.sp), color = c.textMuted, maxLines = 1)
+            }
+        }
     }
 }
 
