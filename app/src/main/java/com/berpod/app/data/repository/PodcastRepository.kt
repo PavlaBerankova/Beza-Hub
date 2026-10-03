@@ -40,6 +40,17 @@ class PodcastRepository(
         )
     }
 
+    /**
+     * Points an existing podcast at a different feed address, keeping its episodes, tags and progress.
+     * The new address is fetched first, so one that doesn't work is rejected instead of saved.
+     */
+    suspend fun updateRssUrl(feedId: Long, rawUrl: String): Result<Unit> = runCatching {
+        val url = requireNotNull(normalizeSourceUrl(rawUrl)) { "Zadejte adresu webu nebo RSS" }
+        val meta = feedFetcher.fetchAndParse(url)
+        require(!dao.existsByUrlExcept(meta.feedUrl, feedId)) { "Tento podcast už je přidaný" }
+        dao.updateRssUrl(feedId, meta.feedUrl)
+    }
+
     /** Resolves and adds in one step. */
     suspend fun addFeed(rawUrl: String): Result<Long> = resolve(rawUrl).mapCatching { addFeed(it).getOrThrow() }
 }

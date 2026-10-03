@@ -177,4 +177,8 @@
     <string name="action_more">Více</string>
     <string name="action_fullscreen">Celá obrazovka</string>
     <string name="action_fullscreen_exit">Ukončit celou obrazovku</string>
+    <string name="action_edit_rss">Upravit RSS</string>
+    <string name="edit_rss_title">Upravit RSS adresu</string>
+    <string name="edit_rss_label">RSS adresa</string>
+    <string name="edit_rss_checking">Ověřuji…</string>
 </resources>

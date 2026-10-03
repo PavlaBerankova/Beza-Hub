@@ -115,7 +115,8 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                         isRefreshing = uiState.isRefreshing,
                         onBack = onBack,
                         onTagClick = viewModel::onOpenTagDialog,
-                        onRefresh = viewModel::onRefresh
+                        onRefresh = viewModel::onRefresh,
+                        onEditRss = viewModel::onEditRss
                     )
                 }
                 if (uiState.episodes.isEmpty()) {
@@ -162,6 +163,7 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                             modifier = Modifier.weight(1f).padding(horizontal = 4.dp)
                         )
                         DotIconButton(DotIcons.Tag, stringResource(R.string.action_manage_tags), viewModel::onOpenTagDialog)
+                        DotIconButton(DotIcons.Edit, stringResource(R.string.action_edit_rss), viewModel::onEditRss)
                         if (uiState.isRefreshing) {
                             Box(Modifier.size(44.dp), contentAlignment = Alignment.Center) {
                                 CircularProgressIndicator(Modifier.size(22.dp), color = c.accent, strokeWidth = 2.dp)
@@ -173,6 +175,16 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                     HorizontalDivider(color = c.divider)
                 }
             }
+        }
+
+        if (uiState.isEditingRss) {
+            EditRssDialog(
+                initialUrl = uiState.feedRssUrl,
+                isSaving = uiState.isSavingRss,
+                errorMessage = uiState.rssError,
+                onSave = viewModel::onSaveRss,
+                onDismiss = viewModel::onEditRssDismissed
+            )
         }
 
         tagAssignState?.let { state ->

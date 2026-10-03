@@ -42,6 +42,7 @@ fun PodcastActionsRow(
     onBack: () -> Unit,
     onTagClick: () -> Unit,
     onRefresh: () -> Unit,
+    onEditRss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val c = DotTheme.colors
@@ -57,6 +58,7 @@ fun PodcastActionsRow(
             }
         }
         DotIconButton(DotIcons.Tag, stringResource(R.string.action_manage_tags), onTagClick)
+        DotIconButton(DotIcons.Edit, stringResource(R.string.action_edit_rss), onEditRss)
         if (isRefreshing) {
             Box(Modifier.size(44.dp), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(Modifier.size(22.dp), color = c.accent, strokeWidth = 2.dp)
@@ -81,14 +83,15 @@ fun PodcastHeader(
     isRefreshing: Boolean,
     onBack: () -> Unit,
     onTagClick: () -> Unit,
-    onRefresh: () -> Unit
+    onRefresh: () -> Unit,
+    onEditRss: () -> Unit
 ) {
     val c = DotTheme.colors
     Column(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(top = 16.dp, bottom = 8.dp),
         verticalArrangement = Arrangement.spacedBy(22.dp)
     ) {
-        PodcastActionsRow(tags, isRefreshing, onBack, onTagClick, onRefresh)
+        PodcastActionsRow(tags, isRefreshing, onBack, onTagClick, onRefresh, onEditRss)
         Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(18.dp)) {
             CoverImage(imageUrl, 150.dp, 20.dp)
             Column(modifier = Modifier.weight(1f).padding(bottom = 4.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {

@@ -11,6 +11,7 @@ import com.berpod.app.data.repository.QueueRepository
 import com.berpod.app.data.repository.TagRepository
 import com.berpod.app.ui.common.PlayedUndo
 import com.berpod.app.ui.common.TagAssignmentController
+import com.berpod.app.ui.common.feedLookupMessage
 import com.berpod.app.ui.common.markPlayed
 import com.berpod.app.ui.common.undoMarkPlayed
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,6 +27,11 @@ data class PodcastEpisodesUiState(
     val feedTitle: String = "",
     val feedImageUrl: String? = null,
     val feedAuthor: String? = null,
+    val feedRssUrl: String = "",
+    /** The edit-RSS dialog is open; [rssError] is why the last save was refused. */
+    val isEditingRss: Boolean = false,
+    val isSavingRss: Boolean = false,
+    val rssError: String? = null,
     /** Names of the tags this podcast carries, alphabetical. */
     val feedTags: List<String> = emptyList(),
     val episodes: List<EpisodeEntity> = emptyList(),
@@ -57,7 +63,12 @@ class PodcastEpisodesViewModel(
         podcastRepository.observeFeed(feedId)
             .onEach { feed ->
                 _uiState.update {
-                    it.copy(feedTitle = feed?.title.orEmpty(), feedImageUrl = feed?.imageUrl, feedAuthor = feed?.author)
+                    it.copy(
+                        feedTitle = feed?.title.orEmpty(),
+                        feedImageUrl = feed?.imageUrl,
+                        feedAuthor = feed?.author,
+                        feedRssUrl = feed?.rssUrl.orEmpty()
+                    )
                 }
             }
             .launchIn(viewModelScope)
@@ -100,6 +111,30 @@ class PodcastEpisodesViewModel(
                     _uiState.update {
                         it.copy(isRefreshing = false, snackbarMessage = error.message ?: "Aktualizace selhala")
                     }
+                }
+        }
+    }
+
+    fun onEditRss() {
+        _uiState.update { it.copy(isEditingRss = true, rssError = null) }
+    }
+
+    fun onEditRssDismissed() {
+        _uiState.update { it.copy(isEditingRss = false, isSavingRss = false, rssError = null) }
+    }
+
+    /** Checks the new address and saves it, then pulls in whatever episodes it has. */
+    fun onSaveRss(rawUrl: String) {
+        if (_uiState.value.isSavingRss) return
+        _uiState.update { it.copy(isSavingRss = true, rssError = null) }
+        viewModelScope.launch {
+            podcastRepository.updateRssUrl(feedId, rawUrl)
+                .onSuccess {
+                    _uiState.update { it.copy(isEditingRss = false, isSavingRss = false, snackbarMessage = "RSS adresa uložena") }
+                    onRefresh()
+                }
+                .onFailure { error ->
+                    _uiState.update { it.copy(isSavingRss = false, rssError = feedLookupMessage(error)) }
                 }
         }
     }

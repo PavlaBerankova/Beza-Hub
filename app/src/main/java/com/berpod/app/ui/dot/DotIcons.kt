@@ -101,6 +101,10 @@ object DotIcons {
         IconPart("M20 4v7h-7", IconRole.Muted, 2.3f),
         IconPart(circle(12f, 12f, 1.8f), IconRole.Accent)
     ))
+    val Edit = DotIconSpec(24f, 24f, listOf(
+        IconPart("M4 20h4L19 9l-4-4L4 16z", IconRole.Primary, 2.3f),
+        IconPart(circle(17f, 7f, 1.6f), IconRole.Accent)
+    ))
     val Drag = DotIconSpec(24f, 24f, listOf(7.5f, 13.3f).flatMap { x ->
         listOf(4.5f, 10.4f, 16.3f).map { y -> px(x, y, 3.2f, IconRole.Muted) }
     })

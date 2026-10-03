@@ -28,6 +28,12 @@ interface PodcastFeedDao {
     @Query("UPDATE podcast_feeds SET author = :author WHERE id = :feedId")
     suspend fun updateAuthor(feedId: Long, author: String)
 
+    @Query("SELECT EXISTS(SELECT 1 FROM podcast_feeds WHERE rssUrl = :rssUrl AND id != :feedId)")
+    suspend fun existsByUrlExcept(rssUrl: String, feedId: Long): Boolean
+
+    @Query("UPDATE podcast_feeds SET rssUrl = :rssUrl WHERE id = :feedId")
+    suspend fun updateRssUrl(feedId: Long, rssUrl: String)
+
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(feed: PodcastFeedEntity): Long
 
