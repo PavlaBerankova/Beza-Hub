@@ -110,6 +110,18 @@ object DotIcons {
         IconPart(circle(12f, 12f, 2.6f), IconRole.Accent)
     ))
     val More = DotIconSpec(24f, 24f, listOf(px(11f, 5f, 2.6f, IconRole.Primary), px(11f, 10.7f, 2.6f, IconRole.Primary), px(11f, 16.4f, 2.6f, IconRole.Primary)))
+    val Fullscreen = DotIconSpec(24f, 24f, listOf(
+        IconPart("M4 9V4h5", IconRole.Primary, 2.3f),
+        IconPart("M15 4h5v5", IconRole.Primary, 2.3f),
+        IconPart("M20 15v5h-5", IconRole.Primary, 2.3f),
+        IconPart("M9 20H4v-5", IconRole.Primary, 2.3f)
+    ))
+    val FullscreenExit = DotIconSpec(24f, 24f, listOf(
+        IconPart("M9 4v5H4", IconRole.Primary, 2.3f),
+        IconPart("M15 9V4h5", IconRole.Primary, 2.3f),
+        IconPart("M20 15h-5v5", IconRole.Primary, 2.3f),
+        IconPart("M4 15h5v5", IconRole.Primary, 2.3f)
+    ))
     val Podcasts = DotIconSpec(32f, 32f, listOf(
         IconPart(roundRect(12.5f, 5f, 7f, 13f, 3.5f), IconRole.Primary, 2.4f),
         IconPart(circle(16f, 10f, 1.7f), IconRole.Accent),

@@ -1,5 +1,10 @@
 package com.berpod.app.ui.youtube.video
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import android.content.pm.ActivityInfo
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -26,16 +31,22 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
@@ -45,6 +56,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.berpod.app.R
@@ -65,6 +79,12 @@ import com.berpod.app.ui.theme.DotType
 import com.berpod.app.ui.youtube.channels.ChannelAvatar
 import com.berpod.app.ui.youtube.newvideos.CompactVideoRow
 
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
+}
+
 /** Dot Matrix video detail (canvas "Y4 · Video"): embedded player with custom chrome, then details. */
 @Composable
 fun VideoDetailScreen(viewModelFactory: ViewModelProvider.Factory, onBack: () -> Unit, onVideoClick: (Long) -> Unit) {
@@ -72,11 +92,33 @@ fun VideoDetailScreen(viewModelFactory: ViewModelProvider.Factory, onBack: () ->
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val c = DotTheme.colors
+    var isFullscreen by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(uiState.snackbarMessage) {
         uiState.snackbarMessage?.let { message ->
             snackbarHostState.showSnackbar(message)
             viewModel.onSnackbarMessageShown()
+        }
+    }
+
+    BackHandler(enabled = isFullscreen) { isFullscreen = false }
+
+    val view = LocalView.current
+    val activity = LocalContext.current.findActivity()
+    DisposableEffect(isFullscreen, activity) {
+        val window = activity?.window
+        val controller = window?.let { WindowCompat.getInsetsController(it, view) }
+        if (isFullscreen) {
+            activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+            controller?.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            controller?.hide(WindowInsetsCompat.Type.systemBars())
+        } else {
+            activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            controller?.show(WindowInsetsCompat.Type.systemBars())
+        }
+        onDispose {
+            activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            controller?.show(WindowInsetsCompat.Type.systemBars())
         }
     }
 
@@ -86,26 +128,37 @@ fun VideoDetailScreen(viewModelFactory: ViewModelProvider.Factory, onBack: () ->
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(paddingValues).statusBarsPadding().verticalScroll(rememberScrollState())
+            modifier = Modifier.fillMaxSize().padding(paddingValues)
+                .then(if (isFullscreen) Modifier else Modifier.statusBarsPadding())
+                .then(if (isFullscreen) Modifier else Modifier.verticalScroll(rememberScrollState()))
         ) {
-            Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-                DotIconButton(DotIcons.Back, stringResource(R.string.action_back), onBack)
-                Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                    DotIcon(DotIcons.Watching, 16.dp, monochrome = c.accent)
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        stringResource(R.string.watching_label).upperCs(),
-                        style = DotType.chip.copy(fontWeight = FontWeight.W700, letterSpacing = 2.5.sp),
-                        color = c.text,
-                        maxLines = 1
-                    )
+            if (!isFullscreen) {
+                Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    DotIconButton(DotIcons.Back, stringResource(R.string.action_back), onBack)
+                    Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                        DotIcon(DotIcons.Watching, 16.dp, monochrome = c.accent)
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            stringResource(R.string.watching_label).upperCs(),
+                            style = DotType.chip.copy(fontWeight = FontWeight.W700, letterSpacing = 2.5.sp),
+                            color = c.text,
+                            maxLines = 1
+                        )
+                    }
+                    // Rendered per the design; no menu is defined for it yet.
+                    DotIconButton(DotIcons.More, stringResource(R.string.action_more), onClick = {})
                 }
-                // Rendered per the design; no menu is defined for it yet.
-                DotIconButton(DotIcons.More, stringResource(R.string.action_more), onClick = {})
             }
             val item = uiState.item
             when {
-                item != null -> VideoContent(item, uiState, viewModel, onVideoClick)
+                item != null -> VideoContent(
+                    item = item,
+                    uiState = uiState,
+                    viewModel = viewModel,
+                    onVideoClick = onVideoClick,
+                    isFullscreen = isFullscreen,
+                    onToggleFullscreen = { isFullscreen = !isFullscreen }
+                )
                 uiState.isLoaded -> Text(
                     stringResource(R.string.video_missing),
                     style = DotType.body,
@@ -119,12 +172,19 @@ fun VideoDetailScreen(viewModelFactory: ViewModelProvider.Factory, onBack: () ->
 }
 
 @Composable
-private fun VideoContent(item: VideoWithChannel, uiState: VideoDetailUiState, viewModel: VideoDetailViewModel, onVideoClick: (Long) -> Unit) {
+private fun VideoContent(
+    item: VideoWithChannel,
+    uiState: VideoDetailUiState,
+    viewModel: VideoDetailViewModel,
+    onVideoClick: (Long) -> Unit,
+    isFullscreen: Boolean,
+    onToggleFullscreen: () -> Unit
+) {
     val c = DotTheme.colors
     val video = item.video
     val uriHandler = LocalUriHandler.current
 
-    Box(Modifier.fillMaxWidth().aspectRatio(16f / 9f)) {
+    Box(if (isFullscreen) Modifier.fillMaxSize() else Modifier.fillMaxWidth().aspectRatio(16f / 9f)) {
         EmbeddedYoutubePlayer(viewModel.playerListener, Modifier.fillMaxSize())
         Box(
             modifier = Modifier
@@ -160,14 +220,29 @@ private fun VideoContent(item: VideoWithChannel, uiState: VideoDetailUiState, vi
                 ) {
                     DotProgress(fraction, cells = 32)
                 }
-                Row {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(formatPlaybackTime(uiState.positionMs), style = DotType.chip.copy(fontSize = 11.sp, letterSpacing = 1.sp), color = Color.White)
                     Spacer(Modifier.weight(1f))
                     Text(formatPlaybackTime(uiState.durationMs), style = DotType.chip.copy(fontSize = 11.sp, letterSpacing = 1.sp), color = Color.White.copy(alpha = 0.8f))
+                    Spacer(Modifier.width(12.dp))
+                    Box(
+                        modifier = Modifier
+                            .size(26.dp)
+                            .clickable(
+                                role = Role.Button,
+                                onClickLabel = stringResource(if (isFullscreen) R.string.action_fullscreen_exit else R.string.action_fullscreen),
+                                onClick = onToggleFullscreen
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        DotIcon(if (isFullscreen) DotIcons.FullscreenExit else DotIcons.Fullscreen, 18.dp, monochrome = Color.White)
+                    }
                 }
             }
         }
     }
+
+    if (isFullscreen) return
 
     Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {

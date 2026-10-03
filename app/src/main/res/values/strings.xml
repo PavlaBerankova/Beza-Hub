@@ -175,4 +175,6 @@
     <string name="action_mark_watched">Označit jako zhlédnuté</string>
     <string name="action_mark_unwatched">Označit jako nezhlédnuté</string>
     <string name="action_more">Více</string>
+    <string name="action_fullscreen">Celá obrazovka</string>
+    <string name="action_fullscreen_exit">Ukončit celou obrazovku</string>
 </resources>
