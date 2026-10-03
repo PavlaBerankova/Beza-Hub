@@ -219,4 +219,7 @@
     <string name="action_confirm_remove">Odebrat</string>
     <string name="queue_order_custom">Vlastní</string>
     <string name="queue_sorted">Fronta přeřazena</string>
+    <string name="player_detail">Detail</string>
+    <string name="player_open_podcast">Detail podcastu</string>
+    <string name="player_open_episode">Detail epizody</string>
 </resources>

@@ -58,6 +58,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.foundation.layout.navigationBars
@@ -101,7 +103,7 @@ import kotlin.math.abs
  * background in the cover's colour (like the podcast page's header) once the cover has loaded.
  */
 @Composable
-fun PlayerScreen(viewModel: PlayerViewModel, onBack: () -> Unit, onOpenQueue: () -> Unit) {
+fun PlayerScreen(viewModel: PlayerViewModel, onBack: () -> Unit, onOpenQueue: () -> Unit, onOpenPodcast: (Long) -> Unit, onOpenEpisode: (Long) -> Unit) {
     val state by viewModel.uiState.collectAsState()
     val base = DotTheme.colors
     val blockColor = rememberCoverTint(state.artworkUrl)?.let(::headerBlockColor)
@@ -120,11 +122,11 @@ fun PlayerScreen(viewModel: PlayerViewModel, onBack: () -> Unit, onOpenQueue: ()
 
     // Only the top of the screen (bar, cover and its ring) sits on the colour, which fades out towards the
     // title; everything below keeps the normal colours on the normal background.
-    PlayerContent(viewModel, onBack, onOpenQueue, block = blockColor?.let { block }, headerColors = colors.takeIf { blockColor != null })
+    PlayerContent(viewModel, onBack, onOpenQueue, onOpenPodcast, onOpenEpisode, block = blockColor?.let { block }, headerColors = colors.takeIf { blockColor != null })
 }
 
 @Composable
-private fun PlayerContent(viewModel: PlayerViewModel, onBack: () -> Unit, onOpenQueue: () -> Unit, block: Color?, headerColors: DotColors?) {
+private fun PlayerContent(viewModel: PlayerViewModel, onBack: () -> Unit, onOpenQueue: () -> Unit, onOpenPodcast: (Long) -> Unit, onOpenEpisode: (Long) -> Unit, block: Color?, headerColors: DotColors?) {
     val state by viewModel.uiState.collectAsState()
     val c = DotTheme.colors
     val t = headerColors ?: c
@@ -319,6 +321,35 @@ private fun PlayerContent(viewModel: PlayerViewModel, onBack: () -> Unit, onOpen
                 }
             }
             OptionButton(DotIcons.QueueList, stringResource(R.string.queue), active = false, onClick = onOpenQueue, modifier = Modifier.weight(1f), description = stringResource(R.string.queue))
+            // Where the episode and its podcast can be read about.
+            Box(Modifier.weight(1f)) {
+                var detailOpen by remember { mutableStateOf(false) }
+                val scope = rememberCoroutineScope()
+                OptionButton(
+                    DotIcons.Podcasts,
+                    stringResource(R.string.player_detail),
+                    active = false,
+                    onClick = { detailOpen = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    description = stringResource(R.string.player_detail)
+                )
+                DropdownMenu(expanded = detailOpen, onDismissRequest = { detailOpen = false }) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.player_open_podcast)) },
+                        onClick = {
+                            detailOpen = false
+                            scope.launch { viewModel.currentFeedId()?.let(onOpenPodcast) }
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.player_open_episode)) },
+                        onClick = {
+                            detailOpen = false
+                            state.currentEpisodeId?.let(onOpenEpisode)
+                        }
+                    )
+                }
+            }
         }
     }
 }

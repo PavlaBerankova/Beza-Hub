@@ -158,6 +158,9 @@ class PlaybackRepository(
         )
     }
 
+    /** The podcast the loaded episode belongs to, for opening its page from the player. */
+    suspend fun currentFeedId(): Long? = _uiState.value.currentEpisodeId?.let { episodeDao.feedIdOf(it) }
+
     fun play(episode: EpisodeEntity, podcastTitle: String, podcastImageUrl: String?) {
         if (episode.id == endedEpisodeId) endedEpisodeId = null
         // Listening again makes it unplayed until it's finished again.

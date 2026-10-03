@@ -328,6 +328,9 @@ fun BerpodApp(container: AppContainer) {
                     PlayerScreen(
                         viewModel = playerViewModel,
                         onBack = { navController.popBackStack() },
+                        // From the player, so "back" comes home to it.
+                        onOpenPodcast = { feedId -> navController.navigate(Screen.PodcastEpisodes.createRoute(feedId)) },
+                        onOpenEpisode = openEpisode,
                         onOpenQueue = {
                             podcastsSection = PodcastsSection.Queue
                             if (!navController.popBackStack(Screen.Podcasts.route, inclusive = false)) {

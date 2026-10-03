@@ -10,6 +10,8 @@ class PlayerViewModel(private val playbackRepository: PlaybackRepository) : View
 
     val uiState: StateFlow<PlaybackUiState> = playbackRepository.uiState
 
+    suspend fun currentFeedId(): Long? = playbackRepository.currentFeedId()
+
     fun togglePlayPause() = playbackRepository.togglePlayPause()
 
     fun seekTo(positionMs: Long) = playbackRepository.seekTo(positionMs)
