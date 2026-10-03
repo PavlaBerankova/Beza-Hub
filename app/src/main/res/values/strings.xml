@@ -180,9 +180,10 @@
     <string name="edit_rss_title">Upravit RSS adresu</string>
     <string name="edit_rss_label">RSS adresa</string>
     <string name="edit_rss_checking">Ověřuji…</string>
-    <string name="shown_all">Všechny epizody</string>
-    <string name="shown_unplayed">Nepřehrané epizody</string>
-    <string name="shown_played">Přehrané epizody</string>
+    <string name="shown_all">Vše</string>
+    <string name="shown_unplayed">Nepřehrané</string>
+    <string name="shown_played">Přehrané</string>
+    <string name="filter_everything">Vše</string>
     <string name="sort_oldest">Nejstarší</string>
     <string name="filter_unplayed">Nepřehrané</string>
     <string name="filter_played">Přehrané</string>

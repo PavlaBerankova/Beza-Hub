@@ -31,6 +31,7 @@ import androidx.compose.foundation.border
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -143,17 +144,17 @@ fun PodcastHeader(
                         overflow = TextOverflow.Ellipsis
                     )
                 }
-                // "37 EPIZOD · KAŽDÝ PÁTEK"
-                Text(
-                    listOfNotNull(czechCount(episodeCount, "epizoda", "epizody", "epizod"), frequency?.upperCs()).joinToString(" · "),
-                    style = DotType.label.copy(letterSpacing = 1.5.sp),
-                    color = c.textMuted,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
             }
         }
         if (playButton != null) DotPrimaryButton(playButton.label, playButton.icon, playButton.onClick)
+        // "37 EPIZOD · KAŽDÝ PÁTEK", centred under the button
+        Text(
+            listOfNotNull(czechCount(episodeCount, "epizoda", "epizody", "epizod"), frequency?.upperCs()).joinToString(" · "),
+            style = DotType.label.copy(letterSpacing = 1.5.sp),
+            color = c.textMuted,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
     }
     }
     // Below the block, in the normal colours.

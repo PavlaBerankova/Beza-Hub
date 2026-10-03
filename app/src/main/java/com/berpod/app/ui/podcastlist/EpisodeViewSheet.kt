@@ -52,7 +52,7 @@ fun EpisodeFilter.shownRes(): Int = when (this) {
 }
 
 fun EpisodeFilter.labelRes(): Int = when (this) {
-    EpisodeFilter.All -> R.string.filter_all
+    EpisodeFilter.All -> R.string.filter_everything
     EpisodeFilter.Unplayed -> R.string.filter_unplayed
     EpisodeFilter.Played -> R.string.filter_played
 }
