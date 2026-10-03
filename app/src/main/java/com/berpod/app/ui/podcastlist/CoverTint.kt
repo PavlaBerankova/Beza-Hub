@@ -65,6 +65,11 @@ fun headerBlockColor(cover: Color): Color =
 fun colorsOnBlock(base: DotColors, block: Color): DotColors {
     val fg = if (isLightTint(block)) Color(0xFF16141C) else Color.White
     return base.copy(
+        background = block,
+        surface = lerp(block, fg, 0.10f),
+        waveIdle = fg.copy(alpha = 0.10f),
+        waveMuted = fg.copy(alpha = 0.28f),
+        ringIdle = fg.copy(alpha = 0.22f),
         text = fg,
         textStrong = fg,
         textMuted = fg.copy(alpha = 0.72f),

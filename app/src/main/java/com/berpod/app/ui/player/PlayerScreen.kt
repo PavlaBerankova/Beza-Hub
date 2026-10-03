@@ -58,6 +58,25 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.runtime.mutableFloatStateOf
+import com.berpod.app.ui.theme.DotColors
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.drawBehind
+import com.berpod.app.ui.theme.LocalDotColors
+import com.berpod.app.ui.podcastlist.rememberCoverTint
+import com.berpod.app.ui.podcastlist.isLightTint
+import com.berpod.app.ui.podcastlist.headerBlockColor
+import com.berpod.app.ui.podcastlist.colorsOnBlock
+import androidx.core.view.WindowCompat
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.animation.animateColorAsState
+import android.app.Activity
 import com.berpod.app.R
 import com.berpod.app.data.repository.SleepTimer
 import com.berpod.app.ui.common.formatPlaybackTime
@@ -74,11 +93,41 @@ import com.berpod.app.ui.theme.DotTheme
 import com.berpod.app.ui.theme.DotType
 import kotlin.math.abs
 
-/** Dot Matrix player: dot ring around the cover, seekable decorative wave, times and play/pause. */
+/**
+ * Dot Matrix player: dot ring around the cover, seekable decorative wave, times and play/pause, on a solid
+ * background in the cover's colour (like the podcast page's header) once the cover has loaded.
+ */
 @Composable
 fun PlayerScreen(viewModel: PlayerViewModel, onBack: () -> Unit, onOpenQueue: () -> Unit) {
     val state by viewModel.uiState.collectAsState()
+    val base = DotTheme.colors
+    val blockColor = rememberCoverTint(state.artworkUrl)?.let(::headerBlockColor)
+    val block by animateColorAsState(blockColor ?: base.background, label = "playerBlock")
+    val colors = if (blockColor == null) base else colorsOnBlock(base, block)
+
+    // System bar icons follow the background: dark on a bright cover colour, light on a deep one.
+    val view = LocalView.current
+    val systemDark = isSystemInDarkTheme()
+    val lightBlock = blockColor?.let(::isLightTint)
+    DisposableEffect(lightBlock, systemDark) {
+        val controller = (view.context as? Activity)?.window?.let { WindowCompat.getInsetsController(it, view) }
+        controller?.isAppearanceLightStatusBars = lightBlock ?: !systemDark
+        onDispose { controller?.isAppearanceLightStatusBars = !systemDark }
+    }
+
+    // Only the top of the screen (bar, cover and its ring) sits on the colour, which fades out towards the
+    // title; everything below keeps the normal colours on the normal background.
+    PlayerContent(viewModel, onBack, onOpenQueue, block = blockColor?.let { block }, headerColors = colors.takeIf { blockColor != null })
+}
+
+@Composable
+private fun PlayerContent(viewModel: PlayerViewModel, onBack: () -> Unit, onOpenQueue: () -> Unit, block: Color?, headerColors: DotColors?) {
+    val state by viewModel.uiState.collectAsState()
     val c = DotTheme.colors
+    val t = headerColors ?: c
+    // Where the podcast's name ends: the colour fades out just below it, so the title and name sit on the colour
+    // and the wave starts on the normal background, whatever the title's length.
+    var colourEndPx by remember { mutableFloatStateOf(0f) }
     var draggingFraction by remember { mutableStateOf<Float?>(null) }
     val known = state.durationMs > 0L
     val duration = state.durationMs.coerceAtLeast(1L)
@@ -93,6 +142,17 @@ fun PlayerScreen(viewModel: PlayerViewModel, onBack: () -> Unit, onOpenQueue: ()
         Modifier
             .fillMaxSize()
             .background(c.background)
+            .drawBehind {
+                if (block != null && colourEndPx > 0f) {
+                    // Solid to the bottom of the podcast's name, then a short fade that is over before the wave.
+                    val fade = 20.dp.toPx()
+                    val end = colourEndPx + fade
+                    drawRect(
+                        brush = Brush.verticalGradient(0f to block, (end - fade) / end to block, 1f to block.copy(alpha = 0f), startY = 0f, endY = end),
+                        size = androidx.compose.ui.geometry.Size(size.width, end)
+                    )
+                }
+            }
             .statusBarsPadding()
             .navigationBarsPadding()
             // Scrolls on small screens or with large text so the play button stays reachable.
@@ -101,13 +161,14 @@ fun PlayerScreen(viewModel: PlayerViewModel, onBack: () -> Unit, onOpenQueue: ()
             .padding(top = 16.dp, bottom = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        CompositionLocalProvider(LocalDotColors provides t) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             DotIconButton(DotIcons.CloseDown, stringResource(R.string.action_close_player), onBack)
             Row(Modifier.weight(1f), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                 // The label follows the playback: "Přehrává se" while it plays, "Pozastaveno" while it is paused.
-                DotIcon(DotIcons.WaveGlyph, 14.dp, monochrome = if (state.isPlaying) null else c.textMuted)
+                DotIcon(DotIcons.WaveGlyph, 14.dp, monochrome = if (state.isPlaying) null else t.textMuted)
                 Spacer(Modifier.width(8.dp))
-                Text(stringResource(if (state.isPlaying) R.string.now_playing else R.string.now_paused).upperCs(), style = DotType.chip.copy(fontWeight = FontWeight.W700, letterSpacing = 2.5.sp), color = c.text)
+                Text(stringResource(if (state.isPlaying) R.string.now_playing else R.string.now_paused).upperCs(), style = DotType.chip.copy(fontWeight = FontWeight.W700, letterSpacing = 2.5.sp), color = t.text)
             }
             Spacer(Modifier.size(44.dp))
         }
@@ -116,17 +177,17 @@ fun PlayerScreen(viewModel: PlayerViewModel, onBack: () -> Unit, onOpenQueue: ()
                 val scale = size.width / 280f
                 ring.forEach { dot ->
                     drawCircle(
-                        color = when (dot.role) { CellRole.Played -> c.accent; CellRole.Current -> c.text; CellRole.Rest -> c.ringIdle },
+                        color = when (dot.role) { CellRole.Played -> t.accent; CellRole.Current -> t.text; CellRole.Rest -> t.ringIdle },
                         radius = 3f * scale,
                         center = Offset(dot.x * scale, dot.y * scale)
                     )
                 }
             }
             Box(
-                modifier = Modifier.size(210.dp).clip(CircleShape).background(c.divider).border(1.dp, c.divider, CircleShape),
+                modifier = Modifier.size(210.dp).clip(CircleShape).background(t.divider).border(1.dp, t.divider, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                DotIcon(DotIcons.Podcasts, 56.dp, monochrome = c.textMuted)
+                DotIcon(DotIcons.Podcasts, 56.dp, monochrome = t.textMuted)
                 if (state.artworkUrl != null) {
                     AsyncImage(
                         model = state.artworkUrl, contentDescription = null, contentScale = ContentScale.Crop,
@@ -135,9 +196,10 @@ fun PlayerScreen(viewModel: PlayerViewModel, onBack: () -> Unit, onOpenQueue: ()
                 }
             }
         }
-        Text(state.title, style = DotType.title.copy(fontSize = 20.sp), color = c.text, maxLines = 3, overflow = TextOverflow.Ellipsis,
+        }
+        Text(state.title, style = DotType.title.copy(fontSize = 20.sp), color = t.text, maxLines = 3, overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(top = 18.dp))
-        Text(state.podcastTitle.upperCs(), style = DotType.chip.copy(letterSpacing = 2.sp), color = c.textMuted, modifier = Modifier.padding(top = 6.dp))
+        Text(state.podcastTitle.upperCs(), style = DotType.chip.copy(letterSpacing = 2.sp), color = t.textMuted, modifier = Modifier.padding(top = 6.dp).onGloballyPositioned { colourEndPx = it.positionInRoot().y + it.size.height })
         val seekLabel = stringResource(R.string.action_seek)
         Canvas(
             Modifier
