@@ -63,6 +63,7 @@
     <string name="badge_new">Nová</string>
     <string name="action_close_player">Zavřít přehrávač</string>
     <string name="now_playing">Přehrává se</string>
+    <string name="now_paused">Pozastaveno</string>
     <string name="action_seek">Posunout přehrávání</string>
     <string name="section_today">Dnes</string>
     <string name="queue_total">celkem %1$s</string>

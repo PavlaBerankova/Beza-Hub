@@ -55,13 +55,8 @@ object DotIcons {
         4.5f to 17f, 4.5f to 12.6f, 10.3f to 17f, 10.3f to 12.6f, 10.3f to 8.2f, 10.3f to 3.8f,
         16.1f to 17f, 16.1f to 12.6f, 16.1f to 8.2f
     ).map { (x, y) -> px(x, y, 3.4f) })
+    /** The queue: its lines with a plus, so it reads as adding to it. Used for adding, for the queue button and its empty states. */
     val Queue = DotIconSpec(24f, 24f, listOf(
-        IconPart("M4 6h12M4 11h12", IconRole.Primary, 2.4f),
-        IconPart("M4 16h6", IconRole.Muted, 2.4f),
-        px(14f, 13.5f, 1.9f), px(16.2f, 15.6f, 1.9f), px(14f, 17.7f, 1.9f)
-    ))
-    /** "Add to queue": the queue's lines with a plus, so it reads as adding rather than as the queue itself. */
-    val AddToQueue = DotIconSpec(24f, 24f, listOf(
         IconPart("M4 6h12M4 11h12", IconRole.Primary, 2.4f),
         IconPart("M4 16h5", IconRole.Muted, 2.4f),
         IconPart("M17 13v7M13.5 16.5h7", IconRole.Accent, 2.4f)

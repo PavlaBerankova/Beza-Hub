@@ -104,9 +104,10 @@ fun PlayerScreen(viewModel: PlayerViewModel, onBack: () -> Unit, onOpenQueue: ()
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             DotIconButton(DotIcons.CloseDown, stringResource(R.string.action_close_player), onBack)
             Row(Modifier.weight(1f), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                DotIcon(DotIcons.WaveGlyph, 14.dp)
+                // The label follows the playback: "Přehrává se" while it plays, "Pozastaveno" while it is paused.
+                DotIcon(DotIcons.WaveGlyph, 14.dp, monochrome = if (state.isPlaying) null else c.textMuted)
                 Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.now_playing).upperCs(), style = DotType.chip.copy(fontWeight = FontWeight.W700, letterSpacing = 2.5.sp), color = c.text)
+                Text(stringResource(if (state.isPlaying) R.string.now_playing else R.string.now_paused).upperCs(), style = DotType.chip.copy(fontWeight = FontWeight.W700, letterSpacing = 2.5.sp), color = c.text)
             }
             Spacer(Modifier.size(44.dp))
         }
