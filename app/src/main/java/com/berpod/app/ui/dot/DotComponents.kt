@@ -257,24 +257,22 @@ fun CoverImage(url: String?, size: Dp?, radius: Dp, modifier: Modifier = Modifie
     }
 }
 
-/** Small outlined "label ⌄" button opening a menu or sheet; [highlighted] (a filter is on) gets an accent outline and a dot. */
+/** Borderless "label ⌄" button opening a menu or sheet; a dot before the label shows a filter is on, the chevron is accent-coloured. */
 @Composable
 fun DotFilterButton(label: String, highlighted: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val c = DotTheme.colors
-    val shape = RoundedCornerShape(10.dp)
     Row(
         modifier = modifier
             .minimumInteractiveComponentSize()
-            .clip(shape)
-            .border(1.dp, if (highlighted) c.accent else c.outline, shape)
+            .clip(RoundedCornerShape(10.dp))
             .clickable(role = Role.Button, onClick = onClick)
-            .padding(start = 10.dp, end = 6.dp)
+            .padding(start = 10.dp)
             .height(32.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         if (highlighted) Box(Modifier.size(7.dp).clip(RoundedCornerShape(1.dp)).background(c.accent))
         Text(label.upperCs(), style = DotType.label.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.W700), color = c.text, maxLines = 1)
-        DotIcon(DotIcons.CloseDown, 16.dp)
+        DotIcon(DotIcons.CloseDown, 16.dp, monochrome = c.accent)
     }
 }
