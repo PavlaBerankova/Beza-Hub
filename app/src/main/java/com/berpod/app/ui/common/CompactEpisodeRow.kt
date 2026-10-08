@@ -99,7 +99,7 @@ fun CompactEpisodeRow(
             }
             actions()
             DotIconButton(
-                icon = if (isPlaying) DotIcons.Equalizer else DotIcons.Play,
+                icon = if (isPlaying) DotIcons.Pause else DotIcons.Play,
                 contentDescription = stringResource(if (isPlaying) R.string.action_pause else R.string.action_play),
                 onClick = onPlayOrPause,
                 size = 48.dp,

@@ -56,6 +56,9 @@ fun resumeStartMs(lastPositionMs: Long, durationSeconds: Int?): Long {
     return if (durationMs > 0 && lastPositionMs >= durationMs * 98 / 100) 0L else lastPositionMs
 }
 
+/** Whether the episode played last is brought back (paused, in the mini player) on the next start: it still exists and was not finished. */
+fun shouldRestoreEpisode(episode: EpisodeEntity?): Boolean = episode != null && episode.playedAtMs == null
+
 /** Also used by VideoPlaybackRepository, which persists position on the same 5 s cadence. */
 fun shouldPersistPosition(lastPersistedAtMs: Long, nowMs: Long, intervalMs: Long = 5_000L): Boolean =
     nowMs - lastPersistedAtMs >= intervalMs
@@ -112,7 +115,8 @@ class PlaybackRepository(
                     title = metadata?.title?.toString().orEmpty(),
                     podcastTitle = metadata?.artist?.toString().orEmpty(),
                     artworkUrl = metadata?.artworkUri?.toString(),
-                    positionMs = 0L,
+                    // 0 for a fresh start; the resume position when the item was loaded with one.
+                    positionMs = controller?.currentPosition ?: 0L,
                     // The new item's duration arrives with STATE_READY; never keep the previous episode's.
                     durationMs = 0L
                 )
@@ -152,8 +156,10 @@ class PlaybackRepository(
                 _uiState.update { it.copy(isPlaying = connectedController.isPlaying) }
                 restartPositionPolling(connectedController.isPlaying)
                 connectedController.setPlaybackSpeed(_uiState.value.speed)
+                val startedSomething = pendingAction != null
                 pendingAction?.invoke()
                 pendingAction = null
+                if (!startedSomething) restoreCurrent(connectedController)
             },
             ContextCompat.getMainExecutor(appContext)
         )
@@ -164,24 +170,14 @@ class PlaybackRepository(
 
     fun play(episode: EpisodeEntity, podcastTitle: String, podcastImageUrl: String?) {
         if (episode.id == endedEpisodeId) endedEpisodeId = null
+        prefs.edit().putLong(KEY_LAST_EPISODE_ID, episode.id).apply()
         // Listening again makes it unplayed until it's finished again.
         if (episode.playedAtMs != null) scope.launch { runCatching { episodeDao.setPlayed(episode.id, null) } }
         // Playing from outside the queue puts the episode first, so next/auto-advance continue with the rest.
         scope.launch { runCatching { queueDao.queueAtFront(episode.id) } }
         val action: () -> Unit = {
             controller?.let { c ->
-                val mediaItem = MediaItem.Builder()
-                    .setMediaId(episode.id.toString())
-                    // The offline copy when there is one, the stream otherwise.
-                    .setUri(downloadRepository.localFileFor(episode.id)?.let { Uri.fromFile(it).toString() } ?: episode.audioUrl)
-                    .setMediaMetadata(
-                        MediaMetadata.Builder()
-                            .setTitle(episode.title)
-                            .setArtist(podcastTitle)
-                            .setArtworkUri((episode.imageUrl ?: podcastImageUrl)?.let(Uri::parse))
-                            .build()
-                    )
-                    .build()
+                val mediaItem = buildMediaItem(episode, podcastTitle, podcastImageUrl)
                 // Start position goes with the item: a seekTo() issued right after setMediaItem() over the
                 // controller was dropped, so resumed episodes restarted from 0.
                 c.setMediaItem(mediaItem, resumeStartMs(episode.lastPositionMs, episode.durationSeconds))
@@ -190,6 +186,58 @@ class PlaybackRepository(
             }
         }
         if (controller != null) action() else pendingAction = action
+    }
+
+    private fun buildMediaItem(episode: EpisodeEntity, podcastTitle: String, podcastImageUrl: String?): MediaItem =
+        MediaItem.Builder()
+            .setMediaId(episode.id.toString())
+            // The offline copy when there is one, the stream otherwise.
+            .setUri(downloadRepository.localFileFor(episode.id)?.let { Uri.fromFile(it).toString() } ?: episode.audioUrl)
+            .setMediaMetadata(
+                MediaMetadata.Builder()
+                    .setTitle(episode.title)
+                    .setArtist(podcastTitle)
+                    .setArtworkUri((episode.imageUrl ?: podcastImageUrl)?.let(Uri::parse))
+                    .build()
+            )
+            .build()
+
+    /**
+     * Back in the app: shows what the player already holds (the service can outlive the app), or else puts the
+     * episode played last into it, paused where it stopped, so the mini player is there to carry on. The queue is untouched.
+     */
+    private fun restoreCurrent(c: MediaController) {
+        val item = c.currentMediaItem
+        if (item != null) {
+            val metadata = item.mediaMetadata
+            val duration = c.duration
+            _uiState.update {
+                it.copy(
+                    currentEpisodeId = item.mediaId.toLongOrNull(),
+                    title = metadata.title?.toString().orEmpty(),
+                    podcastTitle = metadata.artist?.toString().orEmpty(),
+                    artworkUrl = metadata.artworkUri?.toString(),
+                    positionMs = c.currentPosition,
+                    durationMs = if (duration == C.TIME_UNSET) 0L else duration,
+                    isPlaying = c.isPlaying
+                )
+            }
+            updateHasNext()
+            return
+        }
+        val lastId = prefs.getLong(KEY_LAST_EPISODE_ID, -1L).takeIf { it > 0 } ?: return
+        scope.launch {
+            val found = runCatching { episodeDao.getWithFeed(lastId) }.getOrNull()
+            if (!shouldRestoreEpisode(found?.episode)) return@launch
+            // Something may have been started while it was looked up.
+            if (c.currentMediaItem != null) return@launch
+            val episode = found!!.episode
+            c.setMediaItem(
+                buildMediaItem(episode, found.podcastTitle, found.podcastImageUrl),
+                resumeStartMs(episode.lastPositionMs, episode.durationSeconds)
+            )
+            c.prepare()
+        }
     }
 
     fun togglePlayPause() {
@@ -327,5 +375,9 @@ class PlaybackRepository(
         if (episodeId == endedEpisodeId) return
         lastPersistedAtMs = System.currentTimeMillis()
         scope.launch { runCatching { episodeDao.updatePosition(episodeId, positionMs) } }
+    }
+
+    private companion object {
+        const val KEY_LAST_EPISODE_ID = "last_episode_id"
     }
 }

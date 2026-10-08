@@ -61,7 +61,11 @@ object DotIcons {
     val PlaySolid = DotIconSpec(800f, 800f, listOf(IconPart("M320-273v-414q0-17 12-28.5t28-11.5q5 0 10.5 1.5T381-721l326 207q9 6 13.5 15t4.5 19q0 10-4.5 19T707-446L381-239q-5 3-10.5 4.5T360-233q-16 0-28-11.5T320-273Zm80-207Zm0 134 210-134-210-134v268Z", IconRole.OnAccent)), originX = 80f, originY = -880f)
     val PlayLarge = material("M320-273v-414q0-17 12-28.5t28-11.5q5 0 10.5 1.5T381-721l326 207q9 6 13.5 15t4.5 19q0 10-4.5 19T707-446L381-239q-5 3-10.5 4.5T360-233q-16 0-28-11.5T320-273Zm80-207Zm0 134 210-134-210-134v268Z")
     val PauseLarge = Pause
-    val Equalizer = material("M240-160q-33 0-56.5-23.5T160-240v-160q0-33 23.5-56.5T240-480q33 0 56.5 23.5T320-400v160q0 33-23.5 56.5T240-160Zm240 0q-33 0-56.5-23.5T400-240v-480q0-33 23.5-56.5T480-800q33 0 56.5 23.5T560-720v480q0 33-23.5 56.5T480-160Zm240 0q-33 0-56.5-23.5T640-240v-280q0-33 23.5-56.5T720-600q33 0 56.5 23.5T800-520v280q0 33-23.5 56.5T720-160Z")
+    /** The "playing" bars, kept in the original Dot Matrix style: columns cut into little squares. */
+    val Equalizer = DotIconSpec(24f, 24f, listOf(
+        4.5f to 17f, 4.5f to 12.6f, 10.3f to 17f, 10.3f to 12.6f, 10.3f to 8.2f, 10.3f to 3.8f,
+        16.1f to 17f, 16.1f to 12.6f, 16.1f to 8.2f
+    ).map { (x, y) -> px(x, y, 3.4f) })
     /** The queue: its lines with a plus, so it reads as adding to it. Used for adding, for the queue button and its empty states. */
     val Queue = material("M160-320q-17 0-28.5-11.5T120-360q0-17 11.5-28.5T160-400h200q17 0 28.5 11.5T400-360q0 17-11.5 28.5T360-320H160Zm0-160q-17 0-28.5-11.5T120-520q0-17 11.5-28.5T160-560h360q17 0 28.5 11.5T560-520q0 17-11.5 28.5T520-480H160Zm0-160q-17 0-28.5-11.5T120-680q0-17 11.5-28.5T160-720h360q17 0 28.5 11.5T560-680q0 17-11.5 28.5T520-640H160Zm520 480q-17 0-28.5-11.5T640-200v-120H520q-17 0-28.5-11.5T480-360q0-17 11.5-28.5T520-400h120v-120q0-17 11.5-28.5T680-560q17 0 28.5 11.5T720-520v120h120q17 0 28.5 11.5T880-360q0 17-11.5 28.5T840-320H720v120q0 17-11.5 28.5T680-160Z")
     /** The queue as a place to go to (the player's FRONTA button): its lines with the small arrow, no plus. */
