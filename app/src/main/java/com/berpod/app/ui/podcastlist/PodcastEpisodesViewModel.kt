@@ -31,7 +31,6 @@ data class PodcastEpisodesUiState(
     val feedRssUrl: String = "",
     val episodeSort: EpisodeSort = EpisodeSort.NewestFirst,
     val episodeFilter: EpisodeFilter = EpisodeFilter.All,
-    val isViewSheetOpen: Boolean = false,
     /** Set while the "mark all" confirmation is up: true to mark played, false to mark unplayed. */
     val confirmMarkAllPlayed: Boolean? = null,
     /** The edit-RSS dialog is open; [rssError] is why the last save was refused. */
@@ -121,13 +120,11 @@ class PodcastEpisodesViewModel(
         }
     }
 
-    fun onOpenViewSheet() = _uiState.update { it.copy(isViewSheetOpen = true) }
+    /** All → unplayed → played → all. */
+    fun onCycleFilter() = _uiState.update { it.copy(episodeFilter = nextEpisodeFilter(it.episodeFilter)) }
 
-    fun onDismissViewSheet() = _uiState.update { it.copy(isViewSheetOpen = false) }
-
-    fun onSortChange(sort: EpisodeSort) = _uiState.update { it.copy(episodeSort = sort) }
-
-    fun onFilterChange(filter: EpisodeFilter) = _uiState.update { it.copy(episodeFilter = filter) }
+    /** Newest first ↔ oldest first. */
+    fun onToggleSort() = _uiState.update { it.copy(episodeSort = nextEpisodeSort(it.episodeSort)) }
 
     fun onRequestMarkAll(played: Boolean) = _uiState.update { it.copy(confirmMarkAllPlayed = played) }
 
@@ -135,7 +132,7 @@ class PodcastEpisodesViewModel(
 
     fun onConfirmMarkAll() {
         val played = _uiState.value.confirmMarkAllPlayed ?: return
-        _uiState.update { it.copy(confirmMarkAllPlayed = null, isViewSheetOpen = false) }
+        _uiState.update { it.copy(confirmMarkAllPlayed = null) }
         viewModelScope.launch {
             if (played) markAllPlayed(feedId, episodeRepository, queueRepository) else episodeRepository.markAllUnplayed(feedId)
             _uiState.update {

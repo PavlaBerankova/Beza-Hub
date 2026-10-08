@@ -197,7 +197,8 @@ fun BerpodApp(container: AppContainer) {
                         subscriptionsFactory = PodcastListViewModel.factory(
                             container.podcastRepository,
                             container.episodeRepository,
-                            container.tagRepository
+                            container.tagRepository,
+                            container.queueRepository
                         ),
                         queueFactory = QueueViewModel.factory(
                             container.queueRepository,

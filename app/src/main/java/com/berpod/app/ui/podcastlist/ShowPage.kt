@@ -110,6 +110,11 @@ fun publishingFrequency(pubDates: List<Long?>, zone: ZoneId = ZoneId.systemDefau
 enum class EpisodeSort { NewestFirst, OldestFirst }
 enum class EpisodeFilter { All, Unplayed, Played }
 
+/** The filter button's order: all, unplayed, played, then round again. */
+fun nextEpisodeFilter(filter: EpisodeFilter): EpisodeFilter = EpisodeFilter.entries[(filter.ordinal + 1) % EpisodeFilter.entries.size]
+
+fun nextEpisodeSort(sort: EpisodeSort): EpisodeSort = EpisodeSort.entries[(sort.ordinal + 1) % EpisodeSort.entries.size]
+
 /**
  * The episodes as the podcast page lists them. [episodes] comes newest first; undated ones always stay at the end,
  * whichever way the list is sorted.

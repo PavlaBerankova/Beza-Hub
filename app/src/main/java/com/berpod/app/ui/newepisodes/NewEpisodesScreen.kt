@@ -18,6 +18,8 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
+import com.berpod.app.ui.dot.DotIconButton
+import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -108,7 +110,8 @@ fun NewEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onEpisodeClic
                 PeriodRow(
                     period = uiState.period,
                     sort = uiState.sort,
-                    onClick = viewModel::onOpenViewSheet,
+                    onPeriodClick = viewModel::onCyclePeriod,
+                    onSortClick = viewModel::onToggleSort,
                     modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 8.dp)
                 )
             }
@@ -153,31 +156,34 @@ fun NewEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onEpisodeClic
             }
         }
 
-        if (uiState.isViewSheetOpen) {
-            NewViewSheet(
-                period = uiState.period,
-                sort = uiState.sort,
-                hasEpisodes = uiState.episodes.isNotEmpty(),
-                onPeriodChange = viewModel::onSelectPeriod,
-                onSortChange = viewModel::onSelectSort,
-                onRemoveAll = viewModel::onRequestRemoveAll,
-                onDismiss = viewModel::onDismissViewSheet
-            )
-        }
         uiState.confirmRemoveCount?.let { count ->
             RemoveAllNewDialog(count, onConfirm = viewModel::onConfirmRemoveAll, onDismiss = viewModel::onCancelRemoveAll)
         }
     }
 }
 
-/** "VŠECHNY NOVÉ ——— [NEJNOVĚJŠÍ ⌄]": what is listed (the period), and the button for filtering and sorting. */
+/**
+ * "[VŠECHNY NOVÉ ⌄] ——— [NEJNOVĚJŠÍ ⌄]": the left button steps through how far back Nové reaches, the right one
+ * flips the order.
+ */
 @Composable
-private fun PeriodRow(period: NewPeriod, sort: EpisodeSort, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun PeriodRow(
+    period: NewPeriod,
+    sort: EpisodeSort,
+    onPeriodClick: () -> Unit,
+    onSortClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val c = DotTheme.colors
-    Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        Box(Modifier.size(7.dp).clip(RoundedCornerShape(1.dp)).background(c.accent))
-        Text(stringResource(period.titleRes()).upperCs(), style = DotType.label, color = c.textMuted, maxLines = 1)
+    Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        // DotFilterButton pads its start; pulled back so the label lines up with the page edge.
+        DotFilterButton(
+            stringResource(period.titleRes()),
+            highlighted = period != NewPeriod.All,
+            onClick = onPeriodClick,
+            modifier = Modifier.offset(x = (-10).dp)
+        )
         HorizontalDivider(modifier = Modifier.weight(1f), color = c.divider)
-        DotFilterButton(stringResource(sort.labelRes()), highlighted = period != NewPeriod.All, onClick = onClick)
+        DotFilterButton(stringResource(sort.labelRes()), highlighted = false, onClick = onSortClick, flipped = sort == EpisodeSort.OldestFirst)
     }
 }

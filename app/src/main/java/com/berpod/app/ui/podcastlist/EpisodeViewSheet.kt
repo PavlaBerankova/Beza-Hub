@@ -57,57 +57,6 @@ fun EpisodeFilter.labelRes(): Int = when (this) {
     EpisodeFilter.Played -> R.string.filter_played
 }
 
-/** "Řazení a filtr" bottom sheet of a podcast page: sort order, played filter, and mark-all actions. */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
-@Composable
-fun EpisodeViewSheet(
-    sort: EpisodeSort,
-    filter: EpisodeFilter,
-    hasUnplayed: Boolean,
-    hasPlayed: Boolean,
-    onSortChange: (EpisodeSort) -> Unit,
-    onFilterChange: (EpisodeFilter) -> Unit,
-    onMarkAllPlayed: () -> Unit,
-    onMarkAllUnplayed: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    val c = DotTheme.colors
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = c.surface,
-        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-        dragHandle = {
-            Box(Modifier.padding(top = 12.dp).size(width = 44.dp, height = 5.dp).clip(RoundedCornerShape(3.dp)).background(c.outline))
-        }
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(top = 16.dp, bottom = 32.dp).navigationBarsPadding(),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    stringResource(R.string.episodes_view_title).upperCs(),
-                    style = DotType.title.copy(fontSize = 22.sp, fontWeight = FontWeight.W800, letterSpacing = 2.sp),
-                    color = c.text,
-                    modifier = Modifier.weight(1f)
-                )
-                DotIconButton(DotIcons.Close, stringResource(R.string.action_close), onDismiss)
-            }
-            SheetSection(stringResource(R.string.episodes_sort_label)) {
-                EpisodeSort.entries.forEach { DotChip(stringResource(it.labelRes()), selected = sort == it, onClick = { onSortChange(it) }) }
-            }
-            SheetSection(stringResource(R.string.episodes_show_label)) {
-                EpisodeFilter.entries.forEach { DotChip(stringResource(it.labelRes()), selected = filter == it, onClick = { onFilterChange(it) }) }
-            }
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                SheetAction(stringResource(R.string.action_mark_all_played), enabled = hasUnplayed, onClick = onMarkAllPlayed, modifier = Modifier.fillMaxWidth())
-                SheetAction(stringResource(R.string.action_mark_all_unplayed), enabled = hasPlayed, onClick = onMarkAllUnplayed, modifier = Modifier.fillMaxWidth())
-            }
-        }
-    }
-}
-
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun SheetSection(title: String, chips: @Composable () -> Unit) {

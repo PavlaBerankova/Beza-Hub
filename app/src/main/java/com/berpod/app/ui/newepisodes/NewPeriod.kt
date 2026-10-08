@@ -12,6 +12,9 @@ enum class NewPeriod(val days: Long?) {
     Month(30)
 }
 
+/** The period button's order: all, today, week, two weeks, month, then round again. */
+fun nextPeriod(period: NewPeriod): NewPeriod = NewPeriod.entries[(period.ordinal + 1) % NewPeriod.entries.size]
+
 /** The oldest publish time (epoch millis) an episode may have to be inside [period], or null for no limit. */
 fun periodStartMillis(period: NewPeriod, nowMillis: Long, zone: ZoneId = ZoneId.systemDefault()): Long? {
     val days = period.days ?: return null

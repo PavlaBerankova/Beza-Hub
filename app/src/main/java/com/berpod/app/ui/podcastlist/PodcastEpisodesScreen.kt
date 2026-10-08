@@ -92,6 +92,12 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
     }
     val frequency = remember(uiState.episodes) { publishingFrequency(uiState.episodes.map { it.pubDateMillis }) }
     val blockColor: Color? = headerBlockColor()
+    val menu = PodcastMenuActions(
+        hasUnplayed = uiState.episodes.any { it.playedAtMs == null },
+        hasPlayed = uiState.episodes.any { it.playedAtMs != null },
+        onMarkAllPlayed = { viewModel.onRequestMarkAll(true) },
+        onMarkAllUnplayed = { viewModel.onRequestMarkAll(false) }
+    )
 
     // The system bar icons follow the header block while it is on screen (dark icons on a bright block, light on a deep one).
     val view = LocalView.current
@@ -142,12 +148,13 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                         onTagClick = viewModel::onOpenTagDialog,
                         onRefresh = viewModel::onRefresh,
                         onEditRss = viewModel::onEditRss,
+                        menu = menu,
                         episodeCount = uiState.episodes.size,
                         frequency = frequency,
                         sort = uiState.episodeSort,
                         filter = uiState.episodeFilter,
-                        isFiltered = uiState.episodeFilter != EpisodeFilter.All,
-                        onViewClick = viewModel::onOpenViewSheet,
+                        onFilterClick = viewModel::onCycleFilter,
+                        onSortClick = viewModel::onToggleSort,
                         blockColor = blockColor
                     )
                 }
@@ -216,25 +223,13 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                         } else {
                             DotIconButton(DotIcons.Refresh, stringResource(R.string.action_refresh), viewModel::onRefresh)
                         }
+                        PodcastMoreMenu(menu)
                     }
                     HorizontalDivider(color = c.divider)
                 }
             }
         }
 
-        if (uiState.isViewSheetOpen) {
-            EpisodeViewSheet(
-                sort = uiState.episodeSort,
-                filter = uiState.episodeFilter,
-                hasUnplayed = uiState.episodes.any { it.playedAtMs == null },
-                hasPlayed = uiState.episodes.any { it.playedAtMs != null },
-                onSortChange = viewModel::onSortChange,
-                onFilterChange = viewModel::onFilterChange,
-                onMarkAllPlayed = { viewModel.onRequestMarkAll(true) },
-                onMarkAllUnplayed = { viewModel.onRequestMarkAll(false) },
-                onDismiss = viewModel::onDismissViewSheet
-            )
-        }
         uiState.confirmMarkAllPlayed?.let { markPlayed ->
             MarkAllDialog(markPlayed, onConfirm = viewModel::onConfirmMarkAll, onDismiss = viewModel::onCancelMarkAll)
         }

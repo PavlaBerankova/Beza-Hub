@@ -1,6 +1,7 @@
 package com.berpod.app.ui.podcasts
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +14,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.material3.Text
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -65,7 +71,8 @@ fun PodcastsHubScreen(
     Column(modifier = Modifier.fillMaxSize().background(c.background).statusBarsPadding()) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 20.dp),
-            verticalAlignment = Alignment.Bottom
+            verticalAlignment = Alignment.Bottom,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             DotTitle(stringResource(R.string.nav_podcasts), Modifier.weight(1f))
             when (section) {
@@ -78,6 +85,19 @@ fun PodcastsHubScreen(
                     DotIconButton(DotIcons.Refresh, stringResource(R.string.action_refresh), newEpisodesViewModel::onRefresh)
                 }
                 PodcastsSection.Queue -> Unit
+            }
+            if (section == PodcastsSection.New) {
+                var menuOpen by remember { mutableStateOf(false) }
+                Box {
+                    DotIconButton(DotIcons.More, stringResource(R.string.action_more), { menuOpen = true })
+                    DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.action_remove_all_new)) },
+                            enabled = newEpisodesState.episodes.isNotEmpty(),
+                            onClick = { menuOpen = false; newEpisodesViewModel.onRequestRemoveAll() }
+                        )
+                    }
+                }
             }
         }
         DotSegmented(

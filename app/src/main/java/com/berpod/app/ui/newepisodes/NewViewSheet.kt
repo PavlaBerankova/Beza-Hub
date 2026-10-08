@@ -53,52 +53,6 @@ fun NewPeriod.titleRes() = when (this) {
     NewPeriod.Month -> R.string.new_period_month_title
 }
 
-/** "Filtr a řazení" sheet of Nové: how far back, the order, and taking everything listed out of Nové. */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun NewViewSheet(
-    period: NewPeriod,
-    sort: EpisodeSort,
-    hasEpisodes: Boolean,
-    onPeriodChange: (NewPeriod) -> Unit,
-    onSortChange: (EpisodeSort) -> Unit,
-    onRemoveAll: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    val c = DotTheme.colors
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = c.surface,
-        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-        dragHandle = {
-            Box(Modifier.padding(top = 12.dp).size(width = 44.dp, height = 5.dp).clip(RoundedCornerShape(3.dp)).background(c.outline))
-        }
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(top = 16.dp, bottom = 32.dp).navigationBarsPadding(),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    stringResource(R.string.new_view_title).upperCs(),
-                    style = DotType.title.copy(fontSize = 22.sp, fontWeight = FontWeight.W800, letterSpacing = 2.sp),
-                    color = c.text,
-                    modifier = Modifier.weight(1f)
-                )
-                DotIconButton(DotIcons.Close, stringResource(R.string.action_close), onDismiss)
-            }
-            SheetSection(stringResource(R.string.new_period_label)) {
-                NewPeriod.entries.forEach { DotChip(stringResource(it.shortRes()), selected = period == it, onClick = { onPeriodChange(it) }) }
-            }
-            SheetSection(stringResource(R.string.episodes_sort_label)) {
-                EpisodeSort.entries.forEach { DotChip(stringResource(it.labelRes()), selected = sort == it, onClick = { onSortChange(it) }) }
-            }
-            SheetAction(stringResource(R.string.action_remove_all_new), enabled = hasEpisodes, onClick = onRemoveAll, modifier = Modifier.fillMaxWidth())
-        }
-    }
-}
-
 /** Asks before taking everything Nové lists out of it (it is marked played), naming how many that is. */
 @Composable
 fun RemoveAllNewDialog(count: Int, onConfirm: () -> Unit, onDismiss: () -> Unit) {

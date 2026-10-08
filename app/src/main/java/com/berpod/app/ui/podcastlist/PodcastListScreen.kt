@@ -17,6 +17,17 @@ import androidx.compose.material.icons.filled.Podcasts
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.offset
+import com.berpod.app.ui.theme.DotType
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.Alignment
+import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -105,6 +116,7 @@ fun PodcastListScreen(viewModelFactory: ViewModelProvider.Factory, onPodcastClic
                     items(uiState.feeds, key = { it.id }) { feed ->
                         PodcastGridItem(
                             feed = feed,
+                            newCount = uiState.newCounts[feed.id] ?: 0,
                             onClick = { onPodcastClick(feed.id) },
                             onLongClick = { viewModel.onOpenTagDialog(feed) }
                         )
@@ -149,14 +161,43 @@ fun PodcastListScreen(viewModelFactory: ViewModelProvider.Factory, onPodcastClic
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun PodcastGridItem(feed: PodcastFeedEntity, onClick: () -> Unit, onLongClick: () -> Unit) {
-    CoverImage(
-        url = feed.imageUrl,
-        size = null,
-        radius = 14.dp,
-        modifier = Modifier
-            .clip(RoundedCornerShape(14.dp))
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
-            .semantics { contentDescription = feed.title }
-    )
+private fun PodcastGridItem(feed: PodcastFeedEntity, newCount: Int, onClick: () -> Unit, onLongClick: () -> Unit) {
+    val description = if (newCount > 0) "${feed.title}, ${stringResource(R.string.badge_new_count_description, newCount)}" else feed.title
+    // The badge sits on the cover's corner and sticks out of it, so only the cover itself is clipped.
+    Box(modifier = Modifier.semantics { contentDescription = description }) {
+        CoverImage(
+            url = feed.imageUrl,
+            size = null,
+            radius = 14.dp,
+            modifier = Modifier
+                .clip(RoundedCornerShape(14.dp))
+                .combinedClickable(onClick = onClick, onLongClick = onLongClick)
+        )
+        if (newCount > 0) NewCountBadge(newCount, Modifier.align(Alignment.TopEnd).offset(x = 6.dp, y = (-6).dp))
+    }
+}
+
+/** The number of new episodes, in a small squared accent badge on the cover's corner (99+ when it is more). */
+@Composable
+private fun NewCountBadge(count: Int, modifier: Modifier = Modifier) {
+    val c = DotTheme.colors
+    val shape = RoundedCornerShape(6.dp)
+    Box(
+        modifier = modifier
+            .clearAndSetSemantics {}
+            .clip(shape)
+            .background(c.accent)
+            .border(2.dp, c.background, shape)
+            .defaultMinSize(minWidth = 22.dp, minHeight = 22.dp)
+            .padding(horizontal = 5.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            if (count > 99) "99+" else count.toString(),
+            style = DotType.label.copy(fontSize = 11.sp, fontWeight = FontWeight.W800, letterSpacing = 0.sp),
+            color = c.onAccent,
+            maxLines = 1,
+            textAlign = TextAlign.Center
+        )
+    }
 }

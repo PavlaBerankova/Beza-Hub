@@ -9,10 +9,15 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -50,7 +55,36 @@ import com.berpod.app.ui.theme.DotType
 /** The play button in the header: its label, icon and action. */
 data class HeaderPlayButton(val label: String, val icon: DotIconSpec, val onClick: () -> Unit)
 
-/** Round-the-header action row: back, then the tag, edit-RSS and refresh buttons. */
+/** What the three-dots menu can do: the whole podcast marked played or unplayed (each only while it would change something). */
+class PodcastMenuActions(
+    val hasUnplayed: Boolean,
+    val hasPlayed: Boolean,
+    val onMarkAllPlayed: () -> Unit,
+    val onMarkAllUnplayed: () -> Unit
+)
+
+/** The three-dots button and the menu it opens. */
+@Composable
+fun PodcastMoreMenu(actions: PodcastMenuActions) {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        DotIconButton(DotIcons.More, stringResource(R.string.action_more), { expanded = true })
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.action_mark_all_played)) },
+                enabled = actions.hasUnplayed,
+                onClick = { expanded = false; actions.onMarkAllPlayed() }
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.action_mark_all_unplayed)) },
+                enabled = actions.hasPlayed,
+                onClick = { expanded = false; actions.onMarkAllUnplayed() }
+            )
+        }
+    }
+}
+
+/** Round-the-header action row: back, then the tag, edit-RSS, refresh and three-dots buttons. */
 @Composable
 fun PodcastActionsRow(
     isRefreshing: Boolean,
@@ -58,6 +92,7 @@ fun PodcastActionsRow(
     onTagClick: () -> Unit,
     onRefresh: () -> Unit,
     onEditRss: () -> Unit,
+    menu: PodcastMenuActions,
     modifier: Modifier = Modifier
 ) {
     val c = DotTheme.colors
@@ -73,6 +108,7 @@ fun PodcastActionsRow(
         } else {
             DotIconButton(DotIcons.Refresh, stringResource(R.string.action_refresh), onRefresh)
         }
+        PodcastMoreMenu(menu)
     }
 }
 
@@ -92,14 +128,16 @@ fun PodcastHeader(
     onTagClick: () -> Unit,
     onRefresh: () -> Unit,
     onEditRss: () -> Unit,
+    menu: PodcastMenuActions,
     episodeCount: Int,
     /** "každý pátek"…; null when it can't be told. */
     frequency: String?,
     sort: EpisodeSort,
     filter: EpisodeFilter,
-    /** A played/unplayed filter is on; marked with a dot on the button. */
-    isFiltered: Boolean,
-    onViewClick: () -> Unit,
+    /** Each tap moves the left button on: all, unplayed, played, all again. */
+    onFilterClick: () -> Unit,
+    /** Each tap flips the right button between newest and oldest first. */
+    onSortClick: () -> Unit,
     /** The cover's block colour, once known; the header is then a solid block of it, behind the status bar too. */
     blockColor: Color?
 ) {
@@ -117,7 +155,7 @@ fun PodcastHeader(
             .padding(top = 16.dp, bottom = 20.dp),
         verticalArrangement = Arrangement.spacedBy(22.dp)
     ) {
-        PodcastActionsRow(isRefreshing, onBack, onTagClick, onRefresh, onEditRss)
+        PodcastActionsRow(isRefreshing, onBack, onTagClick, onRefresh, onEditRss, menu)
         Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
             CoverImage(imageUrl, 130.dp, 18.dp)
             // Centred beside the cover while it's short; a long title grows the column instead of being cut.
@@ -159,36 +197,41 @@ fun PodcastHeader(
     }
     // Below the block, in the normal colours.
     EpisodesRow(
-        text = stringResource(filter.shownRes()).upperCs(),
+        filterLabel = stringResource(filter.shownRes()),
+        isFiltered = filter != EpisodeFilter.All,
+        onFilterClick = onFilterClick,
         sortLabel = stringResource(sort.labelRes()),
-        isFiltered = isFiltered,
-        onClick = onViewClick,
+        isOldestFirst = sort == EpisodeSort.OldestFirst,
+        onSortClick = onSortClick,
         modifier = Modifier.padding(horizontal = 20.dp).padding(top = 8.dp)
     )
     }
 }
 
 /**
- * "VŠECHNY EPIZODY ——— [NEJNOVĚJŠÍ ⌄]": what is listed, and the button for sorting and filtering.
- * The line runs behind both ends so the text takes the room it needs and is only cut when it really doesn't fit.
+ * "[VŠECHNY EPIZODY ⌄] ——— [NEJNOVĚJŠÍ ⌄]": two buttons that each change on a tap, the left one what is listed
+ * (all, unplayed, played), the right one the order. The line runs behind both so they take the room they need.
  */
 @Composable
-private fun EpisodesRow(text: String, sortLabel: String, isFiltered: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun EpisodesRow(
+    filterLabel: String,
+    isFiltered: Boolean,
+    onFilterClick: () -> Unit,
+    sortLabel: String,
+    isOldestFirst: Boolean,
+    onSortClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val c = DotTheme.colors
-    val shape = RoundedCornerShape(10.dp)
     Box(modifier = modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
         HorizontalDivider(color = c.divider)
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(
-                text,
-                style = DotType.label,
-                color = c.textMuted,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f, fill = false).background(c.background).padding(end = 10.dp)
-            )
+            Box(Modifier.weight(1f, fill = false).background(c.background).padding(end = 10.dp)) {
+                // DotFilterButton pads its start; pulled back so the label lines up with the page edge.
+                DotFilterButton(filterLabel, highlighted = isFiltered, onClick = onFilterClick, modifier = Modifier.offset(x = (-10).dp))
+            }
             Box(Modifier.background(c.background).padding(start = 10.dp)) {
-                DotFilterButton(sortLabel, highlighted = isFiltered, onClick = onClick)
+                DotFilterButton(sortLabel, highlighted = false, onClick = onSortClick, flipped = isOldestFirst)
             }
         }
     }

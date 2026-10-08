@@ -7,6 +7,11 @@ import com.berpod.app.data.local.PodcastFeedEntity
 import com.berpod.app.data.local.TagEntity
 import com.berpod.app.data.repository.EpisodeRepository
 import com.berpod.app.data.repository.PodcastRepository
+import com.berpod.app.data.repository.QueueRepository
+import com.berpod.app.ui.newepisodes.newEpisodeCounts
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import com.berpod.app.data.repository.TagRepository
 import com.berpod.app.ui.common.AddFeedController
 import com.berpod.app.ui.common.TagAssignmentController
@@ -33,14 +38,17 @@ data class PodcastListUiState(
     val renameError: String? = null,
     val deletingTag: TagEntity? = null,
     val isSubmitting: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    /** New episodes per podcast id, as Nové counts them; podcasts without any are missing. */
+    val newCounts: Map<Long, Int> = emptyMap()
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PodcastListViewModel(
     private val repository: PodcastRepository,
     private val episodeRepository: EpisodeRepository,
-    private val tagRepository: TagRepository
+    private val tagRepository: TagRepository,
+    private val queueRepository: QueueRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PodcastListUiState())
@@ -68,6 +76,12 @@ class PodcastListViewModel(
     init {
         repository.observeFeeds()
             .onEach { feeds -> _uiState.update { it.copy(hasAnyPodcasts = feeds.isNotEmpty()) } }
+            .launchIn(viewModelScope)
+        combine(episodeRepository.observeNewEpisodes(), queueRepository.observeQueuedEpisodeIds()) { episodes, queued ->
+            newEpisodeCounts(episodes, queued.toSet())
+        }
+            .flowOn(Dispatchers.Default)
+            .onEach { counts -> _uiState.update { it.copy(newCounts = counts) } }
             .launchIn(viewModelScope)
         selectedTagId
             .flatMapLatest { tagId -> tagRepository.observeFeeds(tagId) }
@@ -125,11 +139,12 @@ class PodcastListViewModel(
         fun factory(
             repository: PodcastRepository,
             episodeRepository: EpisodeRepository,
-            tagRepository: TagRepository
+            tagRepository: TagRepository,
+            queueRepository: QueueRepository
         ) = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return PodcastListViewModel(repository, episodeRepository, tagRepository) as T
+                return PodcastListViewModel(repository, episodeRepository, tagRepository, queueRepository) as T
             }
         }
     }

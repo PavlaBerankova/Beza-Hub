@@ -15,6 +15,7 @@ import com.berpod.app.ui.common.markPlayed
 import com.berpod.app.ui.common.resolveSelectedTagId
 import com.berpod.app.ui.common.undoMarkPlayed
 import com.berpod.app.ui.podcastlist.EpisodeSort
+import com.berpod.app.ui.podcastlist.nextEpisodeSort
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,7 +43,6 @@ data class NewEpisodesUiState(
     val selectedTagId: Long? = null,
     val period: NewPeriod = NewPeriod.All,
     val sort: EpisodeSort = EpisodeSort.NewestFirst,
-    val isViewSheetOpen: Boolean = false,
     /** How many episodes "Odebrat vše z nových" is about to mark played; null while the confirmation is closed. */
     val confirmRemoveCount: Int? = null,
     val isRefreshing: Boolean = false,
@@ -146,9 +146,11 @@ class NewEpisodesViewModel(
         _uiState.update { it.copy(sort = newSort) }
     }
 
-    fun onOpenViewSheet() = _uiState.update { it.copy(isViewSheetOpen = true) }
+    /** All → today → week → two weeks → month → all. */
+    fun onCyclePeriod() = onSelectPeriod(nextPeriod(_uiState.value.period))
 
-    fun onDismissViewSheet() = _uiState.update { it.copy(isViewSheetOpen = false) }
+    /** Newest first ↔ oldest first. */
+    fun onToggleSort() = onSelectSort(nextEpisodeSort(_uiState.value.sort))
 
     fun onRequestRemoveAll() = _uiState.update { it.copy(confirmRemoveCount = it.episodes.size) }
 
@@ -157,7 +159,7 @@ class NewEpisodesViewModel(
     /** Marks everything Nové is listing right now (so the period and tag filters count) played, which takes it out of Nové. */
     fun onConfirmRemoveAll() {
         val ids = _uiState.value.episodes.map { it.episode.id }
-        _uiState.update { it.copy(confirmRemoveCount = null, isViewSheetOpen = false) }
+        _uiState.update { it.copy(confirmRemoveCount = null) }
         viewModelScope.launch {
             // Nové never lists queued episodes, so there is nothing to take out of the queue.
             episodeRepository.markPlayed(ids)

@@ -129,4 +129,17 @@ class ShowPageTest {
         assertEquals(listOf(2L), applyEpisodeView(listed, EpisodeSort.OldestFirst, EpisodeFilter.Played).map { it.id })
         assertEquals(listOf(3L, 1L, 4L), applyEpisodeView(listed, EpisodeSort.OldestFirst, EpisodeFilter.Unplayed).map { it.id })
     }
+
+    @Test
+    fun `the filter button goes round all, unplayed, played and back`() {
+        assertEquals(EpisodeFilter.Unplayed, nextEpisodeFilter(EpisodeFilter.All))
+        assertEquals(EpisodeFilter.Played, nextEpisodeFilter(EpisodeFilter.Unplayed))
+        assertEquals(EpisodeFilter.All, nextEpisodeFilter(EpisodeFilter.Played))
+    }
+
+    @Test
+    fun `the sort button flips between newest and oldest`() {
+        assertEquals(EpisodeSort.OldestFirst, nextEpisodeSort(EpisodeSort.NewestFirst))
+        assertEquals(EpisodeSort.NewestFirst, nextEpisodeSort(EpisodeSort.OldestFirst))
+    }
 }

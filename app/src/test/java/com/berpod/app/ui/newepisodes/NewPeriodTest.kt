@@ -49,4 +49,13 @@ class NewPeriodTest {
         assertEquals(newestFirst, sortByPublished(newestFirst, oldestFirst = false) { it })
         assertEquals(listOf(10L, 20L, 30L, null), sortByPublished(newestFirst, oldestFirst = true) { it })
     }
+
+    @Test
+    fun `the period button goes round all, today, week, two weeks, month and back`() {
+        assertEquals(NewPeriod.Today, nextPeriod(NewPeriod.All))
+        assertEquals(NewPeriod.Week, nextPeriod(NewPeriod.Today))
+        assertEquals(NewPeriod.TwoWeeks, nextPeriod(NewPeriod.Week))
+        assertEquals(NewPeriod.Month, nextPeriod(NewPeriod.TwoWeeks))
+        assertEquals(NewPeriod.All, nextPeriod(NewPeriod.Month))
+    }
 }
