@@ -263,7 +263,7 @@ private fun DownloadBackground() {
             .background(DotTheme.colors.accent)
             .padding(horizontal = 24.dp),
         contentAlignment = Alignment.CenterEnd
-    ) { DotIcon(DotIcons.Download, 28.dp) }
+    ) { DotIcon(DotIcons.Download, 28.dp, monochrome = DotTheme.colors.onAccent) }
 }
 
 @Composable

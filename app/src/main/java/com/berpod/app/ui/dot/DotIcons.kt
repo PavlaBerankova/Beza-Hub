@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.unit.Dp
@@ -19,7 +20,23 @@ enum class IconRole { Primary, Muted, Accent, OnAccent }
 /** One SVG path of an icon; [stroke] = line width in viewport units, null = filled. */
 data class IconPart(val d: String, val role: IconRole, val stroke: Float? = null)
 
-class DotIconSpec(val width: Float, val height: Float, val parts: List<IconPart>)
+class DotIconSpec(
+    val width: Float,
+    val height: Float,
+    val parts: List<IconPart>,
+    /** Top-left corner of the viewport, for icons whose coordinates do not start at 0,0 (Material Symbols). */
+    val originX: Float = 0f,
+    val originY: Float = 0f,
+    /** Drawn flipped left-to-right (the "forward" twin of a "back" arrow). */
+    val mirrorX: Boolean = false
+)
+
+/**
+ * A Material Symbols Rounded glyph (weight 400, 960 grid), given its SVG path. The grid's 80-unit margin is
+ * cropped, so it fills the box like the other icons.
+ */
+private fun material(d: String, role: IconRole = IconRole.Primary, mirrorX: Boolean = false) =
+    DotIconSpec(800f, 800f, listOf(IconPart(d, role)), originX = 80f, originY = -880f, mirrorX = mirrorX)
 
 private fun rect(x: Float, y: Float, w: Float, h: Float) = "M$x ${y}h${w}v${h}h${-w}z"
 
@@ -32,134 +49,54 @@ private fun px(x: Float, y: Float, s: Float = 2f, role: IconRole = IconRole.Acce
 
 /** Icons copied from the Dot Matrix canvas ("04 · Ikony" and the screen artboards). */
 object DotIcons {
-    val Play = DotIconSpec(24f, 24f, listOf(IconPart("M8 5.5v13L18.5 12z", IconRole.Primary, 2.4f), px(10f, 11f)))
-    val Pause = DotIconSpec(32f, 32f, listOf(
-        IconPart(roundRect(7f, 7f, 5f, 18f, 2f), IconRole.Primary, 3f),
-        IconPart(roundRect(20f, 7f, 5f, 18f, 2f), IconRole.Primary, 3f),
-        px(15f, 10f), px(15f, 15f), px(15f, 20f)
-    ))
-    val Previous = DotIconSpec(24f, 24f, listOf(IconPart("M6 5v14", IconRole.Muted, 2.4f), IconPart("M19 5.5L10 12l9 6.5z", IconRole.Primary, 2.4f), px(14.6f, 11f)))
-    val Next = DotIconSpec(24f, 24f, listOf(IconPart("M18 5v14", IconRole.Muted, 2.4f), IconPart("M5 5.5L14 12l-9 6.5z", IconRole.Primary, 2.4f), px(7.4f, 11f)))
-    val Back15 = DotIconSpec(24f, 24f, listOf(IconPart("M4.5 12a7.5 7.5 0 1 0 2.2-5.3", IconRole.Primary, 2.2f), IconPart("M6.7 3v3.7H3", IconRole.Muted, 2.2f), px(18.3f, 10.8f, 2.4f)))
-    val Forward30 = DotIconSpec(24f, 24f, listOf(IconPart("M19.5 12a7.5 7.5 0 1 1-2.2-5.3", IconRole.Primary, 2.2f), IconPart("M17.3 3v3.7H21", IconRole.Muted, 2.2f), px(3.3f, 10.8f, 2.4f)))
-    val Speed = DotIconSpec(24f, 24f, listOf(IconPart("M4 17a8 8 0 1 1 16 0", IconRole.Primary, 2.4f), IconPart("M12 7v1.5M6.3 9.3l1 1M17.7 9.3l-1 1", IconRole.Muted, 2.4f), IconPart("M12 17l3.5-4.5", IconRole.Primary, 2.4f), px(11f, 16f)))
-    val Sleep = DotIconSpec(24f, 24f, listOf(IconPart("M19 14.5A7.5 7.5 0 1 1 9.5 5a6 6 0 0 0 9.5 9.5z", IconRole.Primary, 2.4f), px(16f, 3.5f), px(19.5f, 7f, 1.8f, IconRole.Muted)))
+    val Play = material("M320-273v-414q0-17 12-28.5t28-11.5q5 0 10.5 1.5T381-721l326 207q9 6 13.5 15t4.5 19q0 10-4.5 19T707-446L381-239q-5 3-10.5 4.5T360-233q-16 0-28-11.5T320-273Zm80-207Zm0 134 210-134-210-134v268Z")
+    val Pause = material("M600-200q-33 0-56.5-23.5T520-280v-400q0-33 23.5-56.5T600-760h80q33 0 56.5 23.5T760-680v400q0 33-23.5 56.5T680-200h-80Zm-320 0q-33 0-56.5-23.5T200-280v-400q0-33 23.5-56.5T280-760h80q33 0 56.5 23.5T440-680v400q0 33-23.5 56.5T360-200h-80Zm320-80h80v-400h-80v400Zm-320 0h80v-400h-80v400Zm0-400v400-400Zm320 0v400-400Z")
+    val Previous = material("M220-280v-400q0-17 11.5-28.5T260-720q17 0 28.5 11.5T300-680v400q0 17-11.5 28.5T260-240q-17 0-28.5-11.5T220-280Zm458-1L430-447q-9-6-13.5-14.5T412-480q0-10 4.5-18.5T430-513l248-166q5-4 11-5t11-1q16 0 28 11t12 29v330q0 18-12 29t-28 11q-5 0-11-1t-11-5Z")
+    val Next = material("M660-280v-400q0-17 11.5-28.5T700-720q17 0 28.5 11.5T740-680v400q0 17-11.5 28.5T700-240q-17 0-28.5-11.5T660-280Zm-440-35v-330q0-18 12-29t28-11q5 0 11 1t11 5l248 166q9 6 13.5 14.5T548-480q0 10-4.5 18.5T530-447L282-281q-5 4-11 5t-11 1q-16 0-28-11t-12-29Z")
+    val Back15 = material("M480-80q-75 0-140.5-28.5t-114-77q-48.5-48.5-77-114T120-440q0-17 11.5-28.5T160-480q17 0 28.5 11.5T200-440q0 117 81.5 198.5T480-160q117 0 198.5-81.5T760-440q0-117-81.5-198.5T480-720h-6l34 34q12 12 11.5 28T508-630q-12 12-28.5 12.5T451-629L348-732q-12-12-12-28t12-28l103-103q12-12 28.5-11.5T508-890q11 12 11.5 28T508-834l-34 34h6q75 0 140.5 28.5t114 77q48.5 48.5 77 114T840-440q0 75-28.5 140.5t-77 114q-48.5 48.5-114 77T480-80Z")
+    val Forward30 = material("M480-80q-75 0-140.5-28.5t-114-77q-48.5-48.5-77-114T120-440q0-17 11.5-28.5T160-480q17 0 28.5 11.5T200-440q0 117 81.5 198.5T480-160q117 0 198.5-81.5T760-440q0-117-81.5-198.5T480-720h-6l34 34q12 12 11.5 28T508-630q-12 12-28.5 12.5T451-629L348-732q-12-12-12-28t12-28l103-103q12-12 28.5-11.5T508-890q11 12 11.5 28T508-834l-34 34h6q75 0 140.5 28.5t114 77q48.5 48.5 77 114T840-440q0 75-28.5 140.5t-77 114q-48.5 48.5-114 77T480-80Z", mirrorX = true)
+    val Speed = material("M418-340q24 24 62 23.5t56-27.5l169-253q9-14-2.5-25.5T677-625L424-456q-27 18-28.5 55t22.5 61Zm62-460q36 0 71 6t68 19q16 6 34 22.5t10 31.5q-8 15-36 20t-45-1q-25-9-50.5-13.5T480-720q-133 0-226.5 93.5T160-400q0 42 11.5 83t32.5 77h552q23-38 33.5-79t10.5-85q0-26-4.5-51T782-504q-6-17-2-33t18-27q13-10 28.5-6t21.5 18q15 35 23 71.5t9 74.5q1 57-13 109t-41 99q-11 18-30 28t-40 10H204q-21 0-40-10t-30-28q-26-45-40-95.5T80-400q0-83 31.5-155.5t86-127Q252-737 325-768.5T480-800Zm7 313Z")
+    val Sleep = material("M524-40q-84 0-157.5-32t-128-86.5Q184-213 152-286.5T120-444q0-128 72-232t193-146q22-8 41 5.5t18 36.5q-3 85 27 162t90 137q60 60 137 90t162 27q26-1 38.5 17.5T903-305q-44 120-147.5 192.5T524-40Zm0-80q88 0 163-44t118-121q-86-8-163-43.5T504-425q-61-61-97-138t-43-163q-77 43-120.5 118.5T200-444q0 135 94.5 229.5T524-120Zm-20-305Z")
     /** Solid play triangle for filled (accent) buttons. */
-    val PlaySolid = DotIconSpec(24f, 24f, listOf(IconPart("M8 5v14l11-7z", IconRole.OnAccent)))
-    val PlayLarge = DotIconSpec(32f, 32f, listOf(
-        IconPart("M10 6.5v19L26 16z", IconRole.Primary, 3f),
-        px(12f, 11f), px(14f, 13f), px(16f, 15f), px(14f, 17f), px(12f, 19f)
-    ))
+    val PlaySolid = DotIconSpec(800f, 800f, listOf(IconPart("M320-273v-414q0-17 12-28.5t28-11.5q5 0 10.5 1.5T381-721l326 207q9 6 13.5 15t4.5 19q0 10-4.5 19T707-446L381-239q-5 3-10.5 4.5T360-233q-16 0-28-11.5T320-273Zm80-207Zm0 134 210-134-210-134v268Z", IconRole.OnAccent)), originX = 80f, originY = -880f)
+    val PlayLarge = material("M320-273v-414q0-17 12-28.5t28-11.5q5 0 10.5 1.5T381-721l326 207q9 6 13.5 15t4.5 19q0 10-4.5 19T707-446L381-239q-5 3-10.5 4.5T360-233q-16 0-28-11.5T320-273Zm80-207Zm0 134 210-134-210-134v268Z")
     val PauseLarge = Pause
-    val Equalizer = DotIconSpec(24f, 24f, listOf(
-        4.5f to 17f, 4.5f to 12.6f, 10.3f to 17f, 10.3f to 12.6f, 10.3f to 8.2f, 10.3f to 3.8f,
-        16.1f to 17f, 16.1f to 12.6f, 16.1f to 8.2f
-    ).map { (x, y) -> px(x, y, 3.4f) })
+    val Equalizer = material("M240-160q-33 0-56.5-23.5T160-240v-160q0-33 23.5-56.5T240-480q33 0 56.5 23.5T320-400v160q0 33-23.5 56.5T240-160Zm240 0q-33 0-56.5-23.5T400-240v-480q0-33 23.5-56.5T480-800q33 0 56.5 23.5T560-720v480q0 33-23.5 56.5T480-160Zm240 0q-33 0-56.5-23.5T640-240v-280q0-33 23.5-56.5T720-600q33 0 56.5 23.5T800-520v280q0 33-23.5 56.5T720-160Z")
     /** The queue: its lines with a plus, so it reads as adding to it. Used for adding, for the queue button and its empty states. */
-    val Queue = DotIconSpec(24f, 24f, listOf(
-        IconPart("M4 6h12M4 11h12", IconRole.Primary, 2.4f),
-        IconPart("M4 16h5", IconRole.Muted, 2.4f),
-        IconPart("M17 13v7M13.5 16.5h7", IconRole.Accent, 2.4f)
-    ))
+    val Queue = material("M160-320q-17 0-28.5-11.5T120-360q0-17 11.5-28.5T160-400h200q17 0 28.5 11.5T400-360q0 17-11.5 28.5T360-320H160Zm0-160q-17 0-28.5-11.5T120-520q0-17 11.5-28.5T160-560h360q17 0 28.5 11.5T560-520q0 17-11.5 28.5T520-480H160Zm0-160q-17 0-28.5-11.5T120-680q0-17 11.5-28.5T160-720h360q17 0 28.5 11.5T560-680q0 17-11.5 28.5T520-640H160Zm520 480q-17 0-28.5-11.5T640-200v-120H520q-17 0-28.5-11.5T480-360q0-17 11.5-28.5T520-400h120v-120q0-17 11.5-28.5T680-560q17 0 28.5 11.5T720-520v120h120q17 0 28.5 11.5T880-360q0 17-11.5 28.5T840-320H720v120q0 17-11.5 28.5T680-160Z")
     /** The queue as a place to go to (the player's FRONTA button): its lines with the small arrow, no plus. */
-    val QueueList = DotIconSpec(24f, 24f, listOf(
-        IconPart("M4 6h12M4 11h12", IconRole.Primary, 2.4f),
-        IconPart("M4 16h6", IconRole.Muted, 2.4f),
-        px(14f, 13.5f, 1.9f), px(16.2f, 15.6f, 1.9f), px(14f, 17.7f, 1.9f)
-    ))
+    val QueueList = material("M640-160q-50 0-85-35t-35-85q0-50 35-85t85-35q11 0 21 1.5t19 6.5v-288q0-17 11.5-28.5T720-720h120q17 0 28.5 11.5T880-680q0 17-11.5 28.5T840-640h-80v360q0 50-35 85t-85 35ZM160-320q-17 0-28.5-11.5T120-360q0-17 11.5-28.5T160-400h240q17 0 28.5 11.5T440-360q0 17-11.5 28.5T400-320H160Zm0-160q-17 0-28.5-11.5T120-520q0-17 11.5-28.5T160-560h400q17 0 28.5 11.5T600-520q0 17-11.5 28.5T560-480H160Zm0-160q-17 0-28.5-11.5T120-680q0-17 11.5-28.5T160-720h400q17 0 28.5 11.5T600-680q0 17-11.5 28.5T560-640H160Z")
     /** "i" in a circle: details of what is playing. */
-    val Info = DotIconSpec(24f, 24f, listOf(
-        IconPart(circle(12f, 12f, 9f), IconRole.Primary, 2.3f),
-        IconPart("M12 11v6", IconRole.Primary, 2.4f),
-        px(11f, 6.6f, 2.2f)
-    ))
-    val Share = DotIconSpec(24f, 24f, listOf(
-        IconPart("M12 4v10M8 7.5L12 4l4 3.5", IconRole.Primary, 2.4f),
-        IconPart("M6 12v6.5A1.5 1.5 0 0 0 7.5 20h9a1.5 1.5 0 0 0 1.5-1.5V12", IconRole.Muted, 2.4f),
-        px(11f, 16.5f)
-    ))
+    val Info = material("M480-280q17 0 28.5-11.5T520-320v-160q0-17-11.5-28.5T480-520q-17 0-28.5 11.5T440-480v160q0 17 11.5 28.5T480-280Zm0-320q17 0 28.5-11.5T520-640q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640q0 17 11.5 28.5T480-600Zm0 520q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z")
+    val Share = material("M720-80q-50 0-85-35t-35-85q0-7 1-14.5t3-13.5L322-392q-17 15-38 23.5t-44 8.5q-50 0-85-35t-35-85q0-50 35-85t85-35q23 0 44 8.5t38 23.5l282-164q-2-6-3-13.5t-1-14.5q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35q-23 0-44-8.5T638-672L356-508q2 6 3 13.5t1 14.5q0 7-1 14.5t-3 13.5l282 164q17-15 38-23.5t44-8.5q50 0 85 35t35 85q0 50-35 85t-85 35Zm0-640q17 0 28.5-11.5T760-760q0-17-11.5-28.5T720-800q-17 0-28.5 11.5T680-760q0 17 11.5 28.5T720-720ZM240-440q17 0 28.5-11.5T280-480q0-17-11.5-28.5T240-520q-17 0-28.5 11.5T200-480q0 17 11.5 28.5T240-440Zm480 280q17 0 28.5-11.5T760-200q0-17-11.5-28.5T720-240q-17 0-28.5 11.5T680-200q0 17 11.5 28.5T720-160Zm0-600ZM240-480Zm480 280Z")
     /** "In the queue": a check with the accent pixel, for outlined buttons. */
-    val Queued = DotIconSpec(24f, 24f, listOf(IconPart("M5 12.5l4.5 4.5L19 7.5", IconRole.Primary, 2.4f), px(11f, 19.5f)))
-    val Close = DotIconSpec(24f, 24f, listOf(IconPart("M6 6l12 12M18 6L6 18", IconRole.Primary, 2.6f)))
-    val OpenExternal = DotIconSpec(24f, 24f, listOf(
-        IconPart("M13 5h6v6M19 5l-8 8", IconRole.Primary, 2.4f),
-        IconPart("M17 14v4a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 5 18V8.5A1.5 1.5 0 0 1 6.5 7H10", IconRole.Muted, 2.4f),
-        px(10f, 13f)
-    ))
+    val Queued = material("M160-320q-17 0-28.5-11.5T120-360q0-17 11.5-28.5T160-400h240q17 0 28.5 11.5T440-360q0 17-11.5 28.5T400-320H160Zm0-160q-17 0-28.5-11.5T120-520q0-17 11.5-28.5T160-560h400q17 0 28.5 11.5T600-520q0 17-11.5 28.5T560-480H160Zm0-160q-17 0-28.5-11.5T120-680q0-17 11.5-28.5T160-720h400q17 0 28.5 11.5T600-680q0 17-11.5 28.5T560-640H160Zm494 423q-8 0-15-2.5t-13-8.5l-86-86q-11-11-11.5-27.5T540-370q11-11 27.5-11.5T596-371l58 57 141-141q12-12 28.5-11.5T852-454q11 12 11.5 28T852-398L682-228q-6 6-13 8.5t-15 2.5Z")
+    val Close = material("M480-424 284-228q-11 11-28 11t-28-11q-11-11-11-28t11-28l196-196-196-196q-11-11-11-28t11-28q11-11 28-11t28 11l196 196 196-196q11-11 28-11t28 11q11 11 11 28t-11 28L536-480l196 196q11 11 11 28t-11 28q-11 11-28 11t-28-11L480-424Z")
+    val OpenExternal = material("M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h240q17 0 28.5 11.5T480-800q0 17-11.5 28.5T440-760H200v560h560v-240q0-17 11.5-28.5T800-480q17 0 28.5 11.5T840-440v240q0 33-23.5 56.5T760-120H200Zm560-584L416-360q-11 11-28 11t-28-11q-11-11-11-28t11-28l344-344H600q-17 0-28.5-11.5T560-800q0-17 11.5-28.5T600-840h200q17 0 28.5 11.5T840-800v200q0 17-11.5 28.5T800-560q-17 0-28.5-11.5T760-600v-104Z")
     /** A stack of sources: three cards, the first one accented. */
-    val Sources = DotIconSpec(24f, 24f, listOf(
-        IconPart(roundRect(4f, 4.5f, 16f, 5f, 1.6f), IconRole.Primary, 2f),
-        IconPart(roundRect(4f, 12f, 16f, 5f, 1.6f), IconRole.Muted, 2f),
-        IconPart("M6 20h12", IconRole.Muted, 2f),
-        px(6.4f, 6f)
-    ))
-    val Trash = DotIconSpec(24f, 24f, listOf(
-        IconPart("M5 7h14M10 7V5h4v2", IconRole.Primary, 2.4f),
-        IconPart("M7 7l1 12.5h8L17 7", IconRole.Muted, 2.4f),
-        px(11f, 12f)
-    ))
-    val Forward = DotIconSpec(24f, 24f, listOf(IconPart("M9 5l7 7-7 7", IconRole.Primary, 2.6f)))
-    val Download = DotIconSpec(24f, 24f, listOf(
-        IconPart("M12 4v9.5M7.5 9L12 13.5 16.5 9", IconRole.Primary, 2.4f),
-        IconPart("M5 16v4h14v-4", IconRole.Muted, 2.4f),
-        px(11f, 16.6f)
-    ))
-    val Add = DotIconSpec(24f, 24f, listOf(IconPart("M12 5v4.5M12 14.5V19M5 12h4.5M14.5 12H19", IconRole.Primary, 2.4f), px(11f, 11f)))
-    val AddOnAccent = DotIconSpec(24f, 24f, listOf(IconPart("M12 5v14M5 12h14", IconRole.OnAccent, 2.6f)))
-    val Back = DotIconSpec(24f, 24f, listOf(IconPart("M15 5l-7 7 7 7", IconRole.Primary, 2.6f)))
-    val CloseDown = DotIconSpec(24f, 24f, listOf(IconPart("M6 9l6 6 6-6", IconRole.Primary, 2.6f)))
-    val Tag = DotIconSpec(24f, 24f, listOf(IconPart("M3.5 12V4h8l9.5 9.5-8 8z", IconRole.Primary, 2.3f), IconPart(circle(8f, 8.5f, 1.8f), IconRole.Accent)))
-    val Refresh = DotIconSpec(24f, 24f, listOf(
-        IconPart("M20 11a8 8 0 1 0-2.3 5.7", IconRole.Primary, 2.3f),
-        IconPart("M20 4v7h-7", IconRole.Muted, 2.3f),
-        IconPart(circle(12f, 12f, 1.8f), IconRole.Accent)
-    ))
-    val Edit = DotIconSpec(24f, 24f, listOf(
-        IconPart("M4 20h4L19 9l-4-4L4 16z", IconRole.Primary, 2.3f),
-        IconPart(circle(17f, 7f, 1.6f), IconRole.Accent)
-    ))
-    val Drag = DotIconSpec(24f, 24f, listOf(7.5f, 13.3f).flatMap { x ->
-        listOf(4.5f, 10.4f, 16.3f).map { y -> px(x, y, 3.2f, IconRole.Muted) }
-    })
-    val Check = DotIconSpec(24f, 24f, listOf(IconPart("M5 12.5l4.5 4.5L19 7.5", IconRole.OnAccent, 3f)))
-    val Watching = DotIconSpec(24f, 24f, listOf(
-        IconPart("M2.5 12S6.5 5.5 12 5.5 21.5 12 21.5 12 17.5 18.5 12 18.5 2.5 12 2.5 12z", IconRole.Primary, 2.2f),
-        IconPart(circle(12f, 12f, 2.6f), IconRole.Accent)
-    ))
-    val More = DotIconSpec(24f, 24f, listOf(px(11f, 5f, 2.6f, IconRole.Primary), px(11f, 10.7f, 2.6f, IconRole.Primary), px(11f, 16.4f, 2.6f, IconRole.Primary)))
-    val Fullscreen = DotIconSpec(24f, 24f, listOf(
-        IconPart("M4 9V4h5", IconRole.Primary, 2.3f),
-        IconPart("M15 4h5v5", IconRole.Primary, 2.3f),
-        IconPart("M20 15v5h-5", IconRole.Primary, 2.3f),
-        IconPart("M9 20H4v-5", IconRole.Primary, 2.3f)
-    ))
-    val FullscreenExit = DotIconSpec(24f, 24f, listOf(
-        IconPart("M9 4v5H4", IconRole.Primary, 2.3f),
-        IconPart("M15 9V4h5", IconRole.Primary, 2.3f),
-        IconPart("M20 15h-5v5", IconRole.Primary, 2.3f),
-        IconPart("M4 15h5v5", IconRole.Primary, 2.3f)
-    ))
+    val Sources = material("M440-400h80q17 0 28.5-11.5T560-440q0-17-11.5-28.5T520-480h-80q-17 0-28.5 11.5T400-440q0 17 11.5 28.5T440-400Zm0-120h240q17 0 28.5-11.5T720-560q0-17-11.5-28.5T680-600H440q-17 0-28.5 11.5T400-560q0 17 11.5 28.5T440-520Zm0-120h240q17 0 28.5-11.5T720-680q0-17-11.5-28.5T680-720H440q-17 0-28.5 11.5T400-680q0 17 11.5 28.5T440-640ZM320-240q-33 0-56.5-23.5T240-320v-480q0-33 23.5-56.5T320-880h480q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H320Zm0-80h480v-480H320v480ZM160-80q-33 0-56.5-23.5T80-160v-520q0-17 11.5-28.5T120-720q17 0 28.5 11.5T160-680v520h520q17 0 28.5 11.5T720-120q0 17-11.5 28.5T680-80H160Zm160-720v480-480Z")
+    val Trash = material("M280-120q-33 0-56.5-23.5T200-200v-520q-17 0-28.5-11.5T160-760q0-17 11.5-28.5T200-800h160q0-17 11.5-28.5T400-840h160q17 0 28.5 11.5T600-800h160q17 0 28.5 11.5T800-760q0 17-11.5 28.5T760-720v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM400-280q17 0 28.5-11.5T440-320v-280q0-17-11.5-28.5T400-640q-17 0-28.5 11.5T360-600v280q0 17 11.5 28.5T400-280Zm160 0q17 0 28.5-11.5T600-320v-280q0-17-11.5-28.5T560-640q-17 0-28.5 11.5T520-600v280q0 17 11.5 28.5T560-280ZM280-720v520-520Z")
+    val Forward = material("M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z")
+    val DownloadDone = material("m382-434 338-338q12-12 28.5-12t28.5 12q12 12 12 28.5T777-715L410-348q-12 12-28 12t-28-12L183-519q-12-12-11.5-28.5T184-576q12-12 28.5-12t28.5 12l141 142ZM240-160q-17 0-28.5-11.5T200-200q0-17 11.5-28.5T240-240h480q17 0 28.5 11.5T760-200q0 17-11.5 28.5T720-160H240Z")
+    val Download = material("M480-337q-8 0-15-2.5t-13-8.5L308-492q-12-12-11.5-28t11.5-28q12-12 28.5-12.5T365-549l75 75v-286q0-17 11.5-28.5T480-800q17 0 28.5 11.5T520-760v286l75-75q12-12 28.5-11.5T652-548q11 12 11.5 28T652-492L508-348q-6 6-13 8.5t-15 2.5ZM240-160q-33 0-56.5-23.5T160-240v-80q0-17 11.5-28.5T200-360q17 0 28.5 11.5T240-320v80h480v-80q0-17 11.5-28.5T760-360q17 0 28.5 11.5T800-320v80q0 33-23.5 56.5T720-160H240Z")
+    val Add = material("M440-440H240q-17 0-28.5-11.5T200-480q0-17 11.5-28.5T240-520h200v-200q0-17 11.5-28.5T480-760q17 0 28.5 11.5T520-720v200h200q17 0 28.5 11.5T760-480q0 17-11.5 28.5T720-440H520v200q0 17-11.5 28.5T480-200q-17 0-28.5-11.5T440-240v-200Z")
+    val AddOnAccent = material("M440-440H240q-17 0-28.5-11.5T200-480q0-17 11.5-28.5T240-520h200v-200q0-17 11.5-28.5T480-760q17 0 28.5 11.5T520-720v200h200q17 0 28.5 11.5T760-480q0 17-11.5 28.5T720-440H520v200q0 17-11.5 28.5T480-200q-17 0-28.5-11.5T440-240v-200Z", IconRole.OnAccent)
+    val Back = material("m313-440 196 196q12 12 11.5 28T508-188q-12 11-28 11.5T452-188L188-452q-6-6-8.5-13t-2.5-15q0-8 2.5-15t8.5-13l264-264q11-11 27.5-11t28.5 11q12 12 12 28.5T508-715L313-520h447q17 0 28.5 11.5T800-480q0 17-11.5 28.5T760-440H313Z")
+    val CloseDown = material("M480-361q-8 0-15-2.5t-13-8.5L268-556q-11-11-11-28t11-28q11-11 28-11t28 11l156 156 156-156q11-11 28-11t28 11q11 11 11 28t-11 28L508-372q-6 6-13 8.5t-15 2.5Z")
+    val Tag = material("M856-390 570-104q-12 12-27 18t-30 6q-15 0-30-6t-27-18L103-457q-11-11-17-25.5T80-513v-287q0-33 23.5-56.5T160-880h287q16 0 31 6.5t26 17.5l352 353q12 12 17.5 27t5.5 30q0 15-5.5 29.5T856-390ZM513-160l286-286-353-354H160v286l353 354ZM260-640q25 0 42.5-17.5T320-700q0-25-17.5-42.5T260-760q-25 0-42.5 17.5T200-700q0 25 17.5 42.5T260-640Zm220 160Z")
+    val Refresh = material("M480-160q-134 0-227-93t-93-227q0-134 93-227t227-93q69 0 132 28.5T720-690v-70q0-17 11.5-28.5T760-800q17 0 28.5 11.5T800-760v200q0 17-11.5 28.5T760-520H560q-17 0-28.5-11.5T520-560q0-17 11.5-28.5T560-600h128q-32-56-87.5-88T480-720q-100 0-170 70t-70 170q0 100 70 170t170 70q68 0 124.5-34.5T692-367q8-14 22.5-19.5t29.5-.5q16 5 23 21t-1 30q-41 80-117 128t-169 48Z")
+    val Edit = material("M200-200h57l391-391-57-57-391 391v57Zm-40 80q-17 0-28.5-11.5T120-160v-97q0-16 6-30.5t17-25.5l505-504q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L313-143q-11 11-25.5 17t-30.5 6h-97Zm600-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z")
+    val Drag = material("M360-160q-33 0-56.5-23.5T280-240q0-33 23.5-56.5T360-320q33 0 56.5 23.5T440-240q0 33-23.5 56.5T360-160Zm240 0q-33 0-56.5-23.5T520-240q0-33 23.5-56.5T600-320q33 0 56.5 23.5T680-240q0 33-23.5 56.5T600-160ZM360-400q-33 0-56.5-23.5T280-480q0-33 23.5-56.5T360-560q33 0 56.5 23.5T440-480q0 33-23.5 56.5T360-400Zm240 0q-33 0-56.5-23.5T520-480q0-33 23.5-56.5T600-560q33 0 56.5 23.5T680-480q0 33-23.5 56.5T600-400ZM360-640q-33 0-56.5-23.5T280-720q0-33 23.5-56.5T360-800q33 0 56.5 23.5T440-720q0 33-23.5 56.5T360-640Zm240 0q-33 0-56.5-23.5T520-720q0-33 23.5-56.5T600-800q33 0 56.5 23.5T680-720q0 33-23.5 56.5T600-640Z")
+    val Check = material("m382-354 339-339q12-12 28-12t28 12q12 12 12 28.5T777-636L410-268q-12 12-28 12t-28-12L182-440q-12-12-11.5-28.5T183-497q12-12 28.5-12t28.5 12l142 143Z", IconRole.OnAccent)
+    val Watching = material("M480-320q75 0 127.5-52.5T660-500q0-75-52.5-127.5T480-680q-75 0-127.5 52.5T300-500q0 75 52.5 127.5T480-320Zm0-72q-45 0-76.5-31.5T372-500q0-45 31.5-76.5T480-608q45 0 76.5 31.5T588-500q0 45-31.5 76.5T480-392Zm0 192q-134 0-244.5-72T61-462q-5-9-7.5-18.5T51-500q0-10 2.5-19.5T61-538q64-118 174.5-190T480-800q134 0 244.5 72T899-538q5 9 7.5 18.5T909-500q0 10-2.5 19.5T899-462q-64 118-174.5 190T480-200Zm0-300Zm0 220q113 0 207.5-59.5T832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280Z")
+    val More = material("M480-160q-33 0-56.5-23.5T400-240q0-33 23.5-56.5T480-320q33 0 56.5 23.5T560-240q0 33-23.5 56.5T480-160Zm0-240q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400Zm0-240q-33 0-56.5-23.5T400-720q0-33 23.5-56.5T480-800q33 0 56.5 23.5T560-720q0 33-23.5 56.5T480-640Z")
+    val Fullscreen = material("M200-200h80q17 0 28.5 11.5T320-160q0 17-11.5 28.5T280-120H160q-17 0-28.5-11.5T120-160v-120q0-17 11.5-28.5T160-320q17 0 28.5 11.5T200-280v80Zm560 0v-80q0-17 11.5-28.5T800-320q17 0 28.5 11.5T840-280v120q0 17-11.5 28.5T800-120H680q-17 0-28.5-11.5T640-160q0-17 11.5-28.5T680-200h80ZM200-760v80q0 17-11.5 28.5T160-640q-17 0-28.5-11.5T120-680v-120q0-17 11.5-28.5T160-840h120q17 0 28.5 11.5T320-800q0 17-11.5 28.5T280-760h-80Zm560 0h-80q-17 0-28.5-11.5T640-800q0-17 11.5-28.5T680-840h120q17 0 28.5 11.5T840-800v120q0 17-11.5 28.5T800-640q-17 0-28.5-11.5T760-680v-80Z")
+    val FullscreenExit = material("M240-240h-80q-17 0-28.5-11.5T120-280q0-17 11.5-28.5T160-320h120q17 0 28.5 11.5T320-280v120q0 17-11.5 28.5T280-120q-17 0-28.5-11.5T240-160v-80Zm480 0v80q0 17-11.5 28.5T680-120q-17 0-28.5-11.5T640-160v-120q0-17 11.5-28.5T680-320h120q17 0 28.5 11.5T840-280q0 17-11.5 28.5T800-240h-80ZM240-720v-80q0-17 11.5-28.5T280-840q17 0 28.5 11.5T320-800v120q0 17-11.5 28.5T280-640H160q-17 0-28.5-11.5T120-680q0-17 11.5-28.5T160-720h80Zm480 0h80q17 0 28.5 11.5T840-680q0 17-11.5 28.5T800-640H680q-17 0-28.5-11.5T640-680v-120q0-17 11.5-28.5T680-840q17 0 28.5 11.5T720-800v80Z")
     /** Settings: two sliders, for the bottom bar. */
-    val Settings = DotIconSpec(32f, 32f, listOf(
-        IconPart("M5 11h22M5 21h22", IconRole.Primary, 2.4f),
-        IconPart(circle(12f, 11f, 3.6f), IconRole.Accent),
-        IconPart(circle(21f, 21f, 3.6f), IconRole.Accent)
-    ))
-    val Podcasts = DotIconSpec(32f, 32f, listOf(
-        IconPart(roundRect(12.5f, 5f, 7f, 13f, 3.5f), IconRole.Primary, 2.4f),
-        IconPart(circle(16f, 10f, 1.7f), IconRole.Accent),
-        IconPart("M9.5 14a6.5 6.5 0 0 0 13 0M16 20.5v5M12 26h8", IconRole.Primary, 2.4f),
-        IconPart("M6 9a11 11 0 0 0 0 10M26 9a11 11 0 0 1 0 10", IconRole.Muted, 2.4f)
-    ))
-    val YouTube = DotIconSpec(32f, 32f, listOf(
-        IconPart(roundRect(5f, 7f, 22f, 18f, 3f), IconRole.Primary, 2.4f),
-        IconPart("M9.5 7v18M22.5 7v18M14.5 13l3.5 3-3.5 3", IconRole.Primary, 2.4f),
-        px(6.2f, 19.6f, 2.6f)
-    ))
-    val Articles = DotIconSpec(32f, 32f, listOf(
-        IconPart("M7 7a18 18 0 0 1 18 18M7 13a12 12 0 0 1 12 12", IconRole.Primary, 2.4f),
-        px(6.4f, 21.4f, 4.2f)
-    ))
+    val Settings = material("M480-120q-17 0-28.5-11.5T440-160v-160q0-17 11.5-28.5T480-360q17 0 28.5 11.5T520-320v40h280q17 0 28.5 11.5T840-240q0 17-11.5 28.5T800-200H520v40q0 17-11.5 28.5T480-120Zm-320-80q-17 0-28.5-11.5T120-240q0-17 11.5-28.5T160-280h160q17 0 28.5 11.5T360-240q0 17-11.5 28.5T320-200H160Zm160-160q-17 0-28.5-11.5T280-400v-40H160q-17 0-28.5-11.5T120-480q0-17 11.5-28.5T160-520h120v-40q0-17 11.5-28.5T320-600q17 0 28.5 11.5T360-560v160q0 17-11.5 28.5T320-360Zm160-80q-17 0-28.5-11.5T440-480q0-17 11.5-28.5T480-520h320q17 0 28.5 11.5T840-480q0 17-11.5 28.5T800-440H480Zm160-160q-17 0-28.5-11.5T600-640v-160q0-17 11.5-28.5T640-840q17 0 28.5 11.5T680-800v40h120q17 0 28.5 11.5T840-720q0 17-11.5 28.5T800-680H680v40q0 17-11.5 28.5T640-600Zm-480-80q-17 0-28.5-11.5T120-720q0-17 11.5-28.5T160-760h320q17 0 28.5 11.5T520-720q0 17-11.5 28.5T480-680H160Z")
+    val Podcasts = material("M440-120v-291q-18-11-29-28.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 23-11 41t-29 28v291q0 17-11.5 28.5T480-80q-17 0-28.5-11.5T440-120Zm-207-99q-12 12-29 12t-28-13q-45-53-70.5-119T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 75-25.5 141T784-220q-11 13-27.5 13.5T728-218q-11-11-11-28t11-30q34-42 53-94t19-110q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 58 19 109.5t54 93.5q11 13 11.5 29.5T233-219Zm113-113q-12 12-29 12.5T290-333q-23-31-36.5-68T240-480q0-100 70-170t170-70q100 0 170 70t70 170q0 42-13.5 79.5T670-333q-10 13-27 13.5T614-331q-11-11-11.5-28t9.5-31q13-20 20.5-42.5T640-480q0-66-47-113t-113-47q-66 0-113 47t-47 113q0 26 7.5 48t20.5 42q10 14 9.5 30.5T346-332Z")
+    val YouTube = material("m411-320 223-143q9-6 9-17t-9-17L411-640q-10-7-20.5-1T380-623v286q0 12 10.5 18t20.5-1ZM160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm0-80h640v-480H160v480Zm0 0v-480 480Z")
+    val Articles = material("M200-120q-33 0-56.5-23.5T120-200q0-33 23.5-56.5T200-280q33 0 56.5 23.5T280-200q0 33-23.5 56.5T200-120Zm540 0q-26 0-43.5-19T676-184q-11-97-52.5-181.5T516-516q-66-66-150.5-107.5T184-676q-26-3-45-20.5T120-740q0-26 18-42.5t43-14.5q123 11 230.5 62.5T601-601q82 82 133.5 189.5T797-181q2 25-14.5 43T740-120Zm-240 0q-25 0-43-17.5T434-180q-9-49-31.5-90.5T346-346q-34-34-75.5-56.5T180-434q-25-5-42.5-23T120-500q0-26 18-43t43-13q73 10 136.5 42.5T431-431q50 50 82.5 113.5T556-181q4 25-13 43t-43 18Z")
     val WaveGlyph = DotIconSpec(34f, 14f, listOf(
         IconPart("M2 7h10", IconRole.Muted, 2.2f),
         IconPart(circle(9f, 7f, 2.4f), IconRole.Accent),
@@ -178,7 +115,9 @@ fun DotIcon(spec: DotIconSpec, size: Dp, modifier: Modifier = Modifier, monochro
     val strokes = remember(spec) { spec.parts.map { p -> p.stroke?.let { Stroke(width = it, cap = StrokeCap.Round, join = StrokeJoin.Round) } } }
     Canvas(modifier = modifier.size(width = size * (spec.width / spec.height), height = size)) {
         val s = this.size.height / spec.height
+        scale(if (spec.mirrorX) -1f else 1f, 1f, pivot = androidx.compose.ui.geometry.Offset(this.size.width / 2f, 0f)) {
         scale(s, s, pivot = androidx.compose.ui.geometry.Offset.Zero) {
+          translate(-spec.originX, -spec.originY) {
             spec.parts.forEachIndexed { i, part ->
                 val color = monochrome ?: when (part.role) {
                     IconRole.Primary -> colors.text
@@ -193,6 +132,8 @@ fun DotIcon(spec: DotIconSpec, size: Dp, modifier: Modifier = Modifier, monochro
                     drawPath(paths[i], color)
                 }
             }
+          }
+        }
         }
     }
 }

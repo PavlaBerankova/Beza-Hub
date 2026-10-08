@@ -283,7 +283,7 @@ private fun EpisodeBody(
         val download = uiState.download
         val percent = download?.let { progressPercent(it.downloadedBytes, it.totalBytes) }
         EpisodeActionButton(
-            icon = if (download?.status == DownloadStatus.COMPLETED) DotIcons.Queued else DotIcons.Download,
+            icon = if (download?.status == DownloadStatus.COMPLETED) DotIcons.DownloadDone else DotIcons.Download,
             label = stringResource(
                 when (download?.status) {
                     null -> R.string.action_download

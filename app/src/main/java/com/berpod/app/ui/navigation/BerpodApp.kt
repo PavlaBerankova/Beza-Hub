@@ -169,7 +169,7 @@ fun BerpodApp(container: AppContainer) {
                                     ) {
                                         // Selected: the icon in its own colour roles and the label in the accent colour, bolder;
                                         // unselected: all muted. No pill behind it.
-                                        DotIcon(iconFor(screen), 30.dp, monochrome = if (selected) null else c.textMuted)
+                                        DotIcon(iconFor(screen), 24.dp, monochrome = if (selected) null else c.textMuted)
                                         Spacer(Modifier.height(6.dp))
                                         Text(
                                             labelFor(screen).upperCs(),

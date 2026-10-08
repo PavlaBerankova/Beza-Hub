@@ -36,7 +36,7 @@ fun DownloadBadge(download: EpisodeDownloadEntity?, modifier: Modifier = Modifie
     }
     Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
         DotIcon(
-            if (download.status == DownloadStatus.COMPLETED) DotIcons.Queued else DotIcons.Download,
+            if (download.status == DownloadStatus.COMPLETED) DotIcons.DownloadDone else DotIcons.Download,
             14.dp,
             monochrome = c.accent
         )
