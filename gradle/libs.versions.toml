@@ -12,6 +12,7 @@ coil = "3.6.3"
 rssparser = "6.1.8"
 navigationCompose = "2.10.1"
 media3 = "1.11.1"
+work = "2.10.1"
 junit = "4.13.2"
 kotlinxCoroutinesTest = "1.11.0"
 reorderable = "3.1.0"
@@ -42,6 +43,7 @@ rssparser = { group = "com.prof18.rssparser", name = "rssparser", version.ref = 
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
 androidx-media3-session = { group = "androidx.media3", name = "media3-session", version.ref = "media3" }
+androidx-work-runtime = { group = "androidx.work", name = "work-runtime", version.ref = "work" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 youtube-player = { group = "com.pierfrancescosoffritti.androidyoutubeplayer", name = "core", version.ref = "youtubePlayer" }
 

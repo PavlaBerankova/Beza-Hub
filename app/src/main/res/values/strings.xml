@@ -27,6 +27,21 @@
 
     <string name="action_add_to_queue">Přidat do fronty</string>
     <string name="action_download">Stáhnout</string>
+    <string name="download_downloading">Stahuji</string>
+    <string name="download_waiting">Čeká</string>
+    <string name="download_cancel">Zrušit</string>
+    <string name="download_retry">Znovu</string>
+    <string name="download_done">Staženo</string>
+    <string name="download_remove">Smazat</string>
+    <string name="download_cancel_description">Zrušit stahování</string>
+    <string name="download_remove_description">Smazat stažení</string>
+    <string name="download_started">Stahování zahájeno</string>
+    <string name="download_cancelled">Stahování zrušeno</string>
+    <string name="download_removed">Stažení smazáno</string>
+    <string name="download_notification_title">Stahuji epizody…</string>
+    <string name="download_channel_name">Stahování epizod</string>
+    <string name="queue_download_all">Stáhnout celou frontu</string>
+    <string name="queue_download_all_started">Stahuji epizody z fronty</string>
 
     <string name="podcast_episodes_empty">Zatím žádné epizody</string>
 
@@ -226,6 +241,14 @@
     <string name="settings_appearance">Vzhled</string>
     <string name="settings_dark_mode">Tmavý režim</string>
     <string name="settings_dark_mode_hint">Dokud ho nezměníte, aplikace se řídí nastavením telefonu.</string>
+    <string name="settings_downloads">Stahování</string>
+    <string name="settings_downloads_wifi">Stahovat jen přes Wi-Fi</string>
+    <string name="settings_downloads_wifi_hint">Na mobilních datech se epizody nestáhnou.</string>
+    <string name="settings_downloads_delete">Smazat po dohrání</string>
+    <string name="settings_downloads_delete_hint">Stažená epizoda se po přehrání odstraní z telefonu.</string>
+    <string name="settings_downloads_stored">Staženo v telefonu</string>
+    <string name="settings_downloads_none">Nic</string>
+    <string name="settings_downloads_delete_all">Smazat všechna stažení</string>
     <string name="settings_about">O aplikaci</string>
     <string name="settings_app_name">BEZA Hub</string>
     <string name="settings_app_tagline">Podcasty, videa a články na jednom místě.</string>

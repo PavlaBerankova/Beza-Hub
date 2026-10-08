@@ -26,7 +26,6 @@ import com.berpod.app.ui.dot.CoverImage
 import com.berpod.app.ui.dot.DotIcon
 import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIcons
-import com.berpod.app.ui.dot.DotProgress
 import com.berpod.app.ui.dot.formatDotDate
 import com.berpod.app.ui.dot.upperCs
 import com.berpod.app.ui.podcastlist.remainingText
@@ -34,7 +33,7 @@ import com.berpod.app.ui.theme.DotTheme
 import com.berpod.app.ui.theme.DotType
 
 /**
- * Compact Dot Matrix row (Fronta, Nové): cover, "PODCAST · DATE", title, time with dot progress,
+ * Compact Dot Matrix row (Fronta, Nové): cover, "DATE · PODCAST", title, time with dot progress,
  * optional [actions] and a square play button. The current episode gets a surface background.
  */
 @Composable
@@ -55,7 +54,6 @@ fun CompactEpisodeRow(
     actions: @Composable RowScope.() -> Unit = {}
 ) {
     val c = DotTheme.colors
-    val fraction = episodeProgressFraction(episode.lastPositionMs, episode.durationSeconds)
     Column(modifier) {
         Row(
             modifier = Modifier
@@ -71,7 +69,7 @@ fun CompactEpisodeRow(
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        listOfNotNull(podcastTitle.takeIf { showCover }, formatDotDate(episode.pubDateMillis)).joinToString(" · ").upperCs(),
+                        listOfNotNull(formatDotDate(episode.pubDateMillis), podcastTitle.takeIf { showCover }).joinToString(" · ").upperCs(),
                         style = DotType.meta.copy(fontSize = 10.sp, fontWeight = FontWeight.W600),
                         color = c.textMuted,
                         maxLines = 1,
@@ -96,7 +94,7 @@ fun CompactEpisodeRow(
                     } else remainingText(episode)?.let {
                         Text(it.upperCs(), style = DotType.chip.copy(fontWeight = FontWeight.W700), color = c.accent, maxLines = 1)
                     }
-                    if (!isPlayed && fraction != null) DotProgress(fraction, cells = 16, modifier = Modifier.weight(1f))
+                    DownloadBadge(LocalDownloads.current[episode.id])
                 }
             }
             actions()

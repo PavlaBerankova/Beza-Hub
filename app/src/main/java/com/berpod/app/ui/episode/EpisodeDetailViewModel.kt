@@ -3,7 +3,10 @@ package com.berpod.app.ui.episode
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.berpod.app.data.local.DownloadStatus
+import com.berpod.app.data.local.EpisodeDownloadEntity
 import com.berpod.app.data.local.EpisodeWithFeed
+import com.berpod.app.data.repository.DownloadRepository
 import com.berpod.app.data.repository.EpisodeRepository
 import com.berpod.app.data.repository.PlaybackRepository
 import com.berpod.app.data.repository.QueueRepository
@@ -21,19 +24,25 @@ data class EpisodeDetailUiState(
     val item: EpisodeWithFeed? = null,
     val chapters: List<Chapter> = emptyList(),
     val isQueued: Boolean = false,
+    /** The state of this episode's offline copy; null = never asked to download. */
+    val download: EpisodeDownloadEntity? = null,
     /** This episode is the one loaded in the player. */
     val isCurrent: Boolean = false,
     val isPlaying: Boolean = false,
     /** The player's position/duration while [isCurrent]; otherwise the stored ones. */
     val positionMs: Long = 0L,
     val durationMs: Long = 0L,
-    val snackbarMessage: String? = null
+    val snackbarMessage: String? = null,
+    val downloadMessage: DownloadMessage? = null
 )
+
+enum class DownloadMessage { Started, Cancelled, Removed }
 
 class EpisodeDetailViewModel(
     private val episodeRepository: EpisodeRepository,
     private val queueRepository: QueueRepository,
     private val playbackRepository: PlaybackRepository,
+    private val downloadRepository: DownloadRepository,
     private val episodeId: Long
 ) : ViewModel() {
 
@@ -55,6 +64,9 @@ class EpisodeDetailViewModel(
             .launchIn(viewModelScope)
         queueRepository.observeQueuedEpisodeIds()
             .onEach { ids -> _uiState.update { it.copy(isQueued = episodeId in ids) } }
+            .launchIn(viewModelScope)
+        downloadRepository.downloads
+            .onEach { all -> _uiState.update { it.copy(download = all[episodeId]) } }
             .launchIn(viewModelScope)
         playbackRepository.uiState
             .onEach { _uiState.update { it.withPosition() } }
@@ -112,6 +124,27 @@ class EpisodeDetailViewModel(
         }
     }
 
+    /** One button, one action for the state it is in: download, cancel, retry or delete the copy. */
+    fun onDownloadAction() {
+        val download = _uiState.value.download
+        viewModelScope.launch {
+            when (download?.status) {
+                null, DownloadStatus.FAILED -> downloadRepository.download(episodeId)
+                DownloadStatus.QUEUED, DownloadStatus.DOWNLOADING, DownloadStatus.COMPLETED -> downloadRepository.remove(episodeId)
+            }
+            val message = when (download?.status) {
+                null, DownloadStatus.FAILED -> DownloadMessage.Started
+                DownloadStatus.COMPLETED -> DownloadMessage.Removed
+                else -> DownloadMessage.Cancelled
+            }
+            _uiState.update { it.copy(downloadMessage = message) }
+        }
+    }
+
+    fun onDownloadMessageShown() {
+        _uiState.update { it.copy(downloadMessage = null) }
+    }
+
     fun onSnackbarMessageShown() {
         _uiState.update { it.copy(snackbarMessage = null) }
     }
@@ -121,11 +154,12 @@ class EpisodeDetailViewModel(
             episodeRepository: EpisodeRepository,
             queueRepository: QueueRepository,
             playbackRepository: PlaybackRepository,
+            downloadRepository: DownloadRepository,
             episodeId: Long
         ) = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return EpisodeDetailViewModel(episodeRepository, queueRepository, playbackRepository, episodeId) as T
+                return EpisodeDetailViewModel(episodeRepository, queueRepository, playbackRepository, downloadRepository, episodeId) as T
             }
         }
     }

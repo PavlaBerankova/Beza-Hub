@@ -204,7 +204,8 @@ fun BerpodApp(container: AppContainer) {
                             container.playbackRepository,
                             container.tagRepository,
                             container.episodeRepository,
-                            container.queueFilterRepository
+                            container.queueFilterRepository,
+                            container.downloadRepository
                         ),
                         newEpisodesFactory = NewEpisodesViewModel.factory(
                             container.episodeRepository,
@@ -234,7 +235,7 @@ fun BerpodApp(container: AppContainer) {
                         onSectionChange = { youtubeSection = it }
                     )
                 }
-                composable(Screen.Settings.route) { SettingsScreen() }
+                composable(Screen.Settings.route) { SettingsScreen(container.downloadSettings, container.downloadRepository) }
                 composable(Screen.Articles.route) {
                     ArticlesScreen(
                         viewModelFactory = ArticlesViewModel.factory(container.articleRepository),
@@ -302,6 +303,7 @@ fun BerpodApp(container: AppContainer) {
                             container.episodeRepository,
                             container.queueRepository,
                             container.playbackRepository,
+                            container.downloadRepository,
                             episodeId
                         ),
                         onBack = { navController.popBackStack() },

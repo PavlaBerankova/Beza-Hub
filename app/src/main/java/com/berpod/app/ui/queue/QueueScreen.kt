@@ -34,7 +34,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import kotlinx.coroutines.launch
+import com.berpod.app.ui.dot.DotIcon
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -101,6 +104,13 @@ fun QueueScreen(viewModelFactory: ViewModelProvider.Factory, onEpisodeClick: (Lo
         if (uiState.sortUndo == null) return@LaunchedEffect
         val result = snackbarHostState.showSnackbar(sortedMessage, actionLabel = undoLabel, duration = SnackbarDuration.Long)
         if (result == SnackbarResult.ActionPerformed) viewModel.onUndoSort() else viewModel.onSortMessageDismissed()
+    }
+
+    val downloadMessage = stringResource(R.string.download_started)
+    LaunchedEffect(uiState.downloadStarted) {
+        if (!uiState.downloadStarted) return@LaunchedEffect
+        snackbarHostState.showSnackbar(downloadMessage)
+        viewModel.onDownloadMessageShown()
     }
 
     Scaffold(
@@ -177,21 +187,25 @@ private fun ReorderableQueueList(uiState: QueueUiState, viewModel: QueueViewMode
         items(localItems, key = { it.queueEntryId }) { item ->
             ReorderableItem(reorderState, key = item.queueEntryId) { isDragging ->
                 val elevation by animateDpAsState(if (isDragging) 6.dp else 0.dp, label = "dragElevation")
-                // Swipe left to remove, right to mark played (which also takes it out of the queue);
-                // the row stays swiped until the queue emission drops it.
+                // Swipe left to download (the row springs back, it stays queued), right to mark played
+                // (which also takes it out of the queue); a played row stays swiped until the queue emission drops it.
+                val swipeScope = rememberCoroutineScope()
                 val swipeState = rememberSwipeToDismissBoxState()
                 SwipeToDismissBox(
-                    // Same shape as the row, so the red remove background never shows in its corners.
+                    // Same shape as the row, so the swipe background never shows in its corners.
                     modifier = Modifier.clip(RoundedCornerShape(16.dp)),
                     state = swipeState,
                     gesturesEnabled = !isDragging,
                     onDismiss = { direction ->
                         if (direction == SwipeToDismissBoxValue.StartToEnd) viewModel.onMarkPlayed(item.episode.id)
-                        else viewModel.onRemove(item.queueEntryId)
+                        else {
+                            viewModel.onDownload(item.episode.id)
+                            swipeScope.launch { swipeState.reset() }
+                        }
                     },
                     backgroundContent = {
                         when (swipeState.dismissDirection) {
-                            SwipeToDismissBoxValue.EndToStart -> RemoveBackground()
+                            SwipeToDismissBoxValue.EndToStart -> DownloadBackground()
                             SwipeToDismissBoxValue.StartToEnd -> MarkPlayedBackground()
                             SwipeToDismissBoxValue.Settled -> Unit
                         }
@@ -242,16 +256,14 @@ private fun ReorderableQueueList(uiState: QueueUiState, viewModel: QueueViewMode
 }
 
 @Composable
-private fun RemoveBackground() {
+private fun DownloadBackground() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.error)
+            .background(DotTheme.colors.accent)
             .padding(horizontal = 24.dp),
         contentAlignment = Alignment.CenterEnd
-    ) {
-        Icon(Icons.Filled.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.onError)
-    }
+    ) { DotIcon(DotIcons.Download, 28.dp) }
 }
 
 @Composable

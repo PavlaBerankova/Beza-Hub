@@ -48,6 +48,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.berpod.app.R
+import com.berpod.app.data.local.DownloadStatus
+import com.berpod.app.data.repository.progressPercent
 import com.berpod.app.data.local.EpisodeWithFeed
 import com.berpod.app.ui.common.formatDuration
 import com.berpod.app.ui.common.htmlText
@@ -89,6 +91,17 @@ fun EpisodeDetailScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val c = DotTheme.colors
 
+    val downloadMessages = mapOf(
+        DownloadMessage.Started to stringResource(R.string.download_started),
+        DownloadMessage.Cancelled to stringResource(R.string.download_cancelled),
+        DownloadMessage.Removed to stringResource(R.string.download_removed)
+    )
+    LaunchedEffect(uiState.downloadMessage) {
+        uiState.downloadMessage?.let { message ->
+            snackbarHostState.showSnackbar(downloadMessages.getValue(message))
+            viewModel.onDownloadMessageShown()
+        }
+    }
     LaunchedEffect(uiState.snackbarMessage) {
         uiState.snackbarMessage?.let { message ->
             snackbarHostState.showSnackbar(message)
@@ -267,13 +280,35 @@ private fun EpisodeBody(
 
     val shareTitle = stringResource(R.string.action_share)
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        val download = uiState.download
+        val percent = download?.let { progressPercent(it.downloadedBytes, it.totalBytes) }
         EpisodeActionButton(
-            DotIcons.Download,
-            stringResource(R.string.action_download),
-            active = false,
-            onClick = {},
+            icon = if (download?.status == DownloadStatus.COMPLETED) DotIcons.Queued else DotIcons.Download,
+            label = stringResource(
+                when (download?.status) {
+                    null -> R.string.action_download
+                    DownloadStatus.QUEUED -> R.string.download_waiting
+                    DownloadStatus.DOWNLOADING -> R.string.download_cancel
+                    DownloadStatus.FAILED -> R.string.download_retry
+                    DownloadStatus.COMPLETED -> R.string.download_done
+                }
+            ),
+            active = download?.status == DownloadStatus.COMPLETED || download?.status == DownloadStatus.DOWNLOADING,
+            onClick = viewModel::onDownloadAction,
             modifier = Modifier.weight(1f),
-            detail = formatFileSize(episode.fileSizeBytes)
+            description = stringResource(
+                when (download?.status) {
+                    DownloadStatus.COMPLETED -> R.string.download_remove_description
+                    DownloadStatus.QUEUED, DownloadStatus.DOWNLOADING -> R.string.download_cancel_description
+                    else -> R.string.action_download
+                }
+            ),
+            detail = when (download?.status) {
+                DownloadStatus.DOWNLOADING -> percent?.let { "$it %" }
+                DownloadStatus.COMPLETED -> formatFileSize(download.totalBytes)
+                null, DownloadStatus.FAILED -> formatFileSize(episode.fileSizeBytes)
+                else -> null
+            }
         )
         EpisodeActionButton(
             icon = if (uiState.isQueued) DotIcons.Queued else DotIcons.Queue,

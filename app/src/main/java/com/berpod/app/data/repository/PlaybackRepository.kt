@@ -66,7 +66,8 @@ class PlaybackRepository(
     private val episodeDao: EpisodeDao,
     private val queueDao: QueueDao,
     private val tagRepository: TagRepository,
-    private val queueFilterRepository: QueueFilterRepository
+    private val queueFilterRepository: QueueFilterRepository,
+    private val downloadRepository: DownloadRepository
 ) {
 
     private val appContext = context.applicationContext
@@ -171,7 +172,8 @@ class PlaybackRepository(
             controller?.let { c ->
                 val mediaItem = MediaItem.Builder()
                     .setMediaId(episode.id.toString())
-                    .setUri(episode.audioUrl)
+                    // The offline copy when there is one, the stream otherwise.
+                    .setUri(downloadRepository.localFileFor(episode.id)?.let { Uri.fromFile(it).toString() } ?: episode.audioUrl)
                     .setMediaMetadata(
                         MediaMetadata.Builder()
                             .setTitle(episode.title)

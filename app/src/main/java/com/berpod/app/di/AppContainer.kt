@@ -12,10 +12,18 @@ import com.berpod.app.data.local.MIGRATION_6_7
 import com.berpod.app.data.local.MIGRATION_7_8
 import com.berpod.app.data.local.MIGRATION_8_9
 import com.berpod.app.data.local.MIGRATION_9_10
+import com.berpod.app.data.local.MIGRATION_10_11
 import com.berpod.app.data.remote.ArticleFeedLoader
 import com.berpod.app.data.remote.FeedParser
 import com.berpod.app.data.remote.YoutubeChannelLoader
+import com.berpod.app.data.local.EpisodeDownloadDao
 import com.berpod.app.data.repository.ArticleRepository
+import com.berpod.app.data.repository.DownloadRepository
+import com.berpod.app.data.repository.DownloadSettings
+import com.berpod.app.download.EpisodeDownloader
+import okhttp3.OkHttpClient
+import java.io.File
+import java.util.concurrent.TimeUnit
 import com.berpod.app.data.repository.EpisodeRepository
 import com.berpod.app.data.repository.PlaybackRepository
 import com.berpod.app.data.repository.PodcastRepository
@@ -40,6 +48,10 @@ interface AppContainer {
     /** The Fronta tag filter video Fronta remembers, kept separate from the podcast one. */
     val videoQueueFilterRepository: QueueFilterRepository
     val themeSettings: ThemeSettings
+    val downloadSettings: DownloadSettings
+    val downloadRepository: DownloadRepository
+    val downloadDao: EpisodeDownloadDao
+    val episodeDownloader: EpisodeDownloader
 }
 
 class DefaultAppContainer(context: Context) : AppContainer {
@@ -48,7 +60,7 @@ class DefaultAppContainer(context: Context) : AppContainer {
 
     private val database: AppDatabase by lazy {
         Room.databaseBuilder(appContext, AppDatabase::class.java, "berpod.db")
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11)
             .build()
     }
 
@@ -76,7 +88,24 @@ class DefaultAppContainer(context: Context) : AppContainer {
     }
 
     override val playbackRepository: PlaybackRepository by lazy {
-        PlaybackRepository(appContext, database.episodeDao(), database.queueDao(), tagRepository, queueFilterRepository)
+        PlaybackRepository(appContext, database.episodeDao(), database.queueDao(), tagRepository, queueFilterRepository, downloadRepository)
+    }
+
+    private val downloadDir: File by lazy { File(appContext.filesDir, "episodes") }
+
+    override val downloadSettings: DownloadSettings by lazy {
+        DownloadSettings(appContext.getSharedPreferences("settings", Context.MODE_PRIVATE))
+    }
+
+    override val downloadDao: EpisodeDownloadDao by lazy { database.episodeDownloadDao() }
+
+    override val downloadRepository: DownloadRepository by lazy {
+        DownloadRepository(appContext, downloadDao, downloadSettings, downloadDir)
+    }
+
+    override val episodeDownloader: EpisodeDownloader by lazy {
+        val client = OkHttpClient.Builder().readTimeout(30, TimeUnit.SECONDS).build()
+        EpisodeDownloader(downloadDao, database.episodeDao(), downloadDir, client)
     }
 
     override val articleRepository: ArticleRepository by lazy {

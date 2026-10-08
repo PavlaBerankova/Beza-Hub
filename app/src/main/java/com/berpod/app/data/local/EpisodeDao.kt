@@ -67,6 +67,9 @@ interface EpisodeDao {
     )
     suspend fun updateNumberAndSize(feedId: Long, guid: String, episodeNumber: Int?, fileSizeBytes: Long?)
 
+    @Query("SELECT * FROM episodes WHERE id = :episodeId")
+    suspend fun getById(episodeId: Long): EpisodeEntity?
+
     @Query("SELECT feedId FROM episodes WHERE id = :episodeId")
     suspend fun feedIdOf(episodeId: Long): Long?
 

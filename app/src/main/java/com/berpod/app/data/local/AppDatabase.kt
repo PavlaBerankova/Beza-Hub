@@ -18,9 +18,10 @@ import androidx.room.RoomDatabase
         YoutubeVideoEntity::class,
         YoutubeTagEntity::class,
         YoutubeChannelTagCrossRef::class,
-        VideoQueueEntryEntity::class
+        VideoQueueEntryEntity::class,
+        EpisodeDownloadEntity::class
     ],
-    version = 10,
+    version = 11,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -31,4 +32,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun articleDao(): ArticleDao
     abstract fun youtubeDao(): YoutubeDao
     abstract fun videoQueueDao(): VideoQueueDao
+    abstract fun episodeDownloadDao(): EpisodeDownloadDao
 }

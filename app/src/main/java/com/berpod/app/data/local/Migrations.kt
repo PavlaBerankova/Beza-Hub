@@ -161,3 +161,10 @@ val MIGRATION_9_10 = object : Migration(9, 10) {
         db.execSQL("ALTER TABLE `episodes` ADD COLUMN `fileSizeBytes` INTEGER")
     }
 }
+
+/** Offline copies of episodes: one row per episode that was ever asked to download. */
+val MIGRATION_10_11 = object : Migration(10, 11) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS `episode_downloads` (`episodeId` INTEGER NOT NULL, `status` TEXT NOT NULL, `downloadedBytes` INTEGER NOT NULL, `totalBytes` INTEGER, `filePath` TEXT, `queuedAtMs` INTEGER NOT NULL, `completedAtMs` INTEGER, PRIMARY KEY(`episodeId`), FOREIGN KEY(`episodeId`) REFERENCES `episodes`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )")
+    }
+}

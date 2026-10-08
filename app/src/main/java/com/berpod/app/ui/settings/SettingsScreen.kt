@@ -14,7 +14,17 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.semantics.Role
+import com.berpod.app.data.repository.DownloadRepository
+import com.berpod.app.data.repository.DownloadSettings
+import com.berpod.app.data.repository.DownloadStorage
+import com.berpod.app.ui.episode.formatFileSize
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -31,8 +41,9 @@ import com.berpod.app.ui.theme.LocalThemeController
 
 /** The Nastavení tab: appearance now, more later; each group has its own separator. */
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(downloadSettings: DownloadSettings, downloadRepository: DownloadRepository) {
     val c = DotTheme.colors
+    val scope = rememberCoroutineScope()
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -53,6 +64,40 @@ fun SettingsScreen() {
                 checked = theme.isDark,
                 onCheckedChange = { theme.toggle() }
             )
+        }
+
+        SettingsGroup(stringResource(R.string.settings_downloads)) {
+            val wifiOnly by downloadSettings.wifiOnly.collectAsState()
+            val deleteAfterPlayed by downloadSettings.deleteAfterPlayed.collectAsState()
+            val storage by downloadRepository.storage.collectAsState(DownloadStorage(0, 0))
+            SettingsSwitchRow(
+                title = stringResource(R.string.settings_downloads_wifi),
+                hint = stringResource(R.string.settings_downloads_wifi_hint),
+                checked = wifiOnly,
+                onCheckedChange = {
+                    downloadSettings.setWifiOnly(it)
+                    scope.launch { downloadRepository.onWifiOnlyChanged() }
+                }
+            )
+            SettingsSwitchRow(
+                title = stringResource(R.string.settings_downloads_delete),
+                hint = stringResource(R.string.settings_downloads_delete_hint),
+                checked = deleteAfterPlayed,
+                onCheckedChange = downloadSettings::setDeleteAfterPlayed
+            )
+            SettingsValueRow(
+                stringResource(R.string.settings_downloads_stored),
+                if (storage.count == 0) stringResource(R.string.settings_downloads_none)
+                else listOfNotNull("${storage.count}", formatFileSize(storage.bytes)).joinToString(" · ")
+            )
+            if (storage.count > 0) {
+                Text(
+                    stringResource(R.string.settings_downloads_delete_all),
+                    style = DotType.rowTitle.copy(fontWeight = FontWeight.W700),
+                    color = c.accent,
+                    modifier = Modifier.clickable(role = Role.Button) { scope.launch { downloadRepository.removeAll() } }
+                )
+            }
         }
 
         SettingsGroup(stringResource(R.string.settings_about)) {

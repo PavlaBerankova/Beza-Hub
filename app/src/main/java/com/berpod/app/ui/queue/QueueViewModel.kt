@@ -3,9 +3,11 @@ package com.berpod.app.ui.queue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.berpod.app.data.local.DownloadStatus
 import com.berpod.app.data.local.QueueItemWithEpisode
 import com.berpod.app.data.local.RemovedQueueEntry
 import com.berpod.app.data.local.TagEntity
+import com.berpod.app.data.repository.DownloadRepository
 import com.berpod.app.data.repository.EpisodeRepository
 import com.berpod.app.data.repository.PlaybackRepository
 import com.berpod.app.data.repository.QueueFilterRepository
@@ -43,7 +45,9 @@ data class QueueUiState(
     /** The last episode swiped to "played", while its "Zpět" snackbar can still undo it. */
     val playedUndo: PlayedUndo? = null,
     /** The queue order before the last "Nejnovější/Nejstarší", while its "Zpět" snackbar can still restore it. */
-    val sortUndo: List<Long>? = null
+    val sortUndo: List<Long>? = null,
+    /** Set once "Stáhnout celou frontu" was pressed, until its snackbar was shown. */
+    val downloadStarted: Boolean = false
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -53,7 +57,8 @@ class QueueViewModel(
     private val tagRepository: TagRepository,
     private val episodeRepository: EpisodeRepository,
     /** The selected tag is shared with playback, so next/previous/auto-advance stay inside the filter. */
-    private val queueFilterRepository: QueueFilterRepository
+    private val queueFilterRepository: QueueFilterRepository,
+    private val downloadRepository: DownloadRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(QueueUiState())
@@ -110,6 +115,27 @@ class QueueViewModel(
         viewModelScope.launch { repository.applyOrder(before) }
     }
 
+    /** Swipe left: downloads the episode unless it is already queued, running or finished. */
+    fun onDownload(episodeId: Long) {
+        viewModelScope.launch {
+            if (downloadRepository.downloads.value[episodeId]?.status.let { it == null || it == DownloadStatus.FAILED }) {
+                downloadRepository.download(episodeId)
+                _uiState.update { it.copy(downloadStarted = true) }
+            }
+        }
+    }
+
+    /** Downloads what the list shows (the tag filter included), in queue order. */
+    fun onDownloadAll() {
+        val ids = _uiState.value.visibleItems.map { it.episode.id }
+        viewModelScope.launch {
+            downloadRepository.downloadAll(ids)
+            _uiState.update { it.copy(downloadStarted = true) }
+        }
+    }
+
+    fun onDownloadMessageShown() = _uiState.update { it.copy(downloadStarted = false) }
+
     fun onSortMessageDismissed() = _uiState.update { it.copy(sortUndo = null) }
 
     fun onMoveEntry(movedId: Long, afterId: Long?, beforeId: Long?) {
@@ -165,11 +191,12 @@ class QueueViewModel(
             playbackRepository: PlaybackRepository,
             tagRepository: TagRepository,
             episodeRepository: EpisodeRepository,
-            queueFilterRepository: QueueFilterRepository
+            queueFilterRepository: QueueFilterRepository,
+            downloadRepository: DownloadRepository
         ) = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return QueueViewModel(repository, playbackRepository, tagRepository, episodeRepository, queueFilterRepository) as T
+                return QueueViewModel(repository, playbackRepository, tagRepository, episodeRepository, queueFilterRepository, downloadRepository) as T
             }
         }
     }
