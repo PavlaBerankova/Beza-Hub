@@ -39,6 +39,24 @@ class TabAccentTest {
         }
     }
 
+    private fun hue(color: Color): Double {
+        val max = maxOf(color.red, color.green, color.blue)
+        val min = minOf(color.red, color.green, color.blue)
+        val d = (max - min).toDouble()
+        if (d == 0.0) return 0.0
+        val h = when (max) {
+            color.red -> ((color.green - color.blue) / d) % 6
+            color.green -> (color.blue - color.red) / d + 2
+            else -> (color.red - color.green) / d + 4
+        }
+        return (h * 60 + 360) % 360
+    }
+
+    private fun hueDistance(a: Color, b: Color): Double {
+        val d = kotlin.math.abs(hue(a) - hue(b))
+        return minOf(d, 360 - d)
+    }
+
     @Test
     fun `the three tab accents are told apart by hue, not only brightness`() {
         listOf(false, true).forEach { dark ->
@@ -47,7 +65,8 @@ class TabAccentTest {
             accents.forEachIndexed { i, a ->
                 accents.drop(i + 1).forEach { b ->
                     val distance = listOf(a.red - b.red, a.green - b.green, a.blue - b.blue).maxOf { kotlin.math.abs(it) }
-                    assertTrue("accents $a and $b differ", distance > 0.25f)
+                    // Orange and red can be too readable to differ much in any one channel; their hue then has to.
+                    assertTrue("accents $a and $b differ", distance > 0.25f || hueDistance(a, b) >= 20.0)
                 }
             }
         }

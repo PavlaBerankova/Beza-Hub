@@ -10,7 +10,7 @@ enum class TabAccent(
     val lightAccent: Color,
     val darkAccent: Color
 ) {
-    Podcasts(Color(0xFF5E2E91), Color(0xFFA67CFF)),
+    Podcasts(Color(0xFFC2185B), Color(0xFFFF77B7)),
     YouTube(Color(0xFFB3261E), Color(0xFFFF6B6B)),
     Articles(Color(0xFF146B3A), Color(0xFF4ADE80)),
     Settings(Color(0xFF0B4F8A), Color(0xFF5EA8FF))
