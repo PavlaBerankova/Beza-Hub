@@ -13,7 +13,7 @@ Tohle je kompletně vibe-codovaná aplikace: ani jediný řádek kódu nevznikl 
 
 Design a logika jsou ale plně moje. Vzhled, rozložení obrazovek, barvy, chování gest i drobnosti typu UX (umístění ikonek, filtry) jsem navrhovala já. AI fungovala jako extrémně rychlé „ruce“.
 
-Projekt ještě není plně dokončený a vyladěný, stále ho testuju v praxi a postupně opravuju bugy, plynulost aplikace či přidávám nová vylepšení. 
+**Projekt ještě není plně dokončený a vyladěný, stále ho testuju v praxi a postupně opravuju bugy, plynulost aplikace či přidávám nová vylepšení.**
 
 ## Co aplikace umí
 
