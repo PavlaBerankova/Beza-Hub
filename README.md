@@ -1,6 +1,6 @@
 # BEZA Hub
 
-**Podcasty, videa a články na jednom místě.** Android aplikace, kterou jsem si udělala pro sebe – abych neměla poslech podcastů, sledování YouTube kanálů a čtení blogů rozházené po třech aplikacích.
+**Podcasty, videa a články na jednom místě. Android aplikace, kterou jsem si postavila pro sebe a svoje potřeby - abych už nemusela přecházet mezi třemi různými aplikacemi.
 
 ![Android](https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white)
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.4-7F52FF?logo=kotlin&logoColor=white)
@@ -9,11 +9,11 @@
 
 ## O projektu
 
-Tohle je **kompletně vibe-codovaná aplikace**: žádný řádek kódu jsem nenapsala ručně. Celý kód vznikl v konverzaci s [Claude Code](https://claude.com/claude-code) – já popisovala, co chci a jak to má vypadat, AI to napsala, vyzkoušela a opravila, a já výsledek zkoušela na vlastním telefonu a posílala další připomínky.
+Tohle je kompletně vibe-codovaná aplikace: ani jediný řádek kódu nevznikl ručním psaním. Celá codebase vznikla v konverzaci s Claude Code. Moje role byla v roli architekta a designéra – zadávala jsem požadavky, testovala výsledek na vlastním telefonu a posílala iterativní připomínky, zatímco AI psala kód, řešila logiku a opravovala chyby.
 
-**Design je ale můj.** Vzhled, rozložení obrazovek, barvy, chování gest i drobnosti (třeba kam patří která ikonka a jak se přepíná filtr) jsem si navrhovala sama. AI je „ruce“, zadání a vkus jsou moje.
+Design a logika jsou ale plně moje. Vzhled, rozložení obrazovek, barvy, chování gest i drobnosti typu UX (umístění ikonek, filtry) jsem navrhovala já. AI fungovala jako extrémně rychlé „ruce“.
 
-Projekt je zároveň ukázka toho, jak se dá touhle metodou postavit nezanedbatelně velká aplikace – s databází, přehráváním na pozadí, stahováním a sadou jednotkových testů.
+Projekt ještě není plně dokončený a vyladěný, stále ho testuju v praxi a postupně opravuju bugy, plynulost aplikaci či přidávám nová vylepšení. 
 
 ## Co aplikace umí
 
