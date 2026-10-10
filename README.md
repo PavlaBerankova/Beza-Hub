@@ -1,6 +1,6 @@
 # BEZA Hub
 
-**Podcasty, videa a články na jednom místě. Android aplikace, kterou jsem si postavila pro sebe a svoje potřeby - abych už nemusela přecházet mezi třemi různými aplikacemi.
+**Podcasty, videa a články** na jednom místě. Android aplikace, kterou jsem si postavila pro sebe a svoje potřeby - abych už nemusela přecházet mezi třemi různými aplikacemi.
 
 ![Android](https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white)
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.4-7F52FF?logo=kotlin&logoColor=white)
