@@ -98,8 +98,8 @@ Větší funkce vznikaly postupně: nejdřív nápad a upřesňující otázky, 
 Potřebujete Android Studio (nebo JDK 17 a Android SDK).
 
 ```bash
-git clone https://github.com/<uživatel>/<repozitář>.git
-cd <repozitář>
+git clone https://github.com/PavlaBerankova/Beza-Hub.git
+cd Beza-Hub
 
 # sestavení a instalace na připojený telefon / emulátor
 ./gradlew :app:installDebug
@@ -113,3 +113,9 @@ Aplikace nepotřebuje žádné API klíče ani účty.
 ## Stav projektu
 
 Osobní projekt, který používám denně a postupně vylepšuji. Není na Google Play a nemá synchronizaci mezi zařízeními ani zálohu dat.
+
+## Licence
+
+Kód je pod licencí [MIT](LICENSE). Fonty (Inter a Oxanium, SIL OFL 1.1) a ikony (Material Symbols, Apache 2.0) mají
+vlastní licence, viz [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Obálky podcastů, náhledy videí a titulky na
+screenshotech patří jejich autorům.

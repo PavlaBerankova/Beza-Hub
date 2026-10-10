@@ -17,7 +17,7 @@
 - A null parsed author never overwrites a stored author.
 - Header: blur 24dp + 55% black scrim, bottom corners 24dp, cover 112dp / 12dp corners, title `headlineSmall` white max 2 lines, author `bodyMedium` white 80% max 1 line.
 - Top bar transparent with white icons and no title while `firstVisibleItemIndex == 0`, solid with title otherwise.
-- Branch `feature/podcast-tags`. Tests `./gradlew :app:testDebugUnitTest`, build `./gradlew :app:assembleDebug`, from `/Users/Berda/Code/berpod`.
+- Branch `feature/podcast-tags`. Tests `./gradlew :app:testDebugUnitTest`, build `./gradlew :app:assembleDebug`, from the repo root.
 
 ## Review Focus
 

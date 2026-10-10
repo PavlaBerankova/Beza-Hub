@@ -9,3 +9,10 @@ captures/
 .externalNativeBuild/
 .cxx/
 .superpowers/
+
+# Local tooling and build outputs that must never be committed
+.claude/
+*.apk
+*.aab
+*.jks
+*.keystore

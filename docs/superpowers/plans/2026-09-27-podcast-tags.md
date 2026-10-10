@@ -19,7 +19,7 @@
 - Grid: `GridCells.Fixed(4)`, square covers, 12dp edge padding, 12dp spacing, 12dp corner radius, order `dateAdded DESC`.
 - Touch targets ≥ 48dp (established in the previous redesign).
 - Don't rename packages/classes (`com.berpod.app`, `Berpod*`); the app's display name is `BEZA Hub`.
-- Build: `./gradlew :app:assembleDebug`; tests: `./gradlew :app:testDebugUnitTest`. Run from repo root `/Users/Berda/Code/berpod`.
+- Build: `./gradlew :app:assembleDebug`; tests: `./gradlew :app:testDebugUnitTest`. Run from the repo root.
 
 ## Review Focus
 
@@ -61,7 +61,7 @@
 `strings.xml` already contains the uncommitted rename `Berpod` → `BEZA Hub`. Commit it on its own so it doesn't get mixed into tag work:
 
 ```bash
-cd /Users/Berda/Code/berpod
+cd <repo root>
 git add app/src/main/res/values/strings.xml
 git commit -m "Rename app display name to BEZA Hub"
 ```

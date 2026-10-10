@@ -18,7 +18,7 @@
 - Ended episode: position 0, removed from queue, auto-advance unless sleep = end of episode.
 - Playing a non-queued episode puts it first in the queue.
 - Czech strings in `strings.xml`; Dot Matrix components/colours only; touch targets ≥ 44 dp.
-- Tests `./gradlew :app:testDebugUnitTest`, build `./gradlew :app:assembleDebug`, from `/Users/Berda/Code/berpod`.
+- Tests `./gradlew :app:testDebugUnitTest`, build `./gradlew :app:assembleDebug`, from the repo root.
 
 ## Review Focus
 

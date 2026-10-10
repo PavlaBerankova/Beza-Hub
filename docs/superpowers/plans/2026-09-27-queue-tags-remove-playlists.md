@@ -20,7 +20,7 @@
 - The Queue filter is independent of the Podcasts filter, single-select (`null` = "Všechny"), not persisted, and falls back to "Všechny" when the selected tag is deleted.
 - Tag rename/delete lives on the Podcasts screen only; Queue chips have no long-press action.
 - Touch targets ≥ 48dp. Don't rename packages/classes (`com.berpod.app`, `Berpod*`).
-- Work continues on branch `feature/podcast-tags`. Build: `./gradlew :app:assembleDebug`; tests: `./gradlew :app:testDebugUnitTest`; run from `/Users/Berda/Code/berpod`.
+- Work continues on branch `feature/podcast-tags`. Build: `./gradlew :app:assembleDebug`; tests: `./gradlew :app:testDebugUnitTest`; run from the repo root.
 
 ## Review Focus
 
@@ -56,7 +56,7 @@ This task deletes code; there is no new behavior to drive with a failing unit te
 - [ ] **Step 1: Delete the playlist files**
 
 ```bash
-cd /Users/Berda/Code/berpod
+cd <repo root>
 git rm -r app/src/main/java/com/berpod/app/ui/playlists
 git rm app/src/main/java/com/berpod/app/ui/common/AddToPlaylistDialog.kt \
   app/src/main/java/com/berpod/app/data/repository/PlaylistRepository.kt \

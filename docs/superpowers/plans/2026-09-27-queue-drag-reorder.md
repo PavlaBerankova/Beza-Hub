@@ -19,7 +19,7 @@
 - Drag starts immediately when the ⠿ handle is pressed and moved (`draggableHandle`); nothing is written until drop; one `moveEntry` write per changed drop.
 - Filtered queue: moved entry goes right after its visible predecessor, or right before its visible successor when dropped at the top; hidden entries keep relative order.
 - Positions are always 0..n-1 and unique after a move; the new order is computed inside the DB transaction.
-- Touch targets ≥ 48dp. Branch `feature/podcast-tags`. Tests: `./gradlew :app:testDebugUnitTest`; build: `./gradlew :app:assembleDebug`; run from `/Users/Berda/Code/berpod`.
+- Touch targets ≥ 48dp. Branch `feature/podcast-tags`. Tests: `./gradlew :app:testDebugUnitTest`; build: `./gradlew :app:assembleDebug`; run from the repo root.
 
 ## Review Focus
 

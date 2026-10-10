@@ -18,7 +18,7 @@
 - Icons are drawn from SVG path data copied from the canvas; roles Primary / Muted / Accent follow the theme.
 - Odběry keeps the 4-column grid, no "NOVĚ VYŠLO", a small square "+" bottom-right.
 - Player step 1: only play/pause and seeking; no dead buttons.
-- Touch targets ≥ 44 dp. Branch `feature/podcast-tags`. Tests `./gradlew :app:testDebugUnitTest`, build `./gradlew :app:assembleDebug`, from `/Users/Berda/Code/berpod`.
+- Touch targets ≥ 44 dp. Branch `feature/podcast-tags`. Tests `./gradlew :app:testDebugUnitTest`, build `./gradlew :app:assembleDebug`, from the repo root.
 
 ## Review Focus
 
