@@ -52,5 +52,10 @@ class PodcastRepository(
     }
 
     /** Resolves and adds in one step. */
+    /** Deletes the podcast; its episodes, queue entries, tags and download rows go with it (cascading deletes). */
+    suspend fun deleteFeed(feedId: Long) {
+        dao.getById(feedId)?.let { dao.delete(it) }
+    }
+
     suspend fun addFeed(rawUrl: String): Result<Long> = resolve(rawUrl).mapCatching { addFeed(it).getOrThrow() }
 }

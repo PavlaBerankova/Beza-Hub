@@ -50,7 +50,9 @@ import com.berpod.app.R
 import com.berpod.app.ui.common.CompactEpisodeRow
 import com.berpod.app.ui.common.EmptyState
 import com.berpod.app.ui.common.MarkPlayedSwipe
-import com.berpod.app.ui.common.AddToQueueButton
+import com.berpod.app.ui.common.EpisodeMenuAction
+import com.berpod.app.ui.common.EpisodeRowMenu
+import com.berpod.app.ui.common.downloadToggleText
 import com.berpod.app.ui.common.TagChipRow
 import com.berpod.app.ui.dot.DotIcons
 import com.berpod.app.ui.podcastlist.labelRes
@@ -59,7 +61,7 @@ import com.berpod.app.ui.theme.DotTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NewEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onEpisodeClick: (Long) -> Unit) {
+fun NewEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onEpisodeClick: (Long) -> Unit, onOpenPodcast: (Long) -> Unit) {
     val viewModel: NewEpisodesViewModel = viewModel(factory = viewModelFactory)
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -87,6 +89,13 @@ fun NewEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onEpisodeClic
         if (index < 0) return@LaunchedEffect
         if (index < listState.firstVisibleItemIndex) listState.animateScrollToItem(index)
         revealEpisodeId = null
+    }
+
+    val downloadText = uiState.downloadMessage?.let { downloadToggleText(it) }
+    LaunchedEffect(uiState.downloadMessage) {
+        val message = downloadText ?: return@LaunchedEffect
+        snackbarHostState.showSnackbar(message)
+        viewModel.onDownloadMessageShown()
     }
 
     LaunchedEffect(uiState.snackbarMessage) {
@@ -135,7 +144,6 @@ fun NewEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onEpisodeClic
                     LazyColumn(state = listState, contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 16.dp)) {
                         items(uiState.episodes, key = { it.episode.id }) { item ->
                             val isCurrent = uiState.currentlyPlayingEpisodeId == item.episode.id
-                            val isQueued = item.episode.id in uiState.queuedEpisodeIds
                             // Same shape as the row, so the swipe background never shows in its corners.
                             MarkPlayedSwipe(onToggle = { viewModel.onMarkPlayed(item.episode.id) }, modifier = Modifier.clip(RoundedCornerShape(16.dp))) {
                                 CompactEpisodeRow(
@@ -145,9 +153,21 @@ fun NewEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onEpisodeClic
                                     isCurrent = isCurrent,
                                     isPlaying = isCurrent && uiState.isPlaying,
                                     onPlayOrPause = { viewModel.onPlayOrPause(item) },
-                                    onClick = { onEpisodeClick(item.episode.id) }
+                                    onClick = { onEpisodeClick(item.episode.id) },
+                                    showDescription = false
                                 ) {
-                                    AddToQueueButton(isQueued) { viewModel.onAddToQueue(item.episode.id) }
+                                    // Nové never lists queued or played episodes.
+                                    EpisodeRowMenu(item.episode.id, isQueued = false, isPlayed = false, canOpenPodcast = true) { action ->
+                                        when (action) {
+                                            EpisodeMenuAction.Download, EpisodeMenuAction.CancelDownload, EpisodeMenuAction.DeleteDownload ->
+                                                viewModel.onToggleDownload(item.episode.id)
+                                            EpisodeMenuAction.AddToQueue -> viewModel.onAddToQueue(item.episode.id)
+                                            EpisodeMenuAction.MarkPlayed -> viewModel.onMarkPlayed(item.episode.id)
+                                            EpisodeMenuAction.OpenEpisode -> onEpisodeClick(item.episode.id)
+                                            EpisodeMenuAction.OpenPodcast -> onOpenPodcast(item.episode.feedId)
+                                            EpisodeMenuAction.RemoveFromQueue, EpisodeMenuAction.MarkUnplayed -> Unit
+                                        }
+                                    }
                                 }
                             }
                         }

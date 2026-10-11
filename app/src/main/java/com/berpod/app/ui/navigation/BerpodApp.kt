@@ -212,7 +212,8 @@ fun BerpodApp(container: AppContainer) {
                             container.episodeRepository,
                             container.queueRepository,
                             container.playbackRepository,
-                            container.tagRepository
+                            container.tagRepository,
+                            container.downloadRepository
                         ),
                         onPodcastClick = { feedId -> navController.navigate(Screen.PodcastEpisodes.createRoute(feedId)) },
                         onEpisodeClick = openEpisode,
@@ -288,6 +289,7 @@ fun BerpodApp(container: AppContainer) {
                             container.queueRepository,
                             container.playbackRepository,
                             container.tagRepository,
+                            container.downloadRepository,
                             feedId
                         ),
                         onBack = { navController.popBackStack() },

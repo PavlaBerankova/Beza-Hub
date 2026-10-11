@@ -23,23 +23,31 @@ import com.berpod.app.ui.theme.DotType
 /** Every episode's offline-copy state, so the episode rows can mark downloaded ones without each screen passing it down. */
 val LocalDownloads = compositionLocalOf<Map<Long, EpisodeDownloadEntity>> { emptyMap() }
 
-/** "✓ STAŽENO" for an offline copy, its percentage while it downloads, "ČEKÁ" while it waits. Nothing otherwise. */
+/**
+ * The offline state of an episode, in quiet grey: the download arrow for a finished copy, a paler one for a copy
+ * waiting its turn, and the arrow with the percentage while it downloads. Nothing otherwise. It sits at the right end
+ * of the row, next to the three dots.
+ */
 @Composable
 fun DownloadBadge(download: EpisodeDownloadEntity?, modifier: Modifier = Modifier) {
     if (download == null || download.status == DownloadStatus.FAILED) return
     val c = DotTheme.colors
-    val text = when (download.status) {
-        DownloadStatus.COMPLETED -> stringResource(R.string.download_done)
-        DownloadStatus.DOWNLOADING ->
-            progressPercent(download.downloadedBytes, download.totalBytes)?.let { "$it %" } ?: stringResource(R.string.download_downloading)
-        else -> stringResource(R.string.download_waiting)
-    }
+    val percent = if (download.status == DownloadStatus.DOWNLOADING) progressPercent(download.downloadedBytes, download.totalBytes) else null
     Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        if (percent != null) {
+            Text("$percent %".upperCs(), style = DotType.chip.copy(fontWeight = FontWeight.W700), color = c.textMuted, maxLines = 1)
+        }
+        // The same arrow as the swipe-to-download gesture, in the same quiet grey as the queue mark; paler while it waits.
         DotIcon(
-            if (download.status == DownloadStatus.COMPLETED) DotIcons.DownloadDone else DotIcons.Download,
-            14.dp,
-            monochrome = c.accent
+            DotIcons.Download,
+            18.dp,
+            monochrome = if (download.status == DownloadStatus.QUEUED) c.textMuted.copy(alpha = 0.5f) else c.textMuted
         )
-        Text(text.upperCs(), style = DotType.chip.copy(fontWeight = FontWeight.W700), color = c.accent, maxLines = 1)
     }
+}
+
+/** The small "this episode is in the queue" mark of a row, quiet grey so it does not compete with the download badge. */
+@Composable
+fun QueuedMark(modifier: Modifier = Modifier) {
+    DotIcon(DotIcons.Queued, 20.dp, modifier = modifier, monochrome = DotTheme.colors.textMuted)
 }

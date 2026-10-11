@@ -3,8 +3,9 @@ package com.berpod.app.ui.podcastlist
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.berpod.app.data.local.EpisodeEntity
-import com.berpod.app.ui.common.AddToQueueButton
 import com.berpod.app.ui.common.CompactEpisodeRow
+import com.berpod.app.ui.common.EpisodeMenuAction
+import com.berpod.app.ui.common.EpisodeRowMenu
 import com.berpod.app.ui.dot.isRecentEpisode
 
 /** Episode row of a podcast's own page: the same compact row as Fronta and Nové, minus the cover. */
@@ -14,7 +15,7 @@ fun ShowEpisodeRow(
     isCurrentlyPlaying: Boolean,
     onPlayOrPause: () -> Unit,
     isQueued: Boolean,
-    onAddToQueue: () -> Unit,
+    onMenuAction: (EpisodeMenuAction) -> Unit,
     nowMillis: Long,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -31,8 +32,10 @@ fun ShowEpisodeRow(
         isPlayed = episode.playedAtMs != null,
         // A played episode isn't "new" any more, whatever its date.
         isNew = episode.playedAtMs == null && isRecentEpisode(episode.pubDateMillis, nowMillis),
+        showQueuedMark = isQueued,
         modifier = modifier
     ) {
-        AddToQueueButton(isQueued, onAddToQueue)
+        // On the podcast's own page the menu has no entry for the podcast itself.
+        EpisodeRowMenu(episode.id, isQueued = isQueued, isPlayed = episode.playedAtMs != null, canOpenPodcast = false, onAction = onMenuAction)
     }
 }

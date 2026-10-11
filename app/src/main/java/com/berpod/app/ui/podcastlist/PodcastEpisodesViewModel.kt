@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.berpod.app.data.local.EpisodeEntity
+import com.berpod.app.data.repository.DownloadRepository
+import com.berpod.app.data.repository.DownloadToggle
 import com.berpod.app.data.repository.EpisodeRepository
 import com.berpod.app.data.repository.PlaybackRepository
 import com.berpod.app.data.repository.PodcastRepository
@@ -42,12 +44,18 @@ data class PodcastEpisodesUiState(
     val episodes: List<EpisodeEntity> = emptyList(),
     val isRefreshing: Boolean = false,
     val snackbarMessage: String? = null,
+    /** What the last download action did, until its snackbar was shown. */
+    val downloadMessage: DownloadToggle? = null,
     /** Set right after swiping an episode to played, while "Zpět" can undo it. */
     val playedUndo: PlayedUndo? = null,
     /** Episodes currently in the queue, so rows can show it. */
     val queuedEpisodeIds: Set<Long> = emptySet(),
     val currentlyPlayingEpisodeId: Long? = null,
-    val isPlaying: Boolean = false
+    val isPlaying: Boolean = false,
+    /** The "delete podcast" confirmation is up. */
+    val confirmDelete: Boolean = false,
+    /** The podcast is gone; the screen leaves. */
+    val isDeleted: Boolean = false
 )
 
 class PodcastEpisodesViewModel(
@@ -56,6 +64,7 @@ class PodcastEpisodesViewModel(
     private val queueRepository: QueueRepository,
     private val playbackRepository: PlaybackRepository,
     private val tagRepository: TagRepository,
+    private val downloadRepository: DownloadRepository,
     private val feedId: Long
 ) : ViewModel() {
 
@@ -141,6 +150,23 @@ class PodcastEpisodesViewModel(
         }
     }
 
+    fun onRequestDelete() = _uiState.update { it.copy(confirmDelete = true) }
+
+    fun onCancelDelete() = _uiState.update { it.copy(confirmDelete = false) }
+
+    /** Deletes the podcast with its episodes and offline copies; a playing episode of it is paused first. */
+    fun onConfirmDelete() {
+        _uiState.update { it.copy(confirmDelete = false) }
+        viewModelScope.launch {
+            val ids = episodeRepository.idsForFeed(feedId).toSet()
+            val playback = playbackRepository.uiState.value
+            if (playback.isPlaying && playback.currentEpisodeId in ids) playbackRepository.togglePlayPause()
+            downloadRepository.removeDownloadsOf(ids)
+            podcastRepository.deleteFeed(feedId)
+            _uiState.update { it.copy(isDeleted = true) }
+        }
+    }
+
     fun onEditRss() {
         _uiState.update { it.copy(isEditingRss = true, rssError = null) }
     }
@@ -191,6 +217,20 @@ class PodcastEpisodesViewModel(
         _uiState.update { it.copy(playedUndo = null) }
     }
 
+    /** From the row's menu: download, cancel or delete the copy, whichever fits the episode's state. */
+    fun onToggleDownload(episodeId: Long) {
+        viewModelScope.launch {
+            val result = downloadRepository.toggle(episodeId)
+            _uiState.update { it.copy(downloadMessage = result) }
+        }
+    }
+
+    fun onDownloadMessageShown() = _uiState.update { it.copy(downloadMessage = null) }
+
+    fun onRemoveFromQueue(episodeId: Long) {
+        viewModelScope.launch { queueRepository.removeEpisode(episodeId) }
+    }
+
     fun onAddToQueue(episodeId: Long) {
         viewModelScope.launch {
             queueRepository.addToQueue(episodeId)
@@ -210,6 +250,7 @@ class PodcastEpisodesViewModel(
             queueRepository: QueueRepository,
             playbackRepository: PlaybackRepository,
             tagRepository: TagRepository,
+            downloadRepository: DownloadRepository,
             feedId: Long
         ) = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
@@ -220,6 +261,7 @@ class PodcastEpisodesViewModel(
                     queueRepository,
                     playbackRepository,
                     tagRepository,
+                    downloadRepository,
                     feedId
                 ) as T
             }

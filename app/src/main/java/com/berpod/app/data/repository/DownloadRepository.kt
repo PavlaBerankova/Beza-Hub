@@ -26,6 +26,9 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.util.concurrent.TimeUnit
 
+/** What a tap on a download button did: asked for the episode, called the download off, or deleted the finished copy. */
+enum class DownloadToggle { Started, Cancelled, Removed }
+
 /** How many episodes are stored for offline listening and how much room they take. */
 data class DownloadStorage(val count: Int, val bytes: Long)
 
@@ -67,6 +70,13 @@ class DownloadRepository(
 
     suspend fun download(episodeId: Long) = downloadAll(listOf(episodeId))
 
+    /** One button, one action for the state the episode is in: download (or retry), cancel, or delete the copy. */
+    suspend fun toggle(episodeId: Long): DownloadToggle = when (dao.get(episodeId)?.status) {
+        null, DownloadStatus.FAILED -> { download(episodeId); DownloadToggle.Started }
+        DownloadStatus.COMPLETED -> { remove(episodeId); DownloadToggle.Removed }
+        DownloadStatus.QUEUED, DownloadStatus.DOWNLOADING -> { remove(episodeId); DownloadToggle.Cancelled }
+    }
+
     /** Queues the episodes in the given order; those already queued, running or finished are left alone. */
     suspend fun downloadAll(episodeIds: List<Long>) {
         val now = System.currentTimeMillis()
@@ -88,6 +98,11 @@ class DownloadRepository(
     suspend fun remove(episodeId: Long) {
         dao.delete(episodeId)
         deleteFilesOf(episodeId)
+    }
+
+    /** Deletes the offline copies (and download rows) of just these episodes, e.g. those of a podcast being deleted. */
+    suspend fun removeDownloadsOf(episodeIds: Set<Long>) {
+        dao.getAll().filter { it.episodeId in episodeIds }.forEach { remove(it.episodeId) }
     }
 
     suspend fun removeAll() {

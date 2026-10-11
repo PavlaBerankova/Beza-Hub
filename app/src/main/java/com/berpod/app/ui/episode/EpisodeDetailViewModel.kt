@@ -3,10 +3,10 @@ package com.berpod.app.ui.episode
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.berpod.app.data.local.DownloadStatus
 import com.berpod.app.data.local.EpisodeDownloadEntity
 import com.berpod.app.data.local.EpisodeWithFeed
 import com.berpod.app.data.repository.DownloadRepository
+import com.berpod.app.data.repository.DownloadToggle
 import com.berpod.app.data.repository.EpisodeRepository
 import com.berpod.app.data.repository.PlaybackRepository
 import com.berpod.app.data.repository.QueueRepository
@@ -33,10 +33,8 @@ data class EpisodeDetailUiState(
     val positionMs: Long = 0L,
     val durationMs: Long = 0L,
     val snackbarMessage: String? = null,
-    val downloadMessage: DownloadMessage? = null
+    val downloadMessage: DownloadToggle? = null
 )
-
-enum class DownloadMessage { Started, Cancelled, Removed }
 
 class EpisodeDetailViewModel(
     private val episodeRepository: EpisodeRepository,
@@ -126,18 +124,9 @@ class EpisodeDetailViewModel(
 
     /** One button, one action for the state it is in: download, cancel, retry or delete the copy. */
     fun onDownloadAction() {
-        val download = _uiState.value.download
         viewModelScope.launch {
-            when (download?.status) {
-                null, DownloadStatus.FAILED -> downloadRepository.download(episodeId)
-                DownloadStatus.QUEUED, DownloadStatus.DOWNLOADING, DownloadStatus.COMPLETED -> downloadRepository.remove(episodeId)
-            }
-            val message = when (download?.status) {
-                null, DownloadStatus.FAILED -> DownloadMessage.Started
-                DownloadStatus.COMPLETED -> DownloadMessage.Removed
-                else -> DownloadMessage.Cancelled
-            }
-            _uiState.update { it.copy(downloadMessage = message) }
+            val result = downloadRepository.toggle(episodeId)
+            _uiState.update { it.copy(downloadMessage = result) }
         }
     }
 

@@ -48,6 +48,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.berpod.app.R
 import com.berpod.app.ui.common.EmptyState
+import com.berpod.app.ui.common.EpisodeMenuAction
+import com.berpod.app.ui.common.downloadToggleText
 import com.berpod.app.ui.common.MarkPlayedSwipe
 import com.berpod.app.ui.common.TagPickerSheet
 import com.berpod.app.ui.common.podcastTagTexts
@@ -76,11 +78,23 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
         if (result == SnackbarResult.ActionPerformed) viewModel.onUndoMarkPlayed() else viewModel.onPlayedMessageDismissed()
     }
 
+    val downloadText = uiState.downloadMessage?.let { downloadToggleText(it) }
+    LaunchedEffect(uiState.downloadMessage) {
+        val message = downloadText ?: return@LaunchedEffect
+        snackbarHostState.showSnackbar(message)
+        viewModel.onDownloadMessageShown()
+    }
+
     LaunchedEffect(uiState.snackbarMessage) {
         uiState.snackbarMessage?.let { message ->
             snackbarHostState.showSnackbar(message)
             viewModel.onSnackbarMessageShown()
         }
+    }
+
+    // The podcast is gone: back to where the user came from.
+    LaunchedEffect(uiState.isDeleted) {
+        if (uiState.isDeleted) onBack()
     }
 
     val listState = rememberLazyListState()
@@ -96,7 +110,9 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
         hasUnplayed = uiState.episodes.any { it.playedAtMs == null },
         hasPlayed = uiState.episodes.any { it.playedAtMs != null },
         onMarkAllPlayed = { viewModel.onRequestMarkAll(true) },
-        onMarkAllUnplayed = { viewModel.onRequestMarkAll(false) }
+        onMarkAllUnplayed = { viewModel.onRequestMarkAll(false) },
+        onEditRss = viewModel::onEditRss,
+        onDelete = viewModel::onRequestDelete
     )
 
     // The system bar icons follow the header block while it is on screen (dark icons on a bright block, light on a deep one).
@@ -147,7 +163,6 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                         onBack = onBack,
                         onTagClick = viewModel::onOpenTagDialog,
                         onRefresh = viewModel::onRefresh,
-                        onEditRss = viewModel::onEditRss,
                         menu = menu,
                         episodeCount = uiState.episodes.size,
                         frequency = frequency,
@@ -189,7 +204,17 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                                 isCurrentlyPlaying = uiState.currentlyPlayingEpisodeId == episode.id && uiState.isPlaying,
                                 onPlayOrPause = { viewModel.onPlayOrPause(episode) },
                                 isQueued = episode.id in uiState.queuedEpisodeIds,
-                                onAddToQueue = { viewModel.onAddToQueue(episode.id) },
+                                onMenuAction = { action ->
+                                    when (action) {
+                                        EpisodeMenuAction.Download, EpisodeMenuAction.CancelDownload, EpisodeMenuAction.DeleteDownload ->
+                                            viewModel.onToggleDownload(episode.id)
+                                        EpisodeMenuAction.AddToQueue -> viewModel.onAddToQueue(episode.id)
+                                        EpisodeMenuAction.RemoveFromQueue -> viewModel.onRemoveFromQueue(episode.id)
+                                        EpisodeMenuAction.MarkPlayed, EpisodeMenuAction.MarkUnplayed -> viewModel.onTogglePlayed(episode)
+                                        EpisodeMenuAction.OpenEpisode -> onEpisodeClick(episode.id)
+                                        EpisodeMenuAction.OpenPodcast -> Unit
+                                    }
+                                },
                                 nowMillis = now,
                                 onClick = { onEpisodeClick(episode.id) }
                             )
@@ -215,7 +240,6 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                             modifier = Modifier.weight(1f).padding(horizontal = 4.dp)
                         )
                         DotIconButton(DotIcons.Tag, stringResource(R.string.action_manage_tags), viewModel::onOpenTagDialog)
-                        DotIconButton(DotIcons.Edit, stringResource(R.string.action_edit_rss), viewModel::onEditRss)
                         if (uiState.isRefreshing) {
                             Box(Modifier.size(44.dp), contentAlignment = Alignment.Center) {
                                 CircularProgressIndicator(Modifier.size(22.dp), color = c.accent, strokeWidth = 2.dp)
@@ -230,6 +254,9 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
             }
         }
 
+        if (uiState.confirmDelete) {
+            DeletePodcastDialog(uiState.feedTitle, onConfirm = viewModel::onConfirmDelete, onDismiss = viewModel::onCancelDelete)
+        }
         uiState.confirmMarkAllPlayed?.let { markPlayed ->
             MarkAllDialog(markPlayed, onConfirm = viewModel::onConfirmMarkAll, onDismiss = viewModel::onCancelMarkAll)
         }

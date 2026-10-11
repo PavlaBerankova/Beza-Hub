@@ -209,6 +209,13 @@
     <string name="episodes_show_label">Zobrazit</string>
     <string name="episodes_filtered_empty">Žádné epizody neodpovídají filtru</string>
     <string name="episodes_filtered_empty_hint">Změňte řazení nebo filtr</string>
+    <string name="menu_mark_played">Označit jako přehrané</string>
+    <string name="menu_mark_unplayed">Označit jako nepřehrané</string>
+    <string name="menu_open_episode">Detail epizody</string>
+    <string name="menu_open_podcast">Detail podcastu</string>
+    <string name="action_delete_podcast">Smazat podcast</string>
+    <string name="delete_podcast_title">Smazat podcast?</string>
+    <string name="delete_podcast_message">Podcast „%1$s“ se odebere z aplikace včetně všech epizod, stažených souborů a postupu poslechu. Tuto akci nelze vrátit.</string>
     <string name="action_mark_all_played">Označit vše jako přehrané</string>
     <string name="action_mark_all_unplayed">Označit vše jako nepřehrané</string>
     <string name="mark_all_played_title">Označit vše jako přehrané?</string>

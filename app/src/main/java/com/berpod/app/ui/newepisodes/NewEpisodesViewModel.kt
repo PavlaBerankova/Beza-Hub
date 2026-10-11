@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.berpod.app.data.local.EpisodeWithFeed
 import com.berpod.app.data.local.TagEntity
+import com.berpod.app.data.repository.DownloadRepository
+import com.berpod.app.data.repository.DownloadToggle
 import com.berpod.app.data.repository.EpisodeRepository
 import com.berpod.app.data.repository.PlaybackRepository
 import com.berpod.app.data.repository.QueueRepository
@@ -47,6 +49,8 @@ data class NewEpisodesUiState(
     val confirmRemoveCount: Int? = null,
     val isRefreshing: Boolean = false,
     val snackbarMessage: String? = null,
+    /** What the last download action did, until its snackbar was shown. */
+    val downloadMessage: DownloadToggle? = null,
     /** Set right after swiping an episode to played, while "Zpět" can undo it. */
     val playedUndo: PlayedUndo? = null,
     /** Episodes currently in the queue, so rows can show it. */
@@ -60,7 +64,8 @@ class NewEpisodesViewModel(
     private val episodeRepository: EpisodeRepository,
     private val queueRepository: QueueRepository,
     private val playbackRepository: PlaybackRepository,
-    private val tagRepository: TagRepository
+    private val tagRepository: TagRepository,
+    private val downloadRepository: DownloadRepository
 ) : ViewModel() {
 
     private val selectedTagId = MutableStateFlow<Long?>(null)
@@ -126,6 +131,16 @@ class NewEpisodesViewModel(
         _uiState.update { it.copy(playedUndo = null) }
         viewModelScope.launch { undoMarkPlayed(undo, episodeRepository, queueRepository) }
     }
+
+    /** From the row's menu: download, cancel or delete the copy, whichever fits the episode's state. */
+    fun onToggleDownload(episodeId: Long) {
+        viewModelScope.launch {
+            val result = downloadRepository.toggle(episodeId)
+            _uiState.update { it.copy(downloadMessage = result) }
+        }
+    }
+
+    fun onDownloadMessageShown() = _uiState.update { it.copy(downloadMessage = null) }
 
     fun onPlayedMessageDismissed() {
         _uiState.update { it.copy(playedUndo = null) }
@@ -204,11 +219,12 @@ class NewEpisodesViewModel(
             episodeRepository: EpisodeRepository,
             queueRepository: QueueRepository,
             playbackRepository: PlaybackRepository,
-            tagRepository: TagRepository
+            tagRepository: TagRepository,
+            downloadRepository: DownloadRepository
         ) = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return NewEpisodesViewModel(episodeRepository, queueRepository, playbackRepository, tagRepository) as T
+                return NewEpisodesViewModel(episodeRepository, queueRepository, playbackRepository, tagRepository, downloadRepository) as T
             }
         }
     }

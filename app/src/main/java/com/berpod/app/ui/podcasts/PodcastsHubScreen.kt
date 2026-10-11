@@ -110,8 +110,8 @@ fun PodcastsHubScreen(
         Box(modifier = Modifier.weight(1f)) {
             when (section) {
                 PodcastsSection.Subscriptions -> PodcastListScreen(subscriptionsFactory, onPodcastClick)
-                PodcastsSection.Queue -> QueueScreen(queueFactory, onEpisodeClick)
-                PodcastsSection.New -> NewEpisodesScreen(newEpisodesFactory, onEpisodeClick)
+                PodcastsSection.Queue -> QueueScreen(queueFactory, onEpisodeClick, onPodcastClick)
+                PodcastsSection.New -> NewEpisodesScreen(newEpisodesFactory, onEpisodeClick, onPodcastClick)
             }
         }
     }

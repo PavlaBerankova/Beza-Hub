@@ -83,6 +83,9 @@ interface EpisodeDao {
     @Query("SELECT feedId FROM episodes WHERE id = :episodeId")
     suspend fun feedIdOf(episodeId: Long): Long?
 
+    @Query("SELECT id FROM episodes WHERE feedId = :feedId")
+    suspend fun idsForFeed(feedId: Long): List<Long>
+
     @Query("SELECT id FROM episodes WHERE feedId = :feedId AND playedAtMs IS NULL")
     suspend fun unplayedIdsForFeed(feedId: Long): List<Long>
 

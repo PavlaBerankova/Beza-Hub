@@ -41,3 +41,30 @@ fun episodeProgressFraction(lastPositionMs: Long, durationSeconds: Int?): Float?
     val durationMs = durationSeconds.toLong() * 1000L
     return (lastPositionMs.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f)
 }
+
+private val droppedBlocks = Regex("(?is)<(script|style)\\b.*?</\\1>")
+private val lineBreakingTags = Regex("(?i)</?(p|div|br|li|ul|ol|h[1-6]|tr|blockquote)\\b[^>]*>")
+private val anyTag = Regex("(?s)<[^>]*>")
+private val numericEntity = Regex("&#(x[0-9a-fA-F]+|[0-9]+);")
+private val whitespaceRun = Regex("[\\s\\u00a0\\u200b\\u200c\\u200d\\ufeff]+")
+
+private val namedEntities = mapOf(
+    "&nbsp;" to " ", "&amp;" to "&", "&lt;" to "<", "&gt;" to ">", "&quot;" to "\"", "&apos;" to "'",
+    "&hellip;" to "…", "&ndash;" to "–", "&mdash;" to "—", "&lsquo;" to "‘", "&rsquo;" to "’",
+    "&ldquo;" to "“", "&rdquo;" to "”"
+)
+
+/**
+ * An episode description (usually HTML) as one line of plain text for the list: tags removed, entities decoded,
+ * every run of white space (line breaks included) collapsed to a single space. Empty when there is nothing to show.
+ */
+fun plainDescription(raw: String?): String {
+    if (raw.isNullOrBlank()) return ""
+    var text = raw.replace(droppedBlocks, " ").replace(lineBreakingTags, " ").replace(anyTag, "")
+    namedEntities.forEach { (entity, plain) -> text = text.replace(entity, plain) }
+    text = numericEntity.replace(text) { match ->
+        val code = match.groupValues[1].let { if (it.startsWith("x", ignoreCase = true)) it.drop(1).toIntOrNull(16) else it.toIntOrNull() }
+        code?.takeIf { it in 1..0x10FFFF }?.let { String(Character.toChars(it)) } ?: ""
+    }
+    return text.replace(whitespaceRun, " ").trim()
+}

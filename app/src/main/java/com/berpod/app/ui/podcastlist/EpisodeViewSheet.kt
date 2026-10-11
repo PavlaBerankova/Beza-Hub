@@ -85,6 +85,18 @@ internal fun SheetAction(label: String, enabled: Boolean, onClick: () -> Unit, m
     }
 }
 
+/** Asks before deleting a podcast: its episodes, listening progress and offline copies go with it. */
+@Composable
+fun DeletePodcastDialog(title: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.delete_podcast_title)) },
+        text = { Text(stringResource(R.string.delete_podcast_message, title)) },
+        confirmButton = { TextButton(onClick = onConfirm) { Text(stringResource(R.string.action_delete)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } }
+    )
+}
+
 /** Asks before marking a whole podcast played or unplayed, since it can't be undone. */
 @Composable
 fun MarkAllDialog(markPlayed: Boolean, onConfirm: () -> Unit, onDismiss: () -> Unit) {

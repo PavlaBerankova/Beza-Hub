@@ -49,6 +49,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.berpod.app.R
 import com.berpod.app.data.local.DownloadStatus
+import com.berpod.app.data.repository.DownloadToggle
 import com.berpod.app.data.repository.progressPercent
 import com.berpod.app.data.local.EpisodeWithFeed
 import com.berpod.app.ui.common.formatDuration
@@ -92,9 +93,9 @@ fun EpisodeDetailScreen(
     val c = DotTheme.colors
 
     val downloadMessages = mapOf(
-        DownloadMessage.Started to stringResource(R.string.download_started),
-        DownloadMessage.Cancelled to stringResource(R.string.download_cancelled),
-        DownloadMessage.Removed to stringResource(R.string.download_removed)
+        DownloadToggle.Started to stringResource(R.string.download_started),
+        DownloadToggle.Cancelled to stringResource(R.string.download_cancelled),
+        DownloadToggle.Removed to stringResource(R.string.download_removed)
     )
     LaunchedEffect(uiState.downloadMessage) {
         uiState.downloadMessage?.let { message ->

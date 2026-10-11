@@ -8,6 +8,7 @@ import com.berpod.app.data.local.QueueItemWithEpisode
 import com.berpod.app.data.local.RemovedQueueEntry
 import com.berpod.app.data.local.TagEntity
 import com.berpod.app.data.repository.DownloadRepository
+import com.berpod.app.data.repository.DownloadToggle
 import com.berpod.app.data.repository.EpisodeRepository
 import com.berpod.app.data.repository.PlaybackRepository
 import com.berpod.app.data.repository.QueueFilterRepository
@@ -46,8 +47,8 @@ data class QueueUiState(
     val playedUndo: PlayedUndo? = null,
     /** The queue order before the last "Nejnovější/Nejstarší", while its "Zpět" snackbar can still restore it. */
     val sortUndo: List<Long>? = null,
-    /** Set once "Stáhnout celou frontu" was pressed, until its snackbar was shown. */
-    val downloadStarted: Boolean = false
+    /** What the last download action did, until its snackbar was shown. */
+    val downloadMessage: DownloadToggle? = null
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -120,7 +121,7 @@ class QueueViewModel(
         viewModelScope.launch {
             if (downloadRepository.downloads.value[episodeId]?.status.let { it == null || it == DownloadStatus.FAILED }) {
                 downloadRepository.download(episodeId)
-                _uiState.update { it.copy(downloadStarted = true) }
+                _uiState.update { it.copy(downloadMessage = DownloadToggle.Started) }
             }
         }
     }
@@ -130,11 +131,19 @@ class QueueViewModel(
         val ids = _uiState.value.visibleItems.map { it.episode.id }
         viewModelScope.launch {
             downloadRepository.downloadAll(ids)
-            _uiState.update { it.copy(downloadStarted = true) }
+            _uiState.update { it.copy(downloadMessage = DownloadToggle.Started) }
         }
     }
 
-    fun onDownloadMessageShown() = _uiState.update { it.copy(downloadStarted = false) }
+    /** From the row's menu: download, cancel or delete the copy, whichever fits the episode's state. */
+    fun onToggleDownload(episodeId: Long) {
+        viewModelScope.launch {
+            val result = downloadRepository.toggle(episodeId)
+            _uiState.update { it.copy(downloadMessage = result) }
+        }
+    }
+
+    fun onDownloadMessageShown() = _uiState.update { it.copy(downloadMessage = null) }
 
     fun onSortMessageDismissed() = _uiState.update { it.copy(sortUndo = null) }
 

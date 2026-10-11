@@ -55,12 +55,14 @@ import com.berpod.app.ui.theme.DotType
 /** The play button in the header: its label, icon and action. */
 data class HeaderPlayButton(val label: String, val icon: DotIconSpec, val onClick: () -> Unit)
 
-/** What the three-dots menu can do: the whole podcast marked played or unplayed (each only while it would change something). */
+/** What the three-dots menu can do: change the feed's address, mark the whole podcast played or unplayed (each only while it would change something), or delete it. */
 class PodcastMenuActions(
     val hasUnplayed: Boolean,
     val hasPlayed: Boolean,
     val onMarkAllPlayed: () -> Unit,
-    val onMarkAllUnplayed: () -> Unit
+    val onMarkAllUnplayed: () -> Unit,
+    val onEditRss: () -> Unit,
+    val onDelete: () -> Unit
 )
 
 /** The three-dots button and the menu it opens. */
@@ -71,6 +73,10 @@ fun PodcastMoreMenu(actions: PodcastMenuActions) {
         DotIconButton(DotIcons.More, stringResource(R.string.action_more), { expanded = true })
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             DropdownMenuItem(
+                text = { Text(stringResource(R.string.action_edit_rss)) },
+                onClick = { expanded = false; actions.onEditRss() }
+            )
+            DropdownMenuItem(
                 text = { Text(stringResource(R.string.action_mark_all_played)) },
                 enabled = actions.hasUnplayed,
                 onClick = { expanded = false; actions.onMarkAllPlayed() }
@@ -80,18 +86,21 @@ fun PodcastMoreMenu(actions: PodcastMenuActions) {
                 enabled = actions.hasPlayed,
                 onClick = { expanded = false; actions.onMarkAllUnplayed() }
             )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.action_delete_podcast)) },
+                onClick = { expanded = false; actions.onDelete() }
+            )
         }
     }
 }
 
-/** Round-the-header action row: back, then the tag, edit-RSS, refresh and three-dots buttons. */
+/** Round-the-header action row: back, then the tag, refresh and three-dots buttons (the feed's address is edited from the menu). */
 @Composable
 fun PodcastActionsRow(
     isRefreshing: Boolean,
     onBack: () -> Unit,
     onTagClick: () -> Unit,
     onRefresh: () -> Unit,
-    onEditRss: () -> Unit,
     menu: PodcastMenuActions,
     modifier: Modifier = Modifier
 ) {
@@ -100,7 +109,6 @@ fun PodcastActionsRow(
         DotIconButton(DotIcons.Back, stringResource(R.string.action_back), onBack)
         Spacer(Modifier.weight(1f))
         DotIconButton(DotIcons.Tag, stringResource(R.string.action_manage_tags), onTagClick)
-        DotIconButton(DotIcons.Edit, stringResource(R.string.action_edit_rss), onEditRss)
         if (isRefreshing) {
             Box(Modifier.size(44.dp), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(Modifier.size(22.dp), color = c.accent, strokeWidth = 2.dp)
@@ -127,7 +135,6 @@ fun PodcastHeader(
     onBack: () -> Unit,
     onTagClick: () -> Unit,
     onRefresh: () -> Unit,
-    onEditRss: () -> Unit,
     menu: PodcastMenuActions,
     episodeCount: Int,
     /** "každý pátek"…; null when it can't be told. */
@@ -155,7 +162,7 @@ fun PodcastHeader(
             .padding(top = 16.dp, bottom = 20.dp),
         verticalArrangement = Arrangement.spacedBy(22.dp)
     ) {
-        PodcastActionsRow(isRefreshing, onBack, onTagClick, onRefresh, onEditRss, menu)
+        PodcastActionsRow(isRefreshing, onBack, onTagClick, onRefresh, menu)
         Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
             CoverImage(imageUrl, 130.dp, 18.dp)
             // Centred beside the cover while it's short; a long title grows the column instead of being cut.
