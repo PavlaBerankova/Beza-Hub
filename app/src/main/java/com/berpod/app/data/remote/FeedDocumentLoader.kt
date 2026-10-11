@@ -33,7 +33,7 @@ class FeedDocumentLoader {
                 instanceFollowRedirects = false
                 connectTimeout = 15_000
                 readTimeout = 20_000
-                setRequestProperty("User-Agent", "BEZA Hub (Android RSS reader)")
+                setRequestProperty("User-Agent", HTTP_USER_AGENT)
                 setRequestProperty("Accept", "application/rss+xml, application/atom+xml, application/xml, text/xml, text/html;q=0.9, */*;q=0.8")
             }
             try {

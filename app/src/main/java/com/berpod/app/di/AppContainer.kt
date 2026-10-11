@@ -15,15 +15,14 @@ import com.berpod.app.data.local.MIGRATION_9_10
 import com.berpod.app.data.local.MIGRATION_10_11
 import com.berpod.app.data.remote.ArticleFeedLoader
 import com.berpod.app.data.remote.FeedParser
+import com.berpod.app.data.remote.appHttpClient
 import com.berpod.app.data.remote.YoutubeChannelLoader
 import com.berpod.app.data.local.EpisodeDownloadDao
 import com.berpod.app.data.repository.ArticleRepository
 import com.berpod.app.data.repository.DownloadRepository
 import com.berpod.app.data.repository.DownloadSettings
 import com.berpod.app.download.EpisodeDownloader
-import okhttp3.OkHttpClient
 import java.io.File
-import java.util.concurrent.TimeUnit
 import com.berpod.app.data.repository.EpisodeRepository
 import com.berpod.app.data.repository.PlaybackRepository
 import com.berpod.app.data.repository.PodcastRepository
@@ -104,8 +103,7 @@ class DefaultAppContainer(context: Context) : AppContainer {
     }
 
     override val episodeDownloader: EpisodeDownloader by lazy {
-        val client = OkHttpClient.Builder().readTimeout(30, TimeUnit.SECONDS).build()
-        EpisodeDownloader(downloadDao, database.episodeDao(), downloadDir, client)
+        EpisodeDownloader(downloadDao, database.episodeDao(), downloadDir, appHttpClient())
     }
 
     override val articleRepository: ArticleRepository by lazy {
