@@ -49,6 +49,8 @@ data class NewEpisodesUiState(
     val confirmRemoveCount: Int? = null,
     val isRefreshing: Boolean = false,
     val snackbarMessage: String? = null,
+    /** The episode just taken out of Nové by its menu, while "Zpět" can put it back. */
+    val removedFromNewId: Long? = null,
     /** What the last download action did, until its snackbar was shown. */
     val downloadMessage: DownloadToggle? = null,
     /** Set right after swiping an episode to played, while "Zpět" can undo it. */
@@ -141,6 +143,22 @@ class NewEpisodesViewModel(
     }
 
     fun onDownloadMessageShown() = _uiState.update { it.copy(downloadMessage = null) }
+
+    /** Menu "Odebrat z nových": hides the episode from Nové only; it is not marked played. */
+    fun onRemoveFromNew(episodeId: Long) {
+        viewModelScope.launch {
+            episodeRepository.setHiddenFromNew(episodeId, true)
+            _uiState.update { it.copy(removedFromNewId = episodeId) }
+        }
+    }
+
+    fun onUndoRemoveFromNew() {
+        val id = _uiState.value.removedFromNewId ?: return
+        _uiState.update { it.copy(removedFromNewId = null) }
+        viewModelScope.launch { episodeRepository.setHiddenFromNew(id, false) }
+    }
+
+    fun onRemovedFromNewDismissed() = _uiState.update { it.copy(removedFromNewId = null) }
 
     fun onPlayedMessageDismissed() {
         _uiState.update { it.copy(playedUndo = null) }

@@ -291,7 +291,7 @@ private fun QueueRow(item: QueueItemWithEpisode, uiState: QueueUiState, viewMode
                 EpisodeMenuAction.MarkPlayed -> viewModel.onMarkPlayed(item.episode.id)
                 EpisodeMenuAction.OpenEpisode -> onClick()
                 EpisodeMenuAction.OpenPodcast -> onOpenPodcast(item.episode.feedId)
-                EpisodeMenuAction.AddToQueue, EpisodeMenuAction.MarkUnplayed -> Unit
+                EpisodeMenuAction.AddToQueue, EpisodeMenuAction.MarkUnplayed, EpisodeMenuAction.RemoveFromNew -> Unit
             }
         }
     }

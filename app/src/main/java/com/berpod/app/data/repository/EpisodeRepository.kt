@@ -33,6 +33,9 @@ class EpisodeRepository(
         episodeIds.chunked(500).forEach { episodeDao.markPlayed(it, now) }
     }
 
+    /** Takes the episode out of Nové (or puts it back) without touching its played state. */
+    suspend fun setHiddenFromNew(episodeId: Long, hidden: Boolean) = episodeDao.setHiddenFromNew(episodeId, hidden)
+
     suspend fun markAllPlayed(feedId: Long) = episodeDao.markAllPlayed(feedId, System.currentTimeMillis())
 
     suspend fun markAllUnplayed(feedId: Long) = episodeDao.markAllUnplayed(feedId)

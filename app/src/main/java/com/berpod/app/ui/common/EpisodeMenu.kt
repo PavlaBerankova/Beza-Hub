@@ -27,18 +27,22 @@ enum class EpisodeMenuAction {
     Download, CancelDownload, DeleteDownload,
     AddToQueue, RemoveFromQueue,
     MarkPlayed, MarkUnplayed,
+    /** Only in Nové: takes the episode out of the list (it is marked played, like the swipe does). */
+    RemoveFromNew,
     OpenEpisode, OpenPodcast
 }
 
 /**
  * The menu's entries for an episode in its current state, in the order they are shown: its offline copy, its place
- * in the queue, played or not, then the two detail pages. [canOpenPodcast] is false on the podcast's own page.
+ * in the queue, played or not (or "remove from Nové" there), then the two detail pages. [canOpenPodcast] is false on
+ * the podcast's own page.
  */
 fun episodeMenuActions(
     isQueued: Boolean,
     isPlayed: Boolean,
     download: DownloadStatus?,
-    canOpenPodcast: Boolean
+    canOpenPodcast: Boolean,
+    inNew: Boolean = false
 ): List<EpisodeMenuAction> = buildList {
     add(
         when (download) {
@@ -48,7 +52,8 @@ fun episodeMenuActions(
         }
     )
     add(if (isQueued) EpisodeMenuAction.RemoveFromQueue else EpisodeMenuAction.AddToQueue)
-    add(if (isPlayed) EpisodeMenuAction.MarkUnplayed else EpisodeMenuAction.MarkPlayed)
+    // In Nové taking an episode out of the list is marking it played, so one entry says it.
+    add(if (inNew) EpisodeMenuAction.RemoveFromNew else if (isPlayed) EpisodeMenuAction.MarkUnplayed else EpisodeMenuAction.MarkPlayed)
     add(EpisodeMenuAction.OpenEpisode)
     if (canOpenPodcast) add(EpisodeMenuAction.OpenPodcast)
 }
@@ -61,6 +66,7 @@ private fun EpisodeMenuAction.labelRes(): Int = when (this) {
     EpisodeMenuAction.RemoveFromQueue -> R.string.action_remove_from_queue
     EpisodeMenuAction.MarkPlayed -> R.string.menu_mark_played
     EpisodeMenuAction.MarkUnplayed -> R.string.menu_mark_unplayed
+    EpisodeMenuAction.RemoveFromNew -> R.string.menu_remove_from_new
     EpisodeMenuAction.OpenEpisode -> R.string.menu_open_episode
     EpisodeMenuAction.OpenPodcast -> R.string.menu_open_podcast
 }
@@ -74,11 +80,12 @@ fun EpisodeDropdownMenu(
     isQueued: Boolean,
     isPlayed: Boolean,
     canOpenPodcast: Boolean,
+    inNew: Boolean,
     onAction: (EpisodeMenuAction) -> Unit
 ) {
     val download = LocalDownloads.current[episodeId]?.status
     DropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
-        episodeMenuActions(isQueued, isPlayed, download, canOpenPodcast).forEach { action ->
+        episodeMenuActions(isQueued, isPlayed, download, canOpenPodcast, inNew).forEach { action ->
             DropdownMenuItem(
                 text = { Text(stringResource(action.labelRes())) },
                 onClick = {
@@ -97,6 +104,7 @@ fun EpisodeRowMenu(
     isQueued: Boolean,
     isPlayed: Boolean,
     canOpenPodcast: Boolean,
+    inNew: Boolean = false,
     onAction: (EpisodeMenuAction) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -115,7 +123,7 @@ fun EpisodeRowMenu(
             // Muted, so the dots stay in the background of the row.
             content = { DotIcon(DotIcons.MoreHoriz, 22.dp, monochrome = DotTheme.colors.textMuted) }
         )
-        EpisodeDropdownMenu(expanded, { expanded = false }, episodeId, isQueued, isPlayed, canOpenPodcast, onAction)
+        EpisodeDropdownMenu(expanded, { expanded = false }, episodeId, isQueued, isPlayed, canOpenPodcast, inNew, onAction)
     }
 }
 

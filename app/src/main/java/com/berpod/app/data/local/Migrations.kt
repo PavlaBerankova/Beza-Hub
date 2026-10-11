@@ -168,3 +168,10 @@ val MIGRATION_10_11 = object : Migration(10, 11) {
         db.execSQL("CREATE TABLE IF NOT EXISTS `episode_downloads` (`episodeId` INTEGER NOT NULL, `status` TEXT NOT NULL, `downloadedBytes` INTEGER NOT NULL, `totalBytes` INTEGER, `filePath` TEXT, `queuedAtMs` INTEGER NOT NULL, `completedAtMs` INTEGER, PRIMARY KEY(`episodeId`), FOREIGN KEY(`episodeId`) REFERENCES `episodes`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )")
     }
 }
+
+/** "Odebrat z nových": an episode can be hidden from Nové without being marked played. */
+val MIGRATION_11_12 = object : Migration(11, 12) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `episodes` ADD COLUMN `hiddenFromNew` INTEGER NOT NULL DEFAULT 0")
+    }
+}

@@ -20,8 +20,9 @@ class EpisodeMenuTest {
         isQueued: Boolean = false,
         isPlayed: Boolean = false,
         download: DownloadStatus? = null,
-        canOpenPodcast: Boolean = true
-    ) = episodeMenuActions(isQueued, isPlayed, download, canOpenPodcast)
+        canOpenPodcast: Boolean = true,
+        inNew: Boolean = false
+    ) = episodeMenuActions(isQueued, isPlayed, download, canOpenPodcast, inNew)
 
     @Test
     fun `a fresh episode can be downloaded, queued, marked played and opened`() {
@@ -51,5 +52,13 @@ class EpisodeMenuTest {
     fun `the podcast's own page has no entry for its podcast`() {
         assertFalse(OpenPodcast in actions(canOpenPodcast = false))
         assertEquals(OpenEpisode, actions(canOpenPodcast = false).last())
+    }
+
+    @Test
+    fun `in Nové taking an episode out of the list replaces marking it played`() {
+        val inNew = actions(inNew = true)
+        assertEquals(EpisodeMenuAction.RemoveFromNew, inNew[2])
+        assertFalse(MarkPlayed in inNew)
+        assertEquals(listOf(Download, AddToQueue, EpisodeMenuAction.RemoveFromNew, OpenEpisode, OpenPodcast), inNew)
     }
 }

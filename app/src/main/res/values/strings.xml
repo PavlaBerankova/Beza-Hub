@@ -211,6 +211,8 @@
     <string name="episodes_filtered_empty_hint">Změňte řazení nebo filtr</string>
     <string name="menu_mark_played">Označit jako přehrané</string>
     <string name="menu_mark_unplayed">Označit jako nepřehrané</string>
+    <string name="menu_remove_from_new">Odebrat z nových</string>
+    <string name="removed_from_new">Odebráno z nových</string>
     <string name="menu_open_episode">Detail epizody</string>
     <string name="menu_open_podcast">Detail podcastu</string>
     <string name="action_delete_podcast">Smazat podcast</string>

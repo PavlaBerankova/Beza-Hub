@@ -82,6 +82,13 @@ fun NewEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onEpisodeClic
         }
     }
 
+    val removedMessage = stringResource(R.string.removed_from_new)
+    LaunchedEffect(uiState.removedFromNewId) {
+        if (uiState.removedFromNewId == null) return@LaunchedEffect
+        val result = snackbarHostState.showSnackbar(removedMessage, actionLabel = undoLabel, duration = SnackbarDuration.Long)
+        if (result == SnackbarResult.ActionPerformed) viewModel.onUndoRemoveFromNew() else viewModel.onRemovedFromNewDismissed()
+    }
+
     // The list keeps its scroll anchor, so an episode restored by "Zpět" can land above the viewport; bring it back.
     LaunchedEffect(revealEpisodeId, uiState.episodes) {
         val id = revealEpisodeId ?: return@LaunchedEffect
@@ -156,16 +163,16 @@ fun NewEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onEpisodeClic
                                     onClick = { onEpisodeClick(item.episode.id) },
                                     showDescription = false
                                 ) {
-                                    // Nové never lists queued or played episodes.
-                                    EpisodeRowMenu(item.episode.id, isQueued = false, isPlayed = false, canOpenPodcast = true) { action ->
+                                    // Nové never lists queued or played episodes; "remove" only hides the episode from here.
+                                    EpisodeRowMenu(item.episode.id, isQueued = false, isPlayed = false, canOpenPodcast = true, inNew = true) { action ->
                                         when (action) {
                                             EpisodeMenuAction.Download, EpisodeMenuAction.CancelDownload, EpisodeMenuAction.DeleteDownload ->
                                                 viewModel.onToggleDownload(item.episode.id)
                                             EpisodeMenuAction.AddToQueue -> viewModel.onAddToQueue(item.episode.id)
-                                            EpisodeMenuAction.MarkPlayed -> viewModel.onMarkPlayed(item.episode.id)
+                                            EpisodeMenuAction.RemoveFromNew -> viewModel.onRemoveFromNew(item.episode.id)
                                             EpisodeMenuAction.OpenEpisode -> onEpisodeClick(item.episode.id)
                                             EpisodeMenuAction.OpenPodcast -> onOpenPodcast(item.episode.feedId)
-                                            EpisodeMenuAction.RemoveFromQueue, EpisodeMenuAction.MarkUnplayed -> Unit
+                                            EpisodeMenuAction.RemoveFromQueue, EpisodeMenuAction.MarkPlayed, EpisodeMenuAction.MarkUnplayed -> Unit
                                         }
                                     }
                                 }

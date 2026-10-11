@@ -27,6 +27,7 @@ interface EpisodeDao {
         FROM episodes
         INNER JOIN podcast_feeds ON podcast_feeds.id = episodes.feedId
         WHERE episodes.playedAtMs IS NULL
+          AND episodes.hiddenFromNew = 0
           AND (
             episodes.pubDateMillis >= podcast_feeds.dateAdded - $NEW_GRACE_MS
             OR (episodes.pubDateMillis IS NULL AND episodes.dateFetched > podcast_feeds.dateAdded + $FIRST_SYNC_MS)
@@ -76,6 +77,9 @@ interface EpisodeDao {
         """
     )
     suspend fun updateNumberAndSize(feedId: Long, guid: String, episodeNumber: Int?, fileSizeBytes: Long?)
+
+    @Query("UPDATE episodes SET hiddenFromNew = :hidden WHERE id = :episodeId")
+    suspend fun setHiddenFromNew(episodeId: Long, hidden: Boolean)
 
     @Query("SELECT * FROM episodes WHERE id = :episodeId")
     suspend fun getById(episodeId: Long): EpisodeEntity?

@@ -1,5 +1,6 @@
 package com.berpod.app.data.local
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -38,5 +39,7 @@ data class EpisodeEntity(
     /** The feed's own episode number (itunes:episode), when it gives one. */
     val episodeNumber: Int? = null,
     /** Size of the audio file in bytes (the enclosure's length), when the feed says. */
-    val fileSizeBytes: Long? = null
+    val fileSizeBytes: Long? = null,
+    /** Taken out of Nové by hand ("Odebrat z nových"): it stays unplayed but is not listed there any more. */
+    @ColumnInfo(defaultValue = "0") val hiddenFromNew: Boolean = false
 )

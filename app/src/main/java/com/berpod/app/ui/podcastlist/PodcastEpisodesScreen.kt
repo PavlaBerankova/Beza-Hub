@@ -212,7 +212,7 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                                         EpisodeMenuAction.RemoveFromQueue -> viewModel.onRemoveFromQueue(episode.id)
                                         EpisodeMenuAction.MarkPlayed, EpisodeMenuAction.MarkUnplayed -> viewModel.onTogglePlayed(episode)
                                         EpisodeMenuAction.OpenEpisode -> onEpisodeClick(episode.id)
-                                        EpisodeMenuAction.OpenPodcast -> Unit
+                                        EpisodeMenuAction.OpenPodcast, EpisodeMenuAction.RemoveFromNew -> Unit
                                     }
                                 },
                                 nowMillis = now,
