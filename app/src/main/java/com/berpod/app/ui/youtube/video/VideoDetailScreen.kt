@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -35,9 +36,9 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -92,7 +93,11 @@ fun VideoDetailScreen(viewModelFactory: ViewModelProvider.Factory, onBack: () ->
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val c = DotTheme.colors
-    var isFullscreen by rememberSaveable { mutableStateOf(false) }
+    // Shared with the app's frame, which hides the mini player and the tabs while this is on.
+    val fullscreenState = LocalVideoFullscreen.current
+    var isFullscreen by fullscreenState
+    // Leaving the page leaves fullscreen.
+    DisposableEffect(Unit) { onDispose { fullscreenState.value = false } }
 
     LaunchedEffect(uiState.snackbarMessage) {
         uiState.snackbarMessage?.let { message ->
@@ -101,7 +106,10 @@ fun VideoDetailScreen(viewModelFactory: ViewModelProvider.Factory, onBack: () ->
         }
     }
 
-    BackHandler(enabled = isFullscreen) { isFullscreen = false }
+    BackHandler(enabled = isFullscreen) {
+        viewModel.onPlayerWillBeRecreated()
+        isFullscreen = false
+    }
 
     val view = LocalView.current
     val activity = LocalContext.current.findActivity()
@@ -124,7 +132,7 @@ fun VideoDetailScreen(viewModelFactory: ViewModelProvider.Factory, onBack: () ->
 
     Scaffold(
         contentWindowInsets = WindowInsets(0),
-        containerColor = c.background,
+        containerColor = if (isFullscreen) Color.Black else c.background,
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
         Column(
@@ -184,8 +192,21 @@ private fun VideoContent(
     val video = item.video
     val uriHandler = LocalUriHandler.current
 
-    Box(if (isFullscreen) Modifier.fillMaxSize() else Modifier.fillMaxWidth().aspectRatio(16f / 9f)) {
-        EmbeddedYoutubePlayer(viewModel.playerListener, Modifier.fillMaxSize())
+    if (isFullscreen) {
+        // Fullscreen: a black screen, the video as large as it goes at 16:9 (bars at the sides), YouTube's own controls
+        // and nothing drawn over it. The player is created again with those controls, from where it is now.
+        Box(Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
+            key(true) {
+                EmbeddedYoutubePlayer(viewModel.playerListener, nativeControls = true, modifier = Modifier.fillMaxHeight().aspectRatio(16f / 9f))
+            }
+        }
+        return
+    }
+
+    Box(Modifier.fillMaxWidth().aspectRatio(16f / 9f)) {
+        key(false) {
+            EmbeddedYoutubePlayer(viewModel.playerListener, nativeControls = false, modifier = Modifier.fillMaxSize())
+        }
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -193,11 +214,6 @@ private fun VideoContent(
                     viewModel.onTogglePlayPause()
                 }
         ) {
-            Box(
-                modifier = Modifier.align(Alignment.TopEnd).padding(10.dp).clip(RoundedCornerShape(5.dp)).background(Color.Black.copy(alpha = 0.55f)).padding(horizontal = 6.dp, vertical = 3.dp)
-            ) {
-                Text("HD", style = DotType.chip.copy(fontSize = 10.sp, fontWeight = FontWeight.W700), color = Color.White)
-            }
             Box(
                 modifier = Modifier.align(Alignment.Center).size(56.dp).clip(RoundedCornerShape(28.dp)).background(c.accent.copy(alpha = 0.92f)),
                 contentAlignment = Alignment.Center
@@ -231,7 +247,7 @@ private fun VideoContent(
                             .clickable(
                                 role = Role.Button,
                                 onClickLabel = stringResource(if (isFullscreen) R.string.action_fullscreen_exit else R.string.action_fullscreen),
-                                onClick = onToggleFullscreen
+                                onClick = { viewModel.onPlayerWillBeRecreated(); onToggleFullscreen() }
                             ),
                         contentAlignment = Alignment.Center
                     ) {
@@ -241,8 +257,6 @@ private fun VideoContent(
             }
         }
     }
-
-    if (isFullscreen) return
 
     Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {

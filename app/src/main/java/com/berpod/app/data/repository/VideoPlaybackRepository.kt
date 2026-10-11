@@ -34,6 +34,7 @@ class VideoPlaybackRepository(
 
     private var player: YouTubePlayer? = null
     private var pendingVideo: YoutubeVideoEntity? = null
+    private var currentVideo: YoutubeVideoEntity? = null
     private var lastPersistedAtMs = 0L
     // The video that just ended: its stored position stays 0 until it's played again.
     private var endedVideoId: Long? = null
@@ -78,10 +79,21 @@ class VideoPlaybackRepository(
 
     fun play(video: YoutubeVideoEntity) {
         if (video.id == endedVideoId) endedVideoId = null
+        currentVideo = video
         _uiState.update {
             it.copy(currentVideoId = video.id, isPlaying = false, positionMs = video.lastPositionMs, durationMs = video.durationMs ?: 0L)
         }
         if (player != null) loadInternal(video) else pendingVideo = video
+    }
+
+    /**
+     * The embedded player is about to be thrown away and created again (its controls can only be chosen when it is
+     * created); the new one picks the video up where this one is.
+     */
+    fun prepareForPlayerRecreation() {
+        val video = currentVideo ?: return
+        pendingVideo = video.copy(lastPositionMs = _uiState.value.positionMs)
+        player = null
     }
 
     private fun loadInternal(video: YoutubeVideoEntity) {

@@ -27,6 +27,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -81,6 +83,7 @@ import com.berpod.app.ui.youtube.channels.YoutubeChannelSourcesViewModel
 import com.berpod.app.ui.youtube.channels.YoutubeChannelsViewModel
 import com.berpod.app.ui.youtube.newvideos.NewVideosViewModel
 import com.berpod.app.ui.youtube.queue.VideoQueueViewModel
+import com.berpod.app.ui.youtube.video.LocalVideoFullscreen
 import com.berpod.app.ui.youtube.video.VideoDetailScreen
 import com.berpod.app.ui.youtube.video.VideoDetailViewModel
 import com.berpod.app.ui.theme.DotTheme
@@ -121,16 +124,23 @@ fun BerpodApp(container: AppContainer) {
     var podcastsSection by rememberSaveable { mutableStateOf(PodcastsSection.Subscriptions) }
     var youtubeSection by rememberSaveable { mutableStateOf(YoutubeSection.Channels) }
 
+    // Set by the video page: in its fullscreen nothing but the video may be on screen.
+    val videoFullscreen = remember { mutableStateOf(false) }
+    val fullscreen = videoFullscreen.value
+
     // Everything on screen — including the bottom bar — takes the current tab's accent colour.
     TabAccentTheme(tabAccentFor(currentRoute)) {
+      CompositionLocalProvider(LocalVideoFullscreen provides videoFullscreen) {
         Scaffold(
             containerColor = DotTheme.colors.background,
             // A podcast's and an episode's page tint their header up behind the status bar, so they pad for it themselves.
-            contentWindowInsets = when (currentRoute) {
+            contentWindowInsets = if (fullscreen) WindowInsets(0) else when (currentRoute) {
                 Screen.PodcastEpisodes.route, Screen.EpisodeDetail.route -> ScaffoldDefaults.contentWindowInsets.exclude(WindowInsets.statusBars)
                 else -> ScaffoldDefaults.contentWindowInsets
             },
             bottomBar = {
+                // Video fullscreen: no mini player, no tabs.
+                if (fullscreen) return@Scaffold
                 val showNavigation = bottomTabs.any { it.route == currentRoute }
                 Column {
                     // The full player already shows everything the mini player would.
@@ -375,5 +385,6 @@ fun BerpodApp(container: AppContainer) {
                 }
             }
         }
+      }
     }
 }

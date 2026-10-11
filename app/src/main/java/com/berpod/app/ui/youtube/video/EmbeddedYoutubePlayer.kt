@@ -1,7 +1,5 @@
 package com.berpod.app.ui.youtube.video
 
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
@@ -10,19 +8,26 @@ import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.options.IFram
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
 
 /**
- * Hidden-chrome embedded YouTube player (the official IFrame Player API inside a WebView). The
- * caller draws its own Dot Matrix controls on top, driven by [listener]'s callbacks and issuing
- * commands through the [com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer]
- * that [listener] receives in onReady.
+ * Embedded YouTube player (the official IFrame Player API inside a WebView), sized by the caller. Normally its
+ * own controls are hidden and the caller draws Dot Matrix controls over it, driven by [listener]'s callbacks and
+ * issuing commands through the [com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer] that
+ * [listener] receives in onReady; in fullscreen ([nativeControls]) YouTube's own controls are used, so its ads can
+ * be skipped and nothing covers the player.
  */
 @Composable
-fun EmbeddedYoutubePlayer(listener: YouTubePlayerListener, modifier: Modifier = Modifier) {
+fun EmbeddedYoutubePlayer(listener: YouTubePlayerListener, nativeControls: Boolean, modifier: Modifier = Modifier) {
     AndroidView(
-        modifier = modifier.fillMaxWidth().aspectRatio(16f / 9f),
+        modifier = modifier,
         factory = { context ->
             YouTubePlayerView(context).apply {
                 enableAutomaticInitialization = false
-                initialize(listener, IFramePlayerOptions.Builder(context).controls(0).build())
+                // With YouTube's own controls (fullscreen) its fullscreen button is off: it would only try to go
+                // fullscreen inside the web view; leaving fullscreen is the back button's job.
+                val options = IFramePlayerOptions.Builder(context)
+                    .controls(if (nativeControls) 1 else 0)
+                    .fullscreen(0)
+                    .build()
+                initialize(listener, options)
             }
         },
         onRelease = { view -> view.release() }

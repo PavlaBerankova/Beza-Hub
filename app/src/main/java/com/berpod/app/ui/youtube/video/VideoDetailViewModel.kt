@@ -84,6 +84,9 @@ class VideoDetailViewModel(
 
     fun onTogglePlayPause() = playbackRepository.togglePlayPause()
 
+    /** Call right before the embedded player is recreated (fullscreen on or off), so it continues from here. */
+    fun onPlayerWillBeRecreated() = playbackRepository.prepareForPlayerRecreation()
+
     fun onSeek(positionMs: Long) = playbackRepository.seekTo(positionMs)
 
     fun onToggleQueue() {
