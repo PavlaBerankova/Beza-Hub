@@ -21,11 +21,12 @@ Design a logika jsou ale plně moje. Vzhled, rozložení obrazovek, barvy, chov�
 - **Odběry**: přidání podcastu adresou RSS nebo webu, mřížka obálek, **odznak s počtem nových epizod** na každé obálce.
 - **Štítky**: podcasty se dají třídit do vlastních kategorií a podle nich filtrovat.
 - **Fronta**: přetahováním řazená fronta k poslechu, přepínání nejnovější/nejstarší, filtr podle štítku.
+- **Řádek epizody** (podle Apple Podcasts): malá obálka, datum, název, tlačítko přehrát s časem, který zbývá, a vpravo menu **⋯** se vším, co se s epizodou dá dělat: stáhnout, přidat do fronty nebo odebrat z fronty, označit jako přehranou nebo nepřehranou, otevřít detail epizody nebo podcastu.
 - **Nové**: epizody, které jste ještě neslyšela, s filtrem období (dnes, týden, 14 dní, měsíc).
-- **Detail podcastu**: přepínání filtru *vše / nepřehrané / přehrané* a řazení jedním klepnutím, hromadné označení epizod jako přehrané.
+- **Detail podcastu**: přepínání filtru *vše / nepřehrané / přehrané* a řazení jedním klepnutím; v menu hromadné označení epizod jako přehrané nebo nepřehrané, úprava adresy RSS a smazání podcastu.
 - **Detail epizody**: popis, **kapitoly** z popisku (klepnutím se skočí na místo v epizodě), sdílení.
 - **Přehrávač**: minipřehrávač i celá obrazovka, přehrávání na pozadí a z notifikace, posun o 15 s zpět a o 30 s vpřed, rychlost, **časovač spánku**, po spuštění aplikace se hned obnoví naposledy puštěná epizoda tam, kde jsem skončila.
-- **Stahování pro offline poslech**: tlačítkem v detailu epizody nebo swipem doleva ve frontě; stahuje se na pozadí a umí pokračovat po přerušení. Výchozí je jen přes Wi-Fi a po dohrání se epizoda sama smaže (obojí jde v nastavení změnit).
+- **Stahování pro offline poslech**: tlačítkem v detailu epizody, v menu ⋯ u epizody nebo swipem doleva ve frontě; stahuje se na pozadí a umí pokračovat po přerušení. Výchozí je jen přes Wi-Fi a po dohrání se epizoda sama smaže (obojí jde v nastavení změnit).
 - **Gesta**: swipe doprava označí epizodu jako přehranou, swipe doleva ve frontě ji stáhne.
 
 ### YouTube
@@ -52,12 +53,9 @@ Odběr RSS zdrojů blogů a webů, seznam článků a čtečka s upraveným zobr
 |:--:|:--:|:--:|
 | <img src="docs/screenshots/07-youtube.png" width="230"> | <img src="docs/screenshots/08-articles.png" width="230"> | <img src="docs/screenshots/09-settings.png" width="230"> |
 
-Aplikace má i tmavý režim, v něm se podcasty zvýrazňují světlejší růžovou:
-
-<p>
-  <img src="docs/screenshots/10-podcasts-dark.png" width="230" alt="Odběry v tmavém režimu">
-  <img src="docs/screenshots/09-settings-dark.png" width="230" alt="Nastavení v tmavém režimu">
-</p>
+| Čtečka článku | | |
+|:--:|:--:|:--:|
+| <img src="docs/screenshots/11-article-reader.png" width="230"> | | |
 
 ## Technologie
 
