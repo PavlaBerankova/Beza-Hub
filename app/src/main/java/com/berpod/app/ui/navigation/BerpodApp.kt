@@ -63,7 +63,6 @@ import com.berpod.app.ui.articles.ArticlesScreen
 import com.berpod.app.ui.articles.ArticlesViewModel
 import com.berpod.app.ui.episode.EpisodeDetailScreen
 import com.berpod.app.ui.episode.EpisodeDetailViewModel
-import com.berpod.app.ui.newepisodes.NewEpisodesViewModel
 import com.berpod.app.ui.player.MiniPlayerBar
 import com.berpod.app.ui.player.PlayerScreen
 import com.berpod.app.ui.player.PlayerViewModel
@@ -216,13 +215,6 @@ fun BerpodApp(container: AppContainer) {
                             container.tagRepository,
                             container.episodeRepository,
                             container.queueFilterRepository,
-                            container.downloadRepository
-                        ),
-                        newEpisodesFactory = NewEpisodesViewModel.factory(
-                            container.episodeRepository,
-                            container.queueRepository,
-                            container.playbackRepository,
-                            container.tagRepository,
                             container.downloadRepository
                         ),
                         onPodcastClick = { feedId -> navController.navigate(Screen.PodcastEpisodes.createRoute(feedId)) },
