@@ -41,21 +41,17 @@ Odběr RSS zdrojů blogů a webů, seznam článků a čtečka s upraveným zobr
 
 ## Screenshoty
 
-| Odběry | Fronta | Nové |
+| Odběry | Fronta | Přehrávač |
 |:--:|:--:|:--:|
-| <img src="docs/screenshots/01-podcasts.png" width="230"> | <img src="docs/screenshots/02-queue.png" width="230"> | <img src="docs/screenshots/04-new.png" width="230"> |
+| <img src="docs/screenshots/01-podcasts.png" width="230"> | <img src="docs/screenshots/02-queue.png" width="230"> | <img src="docs/screenshots/03-player.png" width="230"> |
 
-| Detail podcastu | Detail epizody | Přehrávač |
+| Detail podcastu | Detail epizody | Čtečka článku |
 |:--:|:--:|:--:|
-| <img src="docs/screenshots/05-podcast-detail.png" width="230"> | <img src="docs/screenshots/06-episode-detail.png" width="230"> | <img src="docs/screenshots/03-player.png" width="230"> |
+| <img src="docs/screenshots/05-podcast-detail.png" width="230"> | <img src="docs/screenshots/06-episode-detail.png" width="230"> | <img src="docs/screenshots/11-article-reader.png" width="230"> |
 
 | YouTube | Články | Nastavení |
 |:--:|:--:|:--:|
 | <img src="docs/screenshots/07-youtube.png" width="230"> | <img src="docs/screenshots/08-articles.png" width="230"> | <img src="docs/screenshots/09-settings.png" width="230"> |
-
-| Čtečka článku | | |
-|:--:|:--:|:--:|
-| <img src="docs/screenshots/11-article-reader.png" width="230"> | | |
 
 ## Technologie
 
