@@ -3,6 +3,10 @@ package com.berpod.app.ui.podcasts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import com.berpod.app.ui.dot.DotIcons
+import com.berpod.app.ui.dot.DotIconButton
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -57,6 +61,14 @@ fun PodcastsHubScreen(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             DotTitle(stringResource(R.string.nav_podcasts), Modifier.weight(1f))
+            // Refreshes every podcast; a spinner takes its place while that runs.
+            if (listState.isRefreshing) {
+                Box(Modifier.size(44.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(Modifier.size(22.dp), color = c.accent, strokeWidth = 2.dp)
+                }
+            } else {
+                DotIconButton(DotIcons.Refresh, stringResource(R.string.action_refresh_all), listViewModel::onRefresh)
+            }
         }
         DotSegmented(
             options = PodcastsSection.entries.map { stringResource(it.labelRes) },

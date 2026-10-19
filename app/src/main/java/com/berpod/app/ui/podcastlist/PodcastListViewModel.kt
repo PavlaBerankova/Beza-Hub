@@ -40,7 +40,11 @@ data class PodcastListUiState(
     val isSubmitting: Boolean = false,
     val errorMessage: String? = null,
     /** New episodes per podcast id, as Nové counts them; podcasts without any are missing. */
-    val newCounts: Map<Long, Int> = emptyMap()
+    val newCounts: Map<Long, Int> = emptyMap(),
+    /** All podcasts are being refreshed, by the button or when the app opened. */
+    val isRefreshing: Boolean = false,
+    /** Why the last button-triggered refresh was not clean; shown once. */
+    val refreshMessage: String? = null
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -93,6 +97,27 @@ class PodcastListViewModel(
                 _uiState.update { it.copy(tags = tags, selectedTagId = selectedTagId.value) }
             }
             .launchIn(viewModelScope)
+        // Opening the app brings every podcast up to date, so the badges with new episodes are right from the start.
+        refresh(announce = false)
+    }
+
+    /** The button in the title row. */
+    fun onRefresh() = refresh(announce = true)
+
+    fun onRefreshMessageShown() = _uiState.update { it.copy(refreshMessage = null) }
+
+    /** [announce]: tell the user when some podcasts could not be loaded (the automatic run stays quiet). */
+    private fun refresh(announce: Boolean) {
+        if (_uiState.value.isRefreshing) return
+        _uiState.update { it.copy(isRefreshing = true) }
+        viewModelScope.launch {
+            val result = episodeRepository.refreshAllFeeds()
+            val message = if (!announce) null else result.fold(
+                onSuccess = { failed -> if (failed > 0) "Aktualizace dokončena, $failed zdrojů se nepodařilo načíst" else null },
+                onFailure = { error -> error.message ?: "Aktualizace selhala" }
+            )
+            _uiState.update { it.copy(isRefreshing = false, refreshMessage = message) }
+        }
     }
 
     fun onSelectTag(tagId: Long?) {

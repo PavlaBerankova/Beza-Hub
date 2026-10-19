@@ -263,4 +263,5 @@
     <string name="settings_app_name">BEZA Hub</string>
     <string name="settings_app_tagline">Podcasty, videa a články na jednom místě.</string>
     <string name="settings_version">Verze</string>
+    <string name="action_refresh_all">Aktualizovat všechny podcasty</string>
 </resources>

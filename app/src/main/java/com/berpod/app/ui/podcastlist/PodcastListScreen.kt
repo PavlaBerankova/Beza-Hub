@@ -17,6 +17,10 @@ import androidx.compose.material.icons.filled.Podcasts
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.offset
 import com.berpod.app.ui.theme.DotType
@@ -62,10 +66,19 @@ fun PodcastListScreen(viewModelFactory: ViewModelProvider.Factory, onPodcastClic
     val tagAssignState by viewModel.tagAssignment.state.collectAsState()
     val addPodcastState by viewModel.addPodcast.state.collectAsState()
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(uiState.refreshMessage) {
+        uiState.refreshMessage?.let { message ->
+            snackbarHostState.showSnackbar(message)
+            viewModel.onRefreshMessageShown()
+        }
+    }
+
     Scaffold(
         // Embedded in the Podcasts tab, which draws the title and the section switcher.
         contentWindowInsets = WindowInsets(0),
         containerColor = DotTheme.colors.background,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             DotIconButton(
                 icon = DotIcons.AddOnAccent,
