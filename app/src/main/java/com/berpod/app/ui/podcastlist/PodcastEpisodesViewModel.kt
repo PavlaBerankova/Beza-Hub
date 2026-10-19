@@ -17,6 +17,8 @@ import com.berpod.app.ui.common.feedLookupMessage
 import com.berpod.app.ui.common.markAllPlayed
 import com.berpod.app.ui.common.markPlayed
 import com.berpod.app.ui.common.undoMarkPlayed
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -104,6 +106,12 @@ class PodcastEpisodesViewModel(
                 }
             }
             .launchIn(viewModelScope)
+    }
+
+    /** Leaving the page for good: the new episodes shown here have been seen. Outlives the view model's own scope. */
+    override fun onCleared() {
+        @OptIn(DelicateCoroutinesApi::class)
+        GlobalScope.launch { runCatching { episodeRepository.markFeedSeen(feedId) } }
     }
 
     fun onPlay(episode: EpisodeEntity) {

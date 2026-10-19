@@ -53,14 +53,17 @@ data class YoutubeVideoEntity(
     val durationMs: Long? = null,
     val lastPositionMs: Long = 0L,
     /** When finished or marked "zhlédnuto"; null = not watched. */
-    val watchedAtMs: Long? = null
+    val watchedAtMs: Long? = null,
+    /** Taken out of "new" without being watched: its channel's page was left after it was seen. */
+    val hiddenFromNew: Boolean = false
 )
 
 /** Categories for channels; a set of their own, apart from podcast and article tags. */
 @Entity(tableName = "youtube_tags", indices = [Index(value = ["name"], unique = true)])
 data class YoutubeTagEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    @ColumnInfo(collate = ColumnInfo.NOCASE) val name: String
+    @ColumnInfo(collate = ColumnInfo.NOCASE) val name: String,
+    val position: Int = 0
 )
 
 @Entity(

@@ -36,8 +36,11 @@ import com.berpod.app.R
 import com.berpod.app.ui.common.AddToQueueButton
 import com.berpod.app.ui.common.EmptyState
 import com.berpod.app.ui.common.MarkPlayedSwipe
+import com.berpod.app.ui.common.youtubeCategoryTexts
+import com.berpod.app.ui.common.TagPickerSheet
 import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIcons
+import com.berpod.app.ui.dot.isRecentEpisode
 import com.berpod.app.ui.dot.rememberNowMillis
 import com.berpod.app.ui.dot.upperCs
 import com.berpod.app.ui.theme.DotTheme
@@ -67,6 +70,22 @@ fun YoutubeChannelScreen(viewModelFactory: ViewModelProvider.Factory, onBack: ()
         }
     }
 
+    uiState.categories?.let { state ->
+        TagPickerSheet(
+            title = state.podcastTitle,
+            subtitle = state.subtitle,
+            texts = youtubeCategoryTexts(),
+            tags = state.tags,
+            checkedTagIds = state.checkedTagIds,
+            onToggle = viewModel::onToggleCategory,
+            onCreate = viewModel::onCreateCategory,
+            onDelete = viewModel::onDeleteCategory,
+            errorMessage = state.errorMessage,
+            onDismiss = viewModel::onDismissCategories,
+            badge = { ChannelAvatar(null, state.podcastTitle, 48.dp) }
+        )
+    }
+
     Scaffold(containerColor = c.background, snackbarHost = { SnackbarHost(snackbarHostState) }) { paddingValues ->
         Column(Modifier.fillMaxSize().padding(paddingValues).statusBarsPadding()) {
             Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -79,7 +98,8 @@ fun YoutubeChannelScreen(viewModelFactory: ViewModelProvider.Factory, onBack: ()
                     maxLines = 1,
                     modifier = Modifier.weight(1f)
                 )
-                Spacer(Modifier.size(44.dp))
+                // The categories of this channel (the same sheet a long press on its tile opens).
+                DotIconButton(DotIcons.Tag, stringResource(R.string.action_manage_categories), viewModel::onOpenCategories)
             }
             if (uiState.videos.isEmpty()) {
                 EmptyState(icon = DotIcons.YouTube, title = stringResource(R.string.new_videos_empty), subtitle = "")
@@ -93,7 +113,8 @@ fun YoutubeChannelScreen(viewModelFactory: ViewModelProvider.Factory, onBack: ()
                                 video = item.video,
                                 channelTitle = uiState.channelTitle,
                                 whenLabel = relativeTimeLabel(item.video.pubDateMillis, now),
-                                onClick = { onVideoClick(item.video.id) }
+                                onClick = { onVideoClick(item.video.id) },
+                                isNew = item.video.watchedAtMs == null && !item.video.hiddenFromNew && isRecentEpisode(item.video.pubDateMillis, now)
                             ) {
                                 AddToQueueButton(isQueued) { viewModel.onAddToQueue(item.video.id) }
                             }

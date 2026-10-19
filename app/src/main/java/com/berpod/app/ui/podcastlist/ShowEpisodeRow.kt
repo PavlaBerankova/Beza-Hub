@@ -30,8 +30,8 @@ fun ShowEpisodeRow(
         onClick = onClick,
         showCover = false,
         isPlayed = episode.playedAtMs != null,
-        // A played episode isn't "new" any more, whatever its date.
-        isNew = episode.playedAtMs == null && isRecentEpisode(episode.pubDateMillis, nowMillis),
+        // A played episode isn't "new" any more, whatever its date; neither is one that was seen on an earlier visit.
+        isNew = episode.playedAtMs == null && !episode.hiddenFromNew && isRecentEpisode(episode.pubDateMillis, nowMillis),
         showQueuedMark = isQueued,
         modifier = modifier
     ) {

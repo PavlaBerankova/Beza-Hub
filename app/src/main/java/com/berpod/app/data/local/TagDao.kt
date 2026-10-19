@@ -4,17 +4,30 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TagDao {
 
-    @Query("SELECT * FROM tags ORDER BY name")
+    @Query("SELECT * FROM tags ORDER BY position, name")
     fun observeAll(): Flow<List<TagEntity>>
 
     /** Tags assigned to at least one podcast: the filter chips skip empty ones. */
-    @Query("SELECT * FROM tags WHERE id IN (SELECT tagId FROM podcast_tags) ORDER BY name")
+    @Query("SELECT * FROM tags WHERE id IN (SELECT tagId FROM podcast_tags) ORDER BY position, name")
     fun observeInUse(): Flow<List<TagEntity>>
+
+    @Query("SELECT COALESCE(MAX(position), -1) FROM tags")
+    suspend fun maxPosition(): Int
+
+    @Query("UPDATE tags SET position = :position WHERE id = :tagId")
+    suspend fun setPosition(tagId: Long, position: Int)
+
+    /** Puts the tags in the order given: the first id gets position 0, and so on. */
+    @Transaction
+    suspend fun applyOrder(tagIds: List<Long>) {
+        tagIds.forEachIndexed { index, id -> setPosition(id, index) }
+    }
 
     @Query("SELECT tagId FROM podcast_tags WHERE podcastId = :podcastId")
     fun observeTagIdsForPodcast(podcastId: Long): Flow<List<Long>>

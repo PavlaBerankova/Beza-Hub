@@ -81,6 +81,19 @@ interface EpisodeDao {
     @Query("UPDATE episodes SET hiddenFromNew = :hidden WHERE id = :episodeId")
     suspend fun setHiddenFromNew(episodeId: Long, hidden: Boolean)
 
+    /** The podcast's page was seen: its episodes that count as new stop counting (same rule as the list above). */
+    @Query(
+        """
+        UPDATE episodes SET hiddenFromNew = 1
+        WHERE feedId = :feedId AND playedAtMs IS NULL AND hiddenFromNew = 0
+          AND (
+            pubDateMillis >= (SELECT dateAdded FROM podcast_feeds WHERE id = :feedId) - $NEW_GRACE_MS
+            OR (pubDateMillis IS NULL AND dateFetched > (SELECT dateAdded FROM podcast_feeds WHERE id = :feedId) + $FIRST_SYNC_MS)
+          )
+        """
+    )
+    suspend fun markFeedSeen(feedId: Long)
+
     @Query("SELECT * FROM episodes WHERE id = :episodeId")
     suspend fun getById(episodeId: Long): EpisodeEntity?
 

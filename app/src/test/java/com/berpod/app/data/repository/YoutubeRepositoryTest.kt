@@ -41,6 +41,10 @@ private class FakeYoutubeDao : YoutubeDao {
     }
     override fun observeVideos(): Flow<List<VideoWithChannel>> = emptyFlow()
     override fun observeVideo(videoId: Long): Flow<VideoWithChannel?> = emptyFlow()
+    override fun observeNewVideos(): Flow<List<VideoWithChannel>> = emptyFlow()
+    override suspend fun markChannelSeen(channelId: Long) {
+        videos.replaceAll { if (it.feedId == channelId) it.copy(hiddenFromNew = true) else it }
+    }
     override suspend fun setWatched(videoId: Long, watchedAtMs: Long?) {}
     override suspend fun updatePosition(videoId: Long, positionMs: Long) {}
     override suspend fun updateDuration(videoId: Long, durationMs: Long) {}
@@ -50,6 +54,8 @@ private class FakeYoutubeDao : YoutubeDao {
     override fun observeTagIdsForChannel(channelId: Long): Flow<List<Long>> = emptyFlow()
     override suspend fun findTagByName(name: String): YoutubeTagEntity? = null
     override suspend fun insertTag(tag: YoutubeTagEntity): Long = 1
+    override suspend fun maxTagPosition(): Int = -1
+    override suspend fun setTagPosition(tagId: Long, position: Int) {}
     override suspend fun renameTag(tagId: Long, name: String) {}
     override suspend fun deleteTag(tagId: Long) {}
     override suspend fun assignTag(crossRef: YoutubeChannelTagCrossRef) { links += crossRef }

@@ -117,8 +117,8 @@ class PlaybackRepository(
                     artworkUrl = metadata?.artworkUri?.toString(),
                     // 0 for a fresh start; the resume position when the item was loaded with one.
                     positionMs = controller?.currentPosition ?: 0L,
-                    // The new item's duration arrives with STATE_READY; never keep the previous episode's.
-                    durationMs = 0L
+                    // The real duration arrives with STATE_READY; until then the feed's, never the previous episode's.
+                    durationMs = metadata?.durationMs ?: 0L
                 )
             }
             // The ended item's final position was skipped above; from here on positions are saved normally.
@@ -129,7 +129,13 @@ class PlaybackRepository(
         override fun onPlaybackStateChanged(playbackState: Int) {
             if (playbackState == Player.STATE_READY) {
                 val duration = controller?.duration ?: C.TIME_UNSET
-                _uiState.update { it.copy(durationMs = if (duration == C.TIME_UNSET) 0L else duration) }
+                _uiState.update {
+                    it.copy(
+                        durationMs = if (duration == C.TIME_UNSET) it.durationMs else duration,
+                        // A restored episode is paused and not polled, so its start position is picked up here.
+                        positionMs = controller?.currentPosition ?: it.positionMs
+                    )
+                }
             }
             if (playbackState == Player.STATE_ENDED) onEpisodeEnded()
         }
@@ -198,6 +204,8 @@ class PlaybackRepository(
                     .setTitle(episode.title)
                     .setArtist(podcastTitle)
                     .setArtworkUri((episode.imageUrl ?: podcastImageUrl)?.let(Uri::parse))
+                    // Known before the player is ready, so a restored (paused) episode can show its progress bar.
+                    .setDurationMs(episode.durationSeconds?.takeIf { it > 0 }?.let { it * 1000L })
                     .build()
             )
             .build()
@@ -232,11 +240,13 @@ class PlaybackRepository(
             // Something may have been started while it was looked up.
             if (c.currentMediaItem != null) return@launch
             val episode = found!!.episode
-            c.setMediaItem(
-                buildMediaItem(episode, found.podcastTitle, found.podcastImageUrl),
-                resumeStartMs(episode.lastPositionMs, episode.durationSeconds)
-            )
+            val startMs = resumeStartMs(episode.lastPositionMs, episode.durationSeconds)
+            c.setMediaItem(buildMediaItem(episode, found.podcastTitle, found.podcastImageUrl), startMs)
             c.prepare()
+            // Shown right away; the player's own callbacks may not have reported the start position yet.
+            _uiState.update {
+                if (it.currentEpisodeId == episode.id) it.copy(positionMs = startMs) else it
+            }
         }
     }
 

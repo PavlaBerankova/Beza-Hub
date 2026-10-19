@@ -101,6 +101,7 @@ fun PodcastActionsRow(
     onBack: () -> Unit,
     onTagClick: () -> Unit,
     onRefresh: () -> Unit,
+    onOpenQueue: () -> Unit,
     menu: PodcastMenuActions,
     modifier: Modifier = Modifier
 ) {
@@ -108,6 +109,7 @@ fun PodcastActionsRow(
     Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         DotIconButton(DotIcons.Back, stringResource(R.string.action_back), onBack)
         Spacer(Modifier.weight(1f))
+        DotIconButton(DotIcons.QueueList, stringResource(R.string.action_open_queue), onOpenQueue)
         DotIconButton(DotIcons.Tag, stringResource(R.string.action_manage_tags), onTagClick)
         if (isRefreshing) {
             Box(Modifier.size(44.dp), contentAlignment = Alignment.Center) {
@@ -135,6 +137,7 @@ fun PodcastHeader(
     onBack: () -> Unit,
     onTagClick: () -> Unit,
     onRefresh: () -> Unit,
+    onOpenQueue: () -> Unit,
     menu: PodcastMenuActions,
     episodeCount: Int,
     /** "každý pátek"…; null when it can't be told. */
@@ -162,7 +165,7 @@ fun PodcastHeader(
             .padding(top = 16.dp, bottom = 20.dp),
         verticalArrangement = Arrangement.spacedBy(22.dp)
     ) {
-        PodcastActionsRow(isRefreshing, onBack, onTagClick, onRefresh, menu)
+        PodcastActionsRow(isRefreshing, onBack, onTagClick, onRefresh, onOpenQueue, menu)
         Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
             CoverImage(imageUrl, 130.dp, 18.dp)
             // Centred beside the cover while it's short; a long title grows the column instead of being cut.

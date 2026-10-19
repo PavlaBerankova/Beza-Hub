@@ -5,10 +5,15 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.berpod.app.data.local.VideoWithChannel
 import com.berpod.app.data.repository.VideoQueueRepository
+import kotlinx.coroutines.Job
+import com.berpod.app.ui.common.TagAssignState
+import com.berpod.app.data.local.TagEntity
 import com.berpod.app.data.repository.YoutubeRepository
 import com.berpod.app.ui.youtube.WatchedUndo
 import com.berpod.app.ui.youtube.markWatched
 import com.berpod.app.ui.youtube.undoMarkWatched
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,7 +28,9 @@ data class YoutubeChannelUiState(
     val videos: List<VideoWithChannel> = emptyList(),
     val queuedVideoIds: Set<Long> = emptySet(),
     val snackbarMessage: String? = null,
-    val watchedUndo: WatchedUndo? = null
+    val watchedUndo: WatchedUndo? = null,
+    /** The categories sheet of this channel, opened by the tag button in the top bar. */
+    val categories: TagAssignState? = null
 )
 
 /** One channel's own videos (tapping a tile in Kanály); the simple list, no hero header. */
@@ -46,6 +53,45 @@ class YoutubeChannelViewModel(
         videoQueueRepository.observeQueuedVideoIds()
             .onEach { ids -> _uiState.update { it.copy(queuedVideoIds = ids) } }
             .launchIn(viewModelScope)
+    }
+
+    private var categoriesJob: Job? = null
+
+    fun onOpenCategories() {
+        categoriesJob?.cancel()
+        _uiState.update { it.copy(categories = TagAssignState(channelId, it.channelTitle)) }
+        categoriesJob = combine(youtubeRepository.observeTags(), youtubeRepository.observeTagIdsForChannel(channelId)) { tags, ids ->
+            tags.map { TagEntity(it.id, it.name) } to ids.toSet()
+        }
+            .onEach { (tags, ids) -> _uiState.update { it.copy(categories = it.categories?.copy(tags = tags, checkedTagIds = ids)) } }
+            .launchIn(viewModelScope)
+    }
+
+    fun onDismissCategories() {
+        categoriesJob?.cancel()
+        _uiState.update { it.copy(categories = null) }
+    }
+
+    fun onToggleCategory(tagId: Long, assigned: Boolean) {
+        viewModelScope.launch { youtubeRepository.setAssigned(channelId, tagId, assigned) }
+    }
+
+    fun onCreateCategory(name: String) {
+        viewModelScope.launch {
+            youtubeRepository.createAndAssign(channelId, name)
+                .onSuccess { _uiState.update { it.copy(categories = it.categories?.copy(errorMessage = null)) } }
+                .onFailure { e -> _uiState.update { it.copy(categories = it.categories?.copy(errorMessage = e.message)) } }
+        }
+    }
+
+    fun onDeleteCategory(tagId: Long) {
+        viewModelScope.launch { youtubeRepository.deleteTag(tagId) }
+    }
+
+    /** Leaving the page for good: the new videos shown here have been seen. Outlives the view model's own scope. */
+    override fun onCleared() {
+        @OptIn(DelicateCoroutinesApi::class)
+        GlobalScope.launch { runCatching { youtubeRepository.markChannelSeen(channelId) } }
     }
 
     fun onAddToQueue(videoId: Long) {

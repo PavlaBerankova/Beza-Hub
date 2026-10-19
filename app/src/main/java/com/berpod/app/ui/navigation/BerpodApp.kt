@@ -27,6 +27,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -61,7 +63,6 @@ import com.berpod.app.ui.articles.ArticlesScreen
 import com.berpod.app.ui.articles.ArticlesViewModel
 import com.berpod.app.ui.episode.EpisodeDetailScreen
 import com.berpod.app.ui.episode.EpisodeDetailViewModel
-import com.berpod.app.ui.newepisodes.NewEpisodesViewModel
 import com.berpod.app.ui.player.MiniPlayerBar
 import com.berpod.app.ui.player.PlayerScreen
 import com.berpod.app.ui.player.PlayerViewModel
@@ -81,6 +82,7 @@ import com.berpod.app.ui.youtube.channels.YoutubeChannelSourcesViewModel
 import com.berpod.app.ui.youtube.channels.YoutubeChannelsViewModel
 import com.berpod.app.ui.youtube.newvideos.NewVideosViewModel
 import com.berpod.app.ui.youtube.queue.VideoQueueViewModel
+import com.berpod.app.ui.youtube.video.LocalVideoFullscreen
 import com.berpod.app.ui.youtube.video.VideoDetailScreen
 import com.berpod.app.ui.youtube.video.VideoDetailViewModel
 import com.berpod.app.ui.theme.DotTheme
@@ -121,16 +123,23 @@ fun BerpodApp(container: AppContainer) {
     var podcastsSection by rememberSaveable { mutableStateOf(PodcastsSection.Subscriptions) }
     var youtubeSection by rememberSaveable { mutableStateOf(YoutubeSection.Channels) }
 
+    // Set by the video page: in its fullscreen nothing but the video may be on screen.
+    val videoFullscreen = remember { mutableStateOf(false) }
+    val fullscreen = videoFullscreen.value
+
     // Everything on screen — including the bottom bar — takes the current tab's accent colour.
     TabAccentTheme(tabAccentFor(currentRoute)) {
+      CompositionLocalProvider(LocalVideoFullscreen provides videoFullscreen) {
         Scaffold(
             containerColor = DotTheme.colors.background,
             // A podcast's and an episode's page tint their header up behind the status bar, so they pad for it themselves.
-            contentWindowInsets = when (currentRoute) {
+            contentWindowInsets = if (fullscreen) WindowInsets(0) else when (currentRoute) {
                 Screen.PodcastEpisodes.route, Screen.EpisodeDetail.route -> ScaffoldDefaults.contentWindowInsets.exclude(WindowInsets.statusBars)
                 else -> ScaffoldDefaults.contentWindowInsets
             },
             bottomBar = {
+                // Video fullscreen: no mini player, no tabs.
+                if (fullscreen) return@Scaffold
                 val showNavigation = bottomTabs.any { it.route == currentRoute }
                 Column {
                     // The full player already shows everything the mini player would.
@@ -185,6 +194,16 @@ fun BerpodApp(container: AppContainer) {
             }
         ) { paddingValues ->
             val openEpisode: (Long) -> Unit = { id -> navController.navigate(Screen.EpisodeDetail.createRoute(id)) }
+            // Podcasty › Fronta, from wherever the user is (the player, a podcast's page).
+            val openQueue: () -> Unit = {
+                podcastsSection = PodcastsSection.Queue
+                if (!navController.popBackStack(Screen.Podcasts.route, inclusive = false)) {
+                    navController.navigate(Screen.Podcasts.route) {
+                        popUpTo(navController.graph.startDestinationId)
+                        launchSingleTop = true
+                    }
+                }
+            }
             val openVideo: (Long) -> Unit = { id -> navController.navigate(Screen.YoutubeVideo.createRoute(id)) }
             NavHost(
                 navController = navController,
@@ -208,13 +227,6 @@ fun BerpodApp(container: AppContainer) {
                             container.queueFilterRepository,
                             container.downloadRepository
                         ),
-                        newEpisodesFactory = NewEpisodesViewModel.factory(
-                            container.episodeRepository,
-                            container.queueRepository,
-                            container.playbackRepository,
-                            container.tagRepository,
-                            container.downloadRepository
-                        ),
                         onPodcastClick = { feedId -> navController.navigate(Screen.PodcastEpisodes.createRoute(feedId)) },
                         onEpisodeClick = openEpisode,
                         section = podcastsSection,
@@ -223,7 +235,7 @@ fun BerpodApp(container: AppContainer) {
                 }
                 composable(Screen.YouTube.route) {
                     YoutubeHubScreen(
-                        channelsFactory = YoutubeChannelsViewModel.factory(container.youtubeRepository),
+                        channelsFactory = YoutubeChannelsViewModel.factory(container.youtubeRepository, container.videoQueueRepository),
                         queueFactory = VideoQueueViewModel.factory(
                             container.videoQueueRepository,
                             container.youtubeRepository,
@@ -293,7 +305,8 @@ fun BerpodApp(container: AppContainer) {
                             feedId
                         ),
                         onBack = { navController.popBackStack() },
-                        onEpisodeClick = openEpisode
+                        onEpisodeClick = openEpisode,
+                        onOpenQueue = openQueue
                     )
                 }
                 composable(
@@ -330,15 +343,7 @@ fun BerpodApp(container: AppContainer) {
                         // From the player, so "back" comes home to it.
                         onOpenPodcast = { feedId -> navController.navigate(Screen.PodcastEpisodes.createRoute(feedId)) },
                         onOpenEpisode = openEpisode,
-                        onOpenQueue = {
-                            podcastsSection = PodcastsSection.Queue
-                            if (!navController.popBackStack(Screen.Podcasts.route, inclusive = false)) {
-                                navController.navigate(Screen.Podcasts.route) {
-                                    popUpTo(navController.graph.startDestinationId)
-                                    launchSingleTop = true
-                                }
-                            }
-                        }
+                        onOpenQueue = openQueue
                     )
                 }
                 composable(
@@ -375,5 +380,6 @@ fun BerpodApp(container: AppContainer) {
                 }
             }
         }
+      }
     }
 }

@@ -30,7 +30,7 @@ class TagRepository(
     /** The id of the tag called [rawName], created when it doesn't exist yet. */
     suspend fun createTag(rawName: String): Result<Long> = runCatching {
         val name = requireNotNull(normalizeTagName(rawName)) { "Zadejte název štítku" }
-        tagDao.findByName(name)?.id ?: tagDao.insert(TagEntity(name = name))
+        tagDao.findByName(name)?.id ?: tagDao.insert(TagEntity(name = name, position = tagDao.maxPosition() + 1))
     }
 
     suspend fun createAndAssign(podcastId: Long, rawName: String): Result<Unit> =
@@ -48,4 +48,7 @@ class TagRepository(
     }
 
     suspend fun delete(tagId: Long) = tagDao.delete(tagId)
+
+    /** Saves the user's own order of the tags: [tagIds] from first to last. */
+    suspend fun reorder(tagIds: List<Long>) = tagDao.applyOrder(tagIds)
 }

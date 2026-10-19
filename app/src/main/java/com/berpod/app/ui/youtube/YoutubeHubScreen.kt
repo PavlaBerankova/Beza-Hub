@@ -1,6 +1,7 @@
 package com.berpod.app.ui.youtube
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,6 +23,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.berpod.app.R
+import com.berpod.app.ui.youtube.channels.YoutubeChannelsViewModel
+import com.berpod.app.ui.common.youtubeCategoryTexts
+import com.berpod.app.ui.common.TagMenuButton
+import com.berpod.app.ui.common.TagEditorHost
 import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIcons
 import com.berpod.app.ui.dot.DotSegmented
@@ -51,6 +56,8 @@ fun YoutubeHubScreen(
     section: YoutubeSection,
     onSectionChange: (YoutubeSection) -> Unit
 ) {
+    // Same instance YoutubeChannelsScreen gets, so the title row's menu edits the same categories.
+    val channelsViewModel: YoutubeChannelsViewModel = viewModel(factory = channelsFactory)
     // Same instance NewVideosScreen gets (same owner and class), so the bar's refresh drives that screen.
     val newVideosViewModel: NewVideosViewModel = viewModel(factory = newVideosFactory)
     val newVideosState by newVideosViewModel.uiState.collectAsState()
@@ -59,21 +66,21 @@ fun YoutubeHubScreen(
     Column(modifier = Modifier.fillMaxSize().background(c.background).statusBarsPadding()) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 20.dp),
-            verticalAlignment = Alignment.Bottom
+            verticalAlignment = Alignment.Bottom,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             DotTitle(stringResource(R.string.nav_youtube), Modifier.weight(1f))
-            when (section) {
-                YoutubeSection.Channels -> DotIconButton(DotIcons.Sources, stringResource(R.string.sources), onOpenChannelSources)
-                YoutubeSection.New -> if (newVideosState.isRefreshing) {
-                    Box(Modifier.size(44.dp), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(Modifier.size(22.dp), color = c.accent, strokeWidth = 2.dp)
-                    }
-                } else {
-                    DotIconButton(DotIcons.Refresh, stringResource(R.string.action_refresh), newVideosViewModel::onRefresh)
+            // Refreshes every channel; a spinner takes its place while that runs.
+            if (newVideosState.isRefreshing) {
+                Box(Modifier.size(44.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(Modifier.size(22.dp), color = c.accent, strokeWidth = 2.dp)
                 }
-                YoutubeSection.Queue -> Unit
+            } else {
+                DotIconButton(DotIcons.Refresh, stringResource(R.string.action_refresh_all_channels), newVideosViewModel::onRefresh)
             }
+            TagMenuButton(youtubeCategoryTexts(), channelsViewModel.tagEditor::open, onOpenSources = onOpenChannelSources)
         }
+        TagEditorHost(channelsViewModel.tagEditor, youtubeCategoryTexts())
         DotSegmented(
             options = YoutubeSection.entries.map { stringResource(it.labelRes) },
             selectedIndex = section.ordinal,

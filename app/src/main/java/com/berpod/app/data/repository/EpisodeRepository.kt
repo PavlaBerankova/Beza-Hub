@@ -36,6 +36,9 @@ class EpisodeRepository(
     /** Takes the episode out of Nové (or puts it back) without touching its played state. */
     suspend fun setHiddenFromNew(episodeId: Long, hidden: Boolean) = episodeDao.setHiddenFromNew(episodeId, hidden)
 
+    /** Leaving a podcast's page: what was new there has been seen, so it no longer counts as new. */
+    suspend fun markFeedSeen(feedId: Long) = episodeDao.markFeedSeen(feedId)
+
     suspend fun markAllPlayed(feedId: Long) = episodeDao.markAllPlayed(feedId, System.currentTimeMillis())
 
     suspend fun markAllUnplayed(feedId: Long) = episodeDao.markAllUnplayed(feedId)

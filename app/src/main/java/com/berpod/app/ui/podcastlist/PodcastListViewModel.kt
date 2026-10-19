@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.flowOn
 import com.berpod.app.data.repository.TagRepository
 import com.berpod.app.ui.common.AddFeedController
 import com.berpod.app.ui.common.TagAssignmentController
+import com.berpod.app.ui.common.TagEditorController
 import com.berpod.app.ui.common.resolveSelectedTagId
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,7 +41,11 @@ data class PodcastListUiState(
     val isSubmitting: Boolean = false,
     val errorMessage: String? = null,
     /** New episodes per podcast id, as Nové counts them; podcasts without any are missing. */
-    val newCounts: Map<Long, Int> = emptyMap()
+    val newCounts: Map<Long, Int> = emptyMap(),
+    /** All podcasts are being refreshed, by the button or when the app opened. */
+    val isRefreshing: Boolean = false,
+    /** Why the last button-triggered refresh was not clean; shown once. */
+    val refreshMessage: String? = null
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -55,6 +60,16 @@ class PodcastListViewModel(
     val uiState: StateFlow<PodcastListUiState> = _uiState.asStateFlow()
 
     val tagAssignment = TagAssignmentController(tagRepository, viewModelScope)
+
+    /** The editor of all štítky (add, rename, delete, reorder), opened from the title row's menu. */
+    val tagEditor = TagEditorController(
+        scope = viewModelScope,
+        observeTags = tagRepository::observeTags,
+        create = tagRepository::createTag,
+        rename = tagRepository::rename,
+        delete = tagRepository::delete,
+        reorder = tagRepository::reorder
+    )
 
     val addPodcast = AddFeedController(
         scope = viewModelScope,
@@ -93,6 +108,27 @@ class PodcastListViewModel(
                 _uiState.update { it.copy(tags = tags, selectedTagId = selectedTagId.value) }
             }
             .launchIn(viewModelScope)
+        // Opening the app brings every podcast up to date, so the badges with new episodes are right from the start.
+        refresh(announce = false)
+    }
+
+    /** The button in the title row. */
+    fun onRefresh() = refresh(announce = true)
+
+    fun onRefreshMessageShown() = _uiState.update { it.copy(refreshMessage = null) }
+
+    /** [announce]: tell the user when some podcasts could not be loaded (the automatic run stays quiet). */
+    private fun refresh(announce: Boolean) {
+        if (_uiState.value.isRefreshing) return
+        _uiState.update { it.copy(isRefreshing = true) }
+        viewModelScope.launch {
+            val result = episodeRepository.refreshAllFeeds()
+            val message = if (!announce) null else result.fold(
+                onSuccess = { failed -> if (failed > 0) "Aktualizace dokončena, $failed zdrojů se nepodařilo načíst" else null },
+                onFailure = { error -> error.message ?: "Aktualizace selhala" }
+            )
+            _uiState.update { it.copy(isRefreshing = false, refreshMessage = message) }
+        }
     }
 
     fun onSelectTag(tagId: Long?) {

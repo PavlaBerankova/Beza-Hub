@@ -24,6 +24,9 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -40,6 +43,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.berpod.app.R
+import com.berpod.app.ui.common.TagMenuButton
+import com.berpod.app.ui.common.TagEditorHost
 import com.berpod.app.data.local.ArticleWithFeed
 import com.berpod.app.ui.common.DeleteTagDialog
 import com.berpod.app.ui.common.EmptyState
@@ -68,6 +73,23 @@ fun ArticlesScreen(
     val addSourceState by viewModel.addSource.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val c = DotTheme.colors
+    val listState = rememberLazyListState()
+    // Marking the top article read moves it below the "Přečtené" separator, and the list follows it down there
+    // (it keeps the first visible item, by key, in view). The position is put back once the list has changed.
+    var restorePosition by remember { mutableStateOf<Pair<Int, Int>?>(null) }
+    LaunchedEffect(uiState.unreadArticles) {
+        restorePosition?.let { (index, offset) ->
+            listState.scrollToItem(index.coerceAtMost(uiState.unreadArticles.size), offset)
+            restorePosition = null
+        }
+    }
+    fun toggleRead(item: ArticleWithFeed) {
+        val firstVisible = listState.layoutInfo.visibleItemsInfo.firstOrNull()
+        if (item.article.readAtMs == null && firstVisible?.key == item.article.id) {
+            restorePosition = listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset
+        }
+        viewModel.onToggleRead(item)
+    }
 
     LaunchedEffect(uiState.snackbarMessage) {
         uiState.snackbarMessage?.let {
@@ -99,7 +121,6 @@ fun ArticlesScreen(
             ) {
                 DotTitle(stringResource(R.string.nav_articles), Modifier.weight(1f))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            DotIconButton(DotIcons.Sources, stringResource(R.string.sources), onOpenSources)
                     if (uiState.isRefreshing) {
                         Box(Modifier.size(44.dp), contentAlignment = Alignment.Center) {
                             CircularProgressIndicator(Modifier.size(22.dp), color = c.accent, strokeWidth = 2.dp)
@@ -107,6 +128,7 @@ fun ArticlesScreen(
                     } else {
                         DotIconButton(DotIcons.Refresh, stringResource(R.string.action_refresh), viewModel::onRefresh)
                     }
+                    TagMenuButton(articleCategoryTexts(), viewModel.tagEditor::open, onOpenSources = onOpenSources)
                 }
             }
             if (uiState.hasAnySource) {
@@ -155,9 +177,9 @@ fun ArticlesScreen(
                 )
                 else -> {
                     val now = rememberNowMillis()
-                    LazyColumn(contentPadding = PaddingValues(bottom = 96.dp)) {
+                    LazyColumn(state = listState, contentPadding = PaddingValues(bottom = 96.dp)) {
                         itemsIndexed(uiState.unreadArticles, key = { _, it -> it.article.id }) { index, item ->
-                            MarkPlayedSwipe(onToggle = { viewModel.onToggleRead(item) }) {
+                            MarkPlayedSwipe(onToggle = { toggleRead(item) }) {
                                 // The last row's divider would double up with the separator (or dangle at the end).
                                 ArticleRow(item, now, showDivider = index < uiState.unreadArticles.lastIndex) {
                                     onArticleClick(item.article.id, uiState.selectedTagId)
@@ -174,7 +196,7 @@ fun ArticlesScreen(
                             }
                         }
                         itemsIndexed(uiState.readArticles, key = { _, it -> it.article.id }) { index, item ->
-                            MarkPlayedSwipe(onToggle = { viewModel.onToggleRead(item) }) {
+                            MarkPlayedSwipe(onToggle = { toggleRead(item) }) {
                                 ArticleRow(item, now, showDivider = index < uiState.readArticles.lastIndex) {
                                     onArticleClick(item.article.id, uiState.selectedTagId)
                                 }
@@ -187,6 +209,7 @@ fun ArticlesScreen(
     }
 
     addSourceState?.let { AddSourceSheet(it, viewModel.addSource) }
+    TagEditorHost(viewModel.tagEditor, articleCategoryTexts())
     uiState.renamingTag?.let { tag ->
         RenameTagDialog(tag, uiState.renameError, viewModel::onConfirmRenameTag, viewModel::onDismissRenameTag, articleCategoryTexts())
     }

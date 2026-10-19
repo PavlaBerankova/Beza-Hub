@@ -15,7 +15,9 @@ data class TagTexts(
     val renameTitle: String,
     val deleteTitle: String,
     val deleteMessage: (name: String) -> String,
-    val deleteAction: (name: String) -> String
+    val deleteAction: (name: String) -> String,
+    /** Menu item and title of the editor of all tags. */
+    val editTitle: String
 )
 
 @Composable
@@ -30,7 +32,8 @@ fun podcastTagTexts(): TagTexts {
         renameTitle = stringResource(R.string.rename_tag_title),
         deleteTitle = stringResource(R.string.delete_tag_title),
         deleteMessage = { deleteMessage.format(it) },
-        deleteAction = { deleteAction.format(it) }
+        deleteAction = { deleteAction.format(it) },
+        editTitle = stringResource(R.string.edit_tags)
     )
 }
 
@@ -46,7 +49,8 @@ fun articleCategoryTexts(): TagTexts {
         renameTitle = stringResource(R.string.rename_category_title),
         deleteTitle = stringResource(R.string.delete_category_title),
         deleteMessage = { deleteMessage.format(it) },
-        deleteAction = { deleteAction.format(it) }
+        deleteAction = { deleteAction.format(it) },
+        editTitle = stringResource(R.string.edit_categories)
     )
 }
 
@@ -62,6 +66,7 @@ fun youtubeCategoryTexts(): TagTexts {
         renameTitle = stringResource(R.string.rename_channel_category_title),
         deleteTitle = stringResource(R.string.delete_channel_category_title),
         deleteMessage = { deleteMessage.format(it) },
-        deleteAction = { deleteAction.format(it) }
+        deleteAction = { deleteAction.format(it) },
+        editTitle = stringResource(R.string.edit_categories)
     )
 }

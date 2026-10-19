@@ -263,4 +263,21 @@
     <string name="settings_app_name">BEZA Hub</string>
     <string name="settings_app_tagline">Podcasty, videa a články na jednom místě.</string>
     <string name="settings_version">Verze</string>
+    <string name="action_refresh_all">Aktualizovat všechny podcasty</string>
+    <string name="badge_new_video">Nové</string>
+    <string name="action_refresh_all_channels">Aktualizovat všechny kanály</string>
+    <string name="action_manage_categories">Kategorie</string>
+    <string name="edit_tags">Upravit štítky</string>
+    <string name="edit_categories">Upravit kategorie</string>
+    <string name="tag_editor_empty">Zatím tu nic není. Přidejte první tlačítkem níže.</string>
+    <string name="tag_editor_hint">Pořadí změníte přetažením za úchyt. Štítky se v řádku seřadí stejně.</string>
+    <string name="action_drag_to_reorder">Přetáhnout</string>
+    <string name="action_more_options">Další možnosti</string>
+    <string name="action_open_queue">Přejít do fronty</string>
+    <string name="in_browser_button">V prohlížeči</string>
+    <string name="action_open_in_youtube">Otevřít v aplikaci YouTube</string>
+    <string name="choose_browser">Otevřít v prohlížeči</string>
+    <string name="status_not_watched">Nezhlédnuto</string>
+    <string name="watched_undo_hint">Klepnutím vrátíte zpět</string>
+    <string name="video_label">Video</string>
 </resources>

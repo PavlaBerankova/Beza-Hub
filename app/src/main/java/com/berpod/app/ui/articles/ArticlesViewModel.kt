@@ -7,6 +7,7 @@ import com.berpod.app.data.local.ArticleWithFeed
 import com.berpod.app.data.local.TagEntity
 import com.berpod.app.data.repository.ArticleRepository
 import com.berpod.app.ui.common.AddFeedController
+import com.berpod.app.ui.common.TagEditorController
 import com.berpod.app.ui.common.filterByPodcastIds
 import com.berpod.app.ui.common.resolveSelectedTagId
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -47,6 +48,16 @@ class ArticlesViewModel(private val repository: ArticleRepository) : ViewModel()
     val uiState: StateFlow<ArticlesUiState> = _uiState.asStateFlow()
 
     private val selectedTagId = MutableStateFlow<Long?>(null)
+
+    /** The editor of all categories (add, rename, delete, reorder), opened from the title row's menu. */
+    val tagEditor = TagEditorController(
+        scope = viewModelScope,
+        observeTags = { repository.observeTags().map { tags -> tags.map { TagEntity(it.id, it.name) } } },
+        create = repository::createTag,
+        rename = repository::renameTag,
+        delete = repository::deleteTag,
+        reorder = repository::reorderTags
+    )
 
     val addSource = AddFeedController(
         scope = viewModelScope,
