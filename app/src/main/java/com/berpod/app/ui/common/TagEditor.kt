@@ -131,13 +131,22 @@ class TagEditorController(
     }
 }
 
-/** The "⋮" button of a section's title row; its menu opens the tag editor. */
+/** The "⋮" button of a section's title row; its menu opens the tag editor and, where there are sources, their list. */
 @Composable
-fun TagMenuButton(texts: TagTexts, onEdit: () -> Unit) {
+fun TagMenuButton(texts: TagTexts, onEdit: () -> Unit, onOpenSources: (() -> Unit)? = null) {
     var isOpen by remember { mutableStateOf(false) }
     Box {
         DotIconButton(DotIcons.More, stringResource(R.string.action_more_options), onClick = { isOpen = true })
         DropdownMenu(expanded = isOpen, onDismissRequest = { isOpen = false }) {
+            if (onOpenSources != null) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.sources)) },
+                    onClick = {
+                        isOpen = false
+                        onOpenSources()
+                    }
+                )
+            }
             DropdownMenuItem(
                 text = { Text(texts.editTitle) },
                 onClick = {

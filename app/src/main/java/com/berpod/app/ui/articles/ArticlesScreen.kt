@@ -121,7 +121,6 @@ fun ArticlesScreen(
             ) {
                 DotTitle(stringResource(R.string.nav_articles), Modifier.weight(1f))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            DotIconButton(DotIcons.Sources, stringResource(R.string.sources), onOpenSources)
                     if (uiState.isRefreshing) {
                         Box(Modifier.size(44.dp), contentAlignment = Alignment.Center) {
                             CircularProgressIndicator(Modifier.size(22.dp), color = c.accent, strokeWidth = 2.dp)
@@ -129,7 +128,7 @@ fun ArticlesScreen(
                     } else {
                         DotIconButton(DotIcons.Refresh, stringResource(R.string.action_refresh), viewModel::onRefresh)
                     }
-                    TagMenuButton(articleCategoryTexts(), viewModel.tagEditor::open)
+                    TagMenuButton(articleCategoryTexts(), viewModel.tagEditor::open, onOpenSources = onOpenSources)
                 }
             }
             if (uiState.hasAnySource) {

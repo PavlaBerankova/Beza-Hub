@@ -70,9 +70,6 @@ fun YoutubeHubScreen(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             DotTitle(stringResource(R.string.nav_youtube), Modifier.weight(1f))
-            if (section == YoutubeSection.Channels) {
-                DotIconButton(DotIcons.Sources, stringResource(R.string.sources), onOpenChannelSources)
-            }
             // Refreshes every channel; a spinner takes its place while that runs.
             if (newVideosState.isRefreshing) {
                 Box(Modifier.size(44.dp), contentAlignment = Alignment.Center) {
@@ -81,7 +78,7 @@ fun YoutubeHubScreen(
             } else {
                 DotIconButton(DotIcons.Refresh, stringResource(R.string.action_refresh_all_channels), newVideosViewModel::onRefresh)
             }
-            TagMenuButton(youtubeCategoryTexts(), channelsViewModel.tagEditor::open)
+            TagMenuButton(youtubeCategoryTexts(), channelsViewModel.tagEditor::open, onOpenSources = onOpenChannelSources)
         }
         TagEditorHost(channelsViewModel.tagEditor, youtubeCategoryTexts())
         DotSegmented(
