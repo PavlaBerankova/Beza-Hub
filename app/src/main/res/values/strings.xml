@@ -265,4 +265,6 @@
     <string name="settings_version">Verze</string>
     <string name="action_refresh_all">Aktualizovat všechny podcasty</string>
     <string name="badge_new_video">Nové</string>
+    <string name="action_refresh_all_channels">Aktualizovat všechny kanály</string>
+    <string name="action_manage_categories">Kategorie</string>
 </resources>
