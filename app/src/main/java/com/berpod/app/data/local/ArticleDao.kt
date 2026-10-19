@@ -60,12 +60,24 @@ interface ArticleDao {
     @Query("UPDATE articles SET readAtMs = :readAtMs WHERE id = :articleId")
     suspend fun setRead(articleId: Long, readAtMs: Long?)
 
-    @Query("SELECT * FROM article_tags ORDER BY name")
+    @Query("SELECT * FROM article_tags ORDER BY position, name")
     fun observeTags(): Flow<List<ArticleTagEntity>>
 
     /** Categories some source has: the filter chips skip empty ones. */
-    @Query("SELECT * FROM article_tags WHERE id IN (SELECT tagId FROM article_feed_tags) ORDER BY name")
+    @Query("SELECT * FROM article_tags WHERE id IN (SELECT tagId FROM article_feed_tags) ORDER BY position, name")
     fun observeTagsInUse(): Flow<List<ArticleTagEntity>>
+
+    @Query("SELECT COALESCE(MAX(position), -1) FROM article_tags")
+    suspend fun maxTagPosition(): Int
+
+    @Query("UPDATE article_tags SET position = :position WHERE id = :tagId")
+    suspend fun setTagPosition(tagId: Long, position: Int)
+
+    /** Puts the tags in the order given: the first id gets position 0, and so on. */
+    @Transaction
+    suspend fun applyTagOrder(tagIds: List<Long>) {
+        tagIds.forEachIndexed { index, id -> setTagPosition(id, index) }
+    }
 
     @Query("SELECT feedId FROM article_feed_tags WHERE tagId = :tagId")
     fun observeFeedIdsWithTag(tagId: Long): Flow<List<Long>>

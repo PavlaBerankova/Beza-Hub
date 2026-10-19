@@ -182,3 +182,17 @@ val MIGRATION_12_13 = object : Migration(12, 13) {
         db.execSQL("ALTER TABLE `youtube_videos` ADD COLUMN `hiddenFromNew` INTEGER NOT NULL DEFAULT 0")
     }
 }
+
+/** Tags (podcast štítky, article and YouTube categories) get a position, so they can be put in the user's own order. */
+val MIGRATION_13_14 = object : Migration(13, 14) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        for (table in listOf("tags", "article_tags", "youtube_tags")) {
+            db.execSQL("ALTER TABLE `$table` ADD COLUMN `position` INTEGER NOT NULL DEFAULT 0")
+            // Start from the alphabetical order the lists have had until now.
+            db.execSQL(
+                "UPDATE `$table` SET `position` = (SELECT COUNT(*) FROM `$table` AS other WHERE other.`name` COLLATE NOCASE < `$table`.`name` COLLATE NOCASE " +
+                    "OR (other.`name` COLLATE NOCASE = `$table`.`name` COLLATE NOCASE AND other.`id` < `$table`.`id`))"
+            )
+        }
+    }
+}

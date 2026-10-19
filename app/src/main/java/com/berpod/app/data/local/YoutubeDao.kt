@@ -107,12 +107,24 @@ interface YoutubeDao {
     @Query("UPDATE youtube_videos SET durationMs = :durationMs WHERE id = :videoId")
     suspend fun updateDuration(videoId: Long, durationMs: Long)
 
-    @Query("SELECT * FROM youtube_tags ORDER BY name")
+    @Query("SELECT * FROM youtube_tags ORDER BY position, name")
     fun observeTags(): Flow<List<YoutubeTagEntity>>
 
     /** Categories some channel has: the filter chips skip empty ones. */
-    @Query("SELECT * FROM youtube_tags WHERE id IN (SELECT tagId FROM youtube_channel_tags) ORDER BY name")
+    @Query("SELECT * FROM youtube_tags WHERE id IN (SELECT tagId FROM youtube_channel_tags) ORDER BY position, name")
     fun observeTagsInUse(): Flow<List<YoutubeTagEntity>>
+
+    @Query("SELECT COALESCE(MAX(position), -1) FROM youtube_tags")
+    suspend fun maxTagPosition(): Int
+
+    @Query("UPDATE youtube_tags SET position = :position WHERE id = :tagId")
+    suspend fun setTagPosition(tagId: Long, position: Int)
+
+    /** Puts the tags in the order given: the first id gets position 0, and so on. */
+    @Transaction
+    suspend fun applyTagOrder(tagIds: List<Long>) {
+        tagIds.forEachIndexed { index, id -> setTagPosition(id, index) }
+    }
 
     @Query("SELECT channelId FROM youtube_channel_tags WHERE tagId = :tagId")
     fun observeChannelIdsWithTag(tagId: Long): Flow<List<Long>>

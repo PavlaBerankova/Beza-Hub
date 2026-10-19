@@ -62,7 +62,8 @@ data class YoutubeVideoEntity(
 @Entity(tableName = "youtube_tags", indices = [Index(value = ["name"], unique = true)])
 data class YoutubeTagEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    @ColumnInfo(collate = ColumnInfo.NOCASE) val name: String
+    @ColumnInfo(collate = ColumnInfo.NOCASE) val name: String,
+    val position: Int = 0
 )
 
 @Entity(

@@ -47,6 +47,8 @@ private class FakeArticleDao : ArticleDao {
     override fun observeTagIdsForFeed(feedId: Long): Flow<List<Long>> = emptyFlow()
     override suspend fun findTagByName(name: String): ArticleTagEntity? = null
     override suspend fun insertTag(tag: ArticleTagEntity): Long = 1
+    override suspend fun maxTagPosition(): Int = -1
+    override suspend fun setTagPosition(tagId: Long, position: Int) {}
     override suspend fun renameTag(tagId: Long, name: String) {}
     override suspend fun deleteTag(tagId: Long) {}
     override suspend fun assignTag(crossRef: ArticleFeedTagCrossRef) { links += crossRef }

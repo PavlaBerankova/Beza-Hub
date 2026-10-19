@@ -101,7 +101,7 @@ class YoutubeRepository(
     /** The id of the category called [rawName], created when it doesn't exist yet. */
     suspend fun createTag(rawName: String): Result<Long> = runCatching {
         val name = requireNotNull(normalizeTagName(rawName)) { "Zadejte název kategorie" }
-        dao.findTagByName(name)?.id ?: dao.insertTag(YoutubeTagEntity(name = name))
+        dao.findTagByName(name)?.id ?: dao.insertTag(YoutubeTagEntity(name = name, position = dao.maxTagPosition() + 1))
     }
 
     suspend fun createAndAssign(channelId: Long, rawName: String): Result<Unit> =
@@ -119,6 +119,9 @@ class YoutubeRepository(
     }
 
     suspend fun deleteTag(tagId: Long) = dao.deleteTag(tagId)
+
+    /** Saves the user's own order of the categories: [tagIds] from first to last. */
+    suspend fun reorderTags(tagIds: List<Long>) = dao.applyTagOrder(tagIds)
 }
 
 private fun ParsedYoutubeVideo.toEntity(feedId: Long, now: Long) = YoutubeVideoEntity(

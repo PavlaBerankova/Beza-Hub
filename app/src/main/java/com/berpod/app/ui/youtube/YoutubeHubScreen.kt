@@ -23,6 +23,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.berpod.app.R
+import com.berpod.app.ui.youtube.channels.YoutubeChannelsViewModel
+import com.berpod.app.ui.common.youtubeCategoryTexts
+import com.berpod.app.ui.common.TagMenuButton
+import com.berpod.app.ui.common.TagEditorHost
 import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIcons
 import com.berpod.app.ui.dot.DotSegmented
@@ -52,6 +56,8 @@ fun YoutubeHubScreen(
     section: YoutubeSection,
     onSectionChange: (YoutubeSection) -> Unit
 ) {
+    // Same instance YoutubeChannelsScreen gets, so the title row's menu edits the same categories.
+    val channelsViewModel: YoutubeChannelsViewModel = viewModel(factory = channelsFactory)
     // Same instance NewVideosScreen gets (same owner and class), so the bar's refresh drives that screen.
     val newVideosViewModel: NewVideosViewModel = viewModel(factory = newVideosFactory)
     val newVideosState by newVideosViewModel.uiState.collectAsState()
@@ -75,7 +81,9 @@ fun YoutubeHubScreen(
             } else {
                 DotIconButton(DotIcons.Refresh, stringResource(R.string.action_refresh_all_channels), newVideosViewModel::onRefresh)
             }
+            TagMenuButton(youtubeCategoryTexts(), channelsViewModel.tagEditor::open)
         }
+        TagEditorHost(channelsViewModel.tagEditor, youtubeCategoryTexts())
         DotSegmented(
             options = YoutubeSection.entries.map { stringResource(it.labelRes) },
             selectedIndex = section.ordinal,

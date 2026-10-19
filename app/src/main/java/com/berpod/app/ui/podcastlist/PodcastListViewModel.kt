@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.flowOn
 import com.berpod.app.data.repository.TagRepository
 import com.berpod.app.ui.common.AddFeedController
 import com.berpod.app.ui.common.TagAssignmentController
+import com.berpod.app.ui.common.TagEditorController
 import com.berpod.app.ui.common.resolveSelectedTagId
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -59,6 +60,16 @@ class PodcastListViewModel(
     val uiState: StateFlow<PodcastListUiState> = _uiState.asStateFlow()
 
     val tagAssignment = TagAssignmentController(tagRepository, viewModelScope)
+
+    /** The editor of all štítky (add, rename, delete, reorder), opened from the title row's menu. */
+    val tagEditor = TagEditorController(
+        scope = viewModelScope,
+        observeTags = tagRepository::observeTags,
+        create = tagRepository::createTag,
+        rename = tagRepository::rename,
+        delete = tagRepository::delete,
+        reorder = tagRepository::reorder
+    )
 
     val addPodcast = AddFeedController(
         scope = viewModelScope,

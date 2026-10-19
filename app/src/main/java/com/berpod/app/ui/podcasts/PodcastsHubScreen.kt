@@ -25,6 +25,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.berpod.app.R
+import com.berpod.app.ui.common.podcastTagTexts
+import com.berpod.app.ui.common.TagMenuButton
+import com.berpod.app.ui.common.TagEditorHost
 import com.berpod.app.ui.dot.DotSegmented
 import com.berpod.app.ui.dot.DotTitle
 import com.berpod.app.ui.podcastlist.PodcastListScreen
@@ -69,7 +72,9 @@ fun PodcastsHubScreen(
             } else {
                 DotIconButton(DotIcons.Refresh, stringResource(R.string.action_refresh_all), listViewModel::onRefresh)
             }
+            TagMenuButton(podcastTagTexts(), listViewModel.tagEditor::open)
         }
+        TagEditorHost(listViewModel.tagEditor, podcastTagTexts())
         DotSegmented(
             options = PodcastsSection.entries.map { stringResource(it.labelRes) },
             selectedIndex = section.ordinal,

@@ -80,12 +80,12 @@ class FakeTagDao(private val feeds: StateFlow<List<PodcastFeedEntity>>) : TagDao
     private var nextId = 1L
 
     override fun observeAll(): Flow<List<TagEntity>> =
-        _tags.map { list -> list.sortedBy { it.name.lowercase() } }
+        _tags.map { list -> list.sortedWith(compareBy({ it.position }, { it.name.lowercase() })) }
 
     override fun observeInUse(): Flow<List<TagEntity>> =
         combine(_tags, _links) { tags, links ->
             val used = links.map { it.tagId }.toSet()
-            tags.filter { it.id in used }.sortedBy { it.name.lowercase() }
+            tags.filter { it.id in used }.sortedWith(compareBy({ it.position }, { it.name.lowercase() }))
         }
 
     override fun observeTagIdsForPodcast(podcastId: Long): Flow<List<Long>> =
@@ -108,6 +108,12 @@ class FakeTagDao(private val feeds: StateFlow<List<PodcastFeedEntity>>) : TagDao
         val withId = tag.copy(id = nextId++)
         _tags.value = _tags.value + withId
         return withId.id
+    }
+
+    override suspend fun maxPosition(): Int = _tags.value.maxOfOrNull { it.position } ?: -1
+
+    override suspend fun setPosition(tagId: Long, position: Int) {
+        _tags.value = _tags.value.map { if (it.id == tagId) it.copy(position = position) else it }
     }
 
     override suspend fun rename(tagId: Long, name: String) {

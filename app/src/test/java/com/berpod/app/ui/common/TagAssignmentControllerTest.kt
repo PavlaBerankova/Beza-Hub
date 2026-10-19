@@ -28,7 +28,8 @@ class TagAssignmentControllerTest {
 
         val state = controller.state.value!!
         assertEquals("Podcast 1", state.podcastTitle)
-        assertEquals(listOf("Health", "News"), state.tags.map { it.name })
+        // In the user's order, which for tags nobody has moved is the order they were created in.
+        assertEquals(listOf("News", "Health"), state.tags.map { it.name })
         assertEquals(setOf(tagDao.findByName("News")!!.id), state.checkedTagIds)
     }
 

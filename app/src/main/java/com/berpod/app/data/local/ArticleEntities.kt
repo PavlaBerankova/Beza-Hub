@@ -51,7 +51,8 @@ data class ArticleEntity(
 @Entity(tableName = "article_tags", indices = [Index(value = ["name"], unique = true)])
 data class ArticleTagEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    @ColumnInfo(collate = ColumnInfo.NOCASE) val name: String
+    @ColumnInfo(collate = ColumnInfo.NOCASE) val name: String,
+    val position: Int = 0
 )
 
 @Entity(

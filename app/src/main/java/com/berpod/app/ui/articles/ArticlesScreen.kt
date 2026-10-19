@@ -43,6 +43,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.berpod.app.R
+import com.berpod.app.ui.common.TagMenuButton
+import com.berpod.app.ui.common.TagEditorHost
 import com.berpod.app.data.local.ArticleWithFeed
 import com.berpod.app.ui.common.DeleteTagDialog
 import com.berpod.app.ui.common.EmptyState
@@ -127,6 +129,7 @@ fun ArticlesScreen(
                     } else {
                         DotIconButton(DotIcons.Refresh, stringResource(R.string.action_refresh), viewModel::onRefresh)
                     }
+                    TagMenuButton(articleCategoryTexts(), viewModel.tagEditor::open)
                 }
             }
             if (uiState.hasAnySource) {
@@ -207,6 +210,7 @@ fun ArticlesScreen(
     }
 
     addSourceState?.let { AddSourceSheet(it, viewModel.addSource) }
+    TagEditorHost(viewModel.tagEditor, articleCategoryTexts())
     uiState.renamingTag?.let { tag ->
         RenameTagDialog(tag, uiState.renameError, viewModel::onConfirmRenameTag, viewModel::onDismissRenameTag, articleCategoryTexts())
     }

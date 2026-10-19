@@ -133,4 +133,26 @@ class TagRepositoryTest {
 
         assertEquals(setOf(1L), latest)
     }
+
+    @Test
+    fun `new tags go last instead of into alphabetical place`() = runTest {
+        repository.createTag("Zebra")
+        repository.createTag("Alpha")
+
+        assertEquals(listOf("Zebra", "Alpha"), repository.observeTags().first().map { it.name })
+    }
+
+    @Test
+    fun `reorder puts the tags in the given order and keeps it`() = runTest {
+        val zebra = repository.createTag("Zebra").getOrThrow()
+        val alpha = repository.createTag("Alpha").getOrThrow()
+        val middle = repository.createTag("Middle").getOrThrow()
+
+        repository.reorder(listOf(middle, alpha, zebra))
+
+        assertEquals(listOf("Middle", "Alpha", "Zebra"), repository.observeTags().first().map { it.name })
+        // A tag created afterwards still goes to the end.
+        repository.createTag("Beta")
+        assertEquals(listOf("Middle", "Alpha", "Zebra", "Beta"), repository.observeTags().first().map { it.name })
+    }
 }

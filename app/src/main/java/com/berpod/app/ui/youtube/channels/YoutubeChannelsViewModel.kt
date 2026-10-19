@@ -9,6 +9,7 @@ import com.berpod.app.data.repository.VideoQueueRepository
 import com.berpod.app.data.repository.YoutubeRepository
 import com.berpod.app.data.local.TagEntity
 import com.berpod.app.ui.common.AddFeedController
+import com.berpod.app.ui.common.TagEditorController
 import com.berpod.app.ui.common.TagAssignState
 import com.berpod.app.ui.common.filterByPodcastIds
 import com.berpod.app.ui.common.resolveSelectedTagId
@@ -54,6 +55,16 @@ class YoutubeChannelsViewModel(
 
     private val selectedTagId = MutableStateFlow<Long?>(null)
     private var categoriesJob: Job? = null
+
+    /** The editor of all categories (add, rename, delete, reorder), opened from the title row's menu. */
+    val tagEditor = TagEditorController(
+        scope = viewModelScope,
+        observeTags = { repository.observeTags().map { tags -> tags.map { TagEntity(it.id, it.name) } } },
+        create = repository::createTag,
+        rename = repository::renameTag,
+        delete = repository::deleteTag,
+        reorder = repository::reorderTags
+    )
 
     val addChannel = AddFeedController(
         scope = viewModelScope,
