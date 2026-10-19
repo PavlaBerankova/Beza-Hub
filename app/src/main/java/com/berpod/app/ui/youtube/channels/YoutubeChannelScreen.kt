@@ -38,6 +38,7 @@ import com.berpod.app.ui.common.EmptyState
 import com.berpod.app.ui.common.MarkPlayedSwipe
 import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIcons
+import com.berpod.app.ui.dot.isRecentEpisode
 import com.berpod.app.ui.dot.rememberNowMillis
 import com.berpod.app.ui.dot.upperCs
 import com.berpod.app.ui.theme.DotTheme
@@ -93,7 +94,8 @@ fun YoutubeChannelScreen(viewModelFactory: ViewModelProvider.Factory, onBack: ()
                                 video = item.video,
                                 channelTitle = uiState.channelTitle,
                                 whenLabel = relativeTimeLabel(item.video.pubDateMillis, now),
-                                onClick = { onVideoClick(item.video.id) }
+                                onClick = { onVideoClick(item.video.id) },
+                                isNew = item.video.watchedAtMs == null && !item.video.hiddenFromNew && isRecentEpisode(item.video.pubDateMillis, now)
                             ) {
                                 AddToQueueButton(isQueued) { viewModel.onAddToQueue(item.video.id) }
                             }

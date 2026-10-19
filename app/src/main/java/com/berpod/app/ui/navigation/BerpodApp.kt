@@ -225,7 +225,7 @@ fun BerpodApp(container: AppContainer) {
                 }
                 composable(Screen.YouTube.route) {
                     YoutubeHubScreen(
-                        channelsFactory = YoutubeChannelsViewModel.factory(container.youtubeRepository),
+                        channelsFactory = YoutubeChannelsViewModel.factory(container.youtubeRepository, container.videoQueueRepository),
                         queueFactory = VideoQueueViewModel.factory(
                             container.videoQueueRepository,
                             container.youtubeRepository,

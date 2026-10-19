@@ -23,6 +23,12 @@ class YoutubeRepository(
 
     fun observeVideo(videoId: Long): Flow<VideoWithChannel?> = dao.observeVideo(videoId)
 
+    /** Unwatched videos that still count as new (not hidden, not a channel's back catalogue). */
+    fun observeNewVideos(): Flow<List<VideoWithChannel>> = dao.observeNewVideos()
+
+    /** Leaving a channel's page: what was new there has been seen, so it no longer counts as new. */
+    suspend fun markChannelSeen(channelId: Long) = dao.markChannelSeen(channelId)
+
     fun observeChannels(): Flow<List<YoutubeChannelEntity>> = dao.observeChannels()
 
     fun observeChannelsWithCount(): Flow<List<YoutubeChannelWithCount>> = dao.observeChannelsWithCount()

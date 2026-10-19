@@ -175,3 +175,10 @@ val MIGRATION_11_12 = object : Migration(11, 12) {
         db.execSQL("ALTER TABLE `episodes` ADD COLUMN `hiddenFromNew` INTEGER NOT NULL DEFAULT 0")
     }
 }
+
+/** YouTube: a video can stop counting as new (its channel was seen) without being marked watched. */
+val MIGRATION_12_13 = object : Migration(12, 13) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `youtube_videos` ADD COLUMN `hiddenFromNew` INTEGER NOT NULL DEFAULT 0")
+    }
+}

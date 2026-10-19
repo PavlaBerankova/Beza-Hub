@@ -56,8 +56,7 @@ class NewVideosViewModel(
         val taggedChannelIds = selectedTagId.flatMapLatest { tagId ->
             if (tagId == null) flowOf(null) else youtubeRepository.observeChannelIdsWithTag(tagId).map { it.toSet() }
         }
-        combine(youtubeRepository.observeVideos(), taggedChannelIds) { videos, channelIds ->
-            val unwatched = videos.filter { it.video.watchedAtMs == null }
+        combine(youtubeRepository.observeNewVideos(), taggedChannelIds) { unwatched, channelIds ->
             unwatched to filterByPodcastIds(unwatched, channelIds) { it.video.feedId }
         }
             .onEach { (all, visible) -> _uiState.update { it.copy(videos = visible, hasAnyVideos = all.isNotEmpty()) } }

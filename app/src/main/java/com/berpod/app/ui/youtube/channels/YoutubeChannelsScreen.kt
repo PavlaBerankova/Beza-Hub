@@ -73,7 +73,7 @@ fun YoutubeChannelsScreen(viewModelFactory: ViewModelProvider.Factory, onChannel
                 val unreadTotal = uiState.channels.sumOf { uiState.unreadCounts[it.id] ?: 0 }
                 SectionSeparator(
                     left = czechCount(uiState.channels.size, "kanál", "kanály", "kanálů"),
-                    right = czechCount(unreadTotal, "nezhlédnuté", "nezhlédnutá", "nezhlédnutých"),
+                    right = czechCount(unreadTotal, "nové", "nová", "nových"),
                     modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 16.dp)
                 )
             }

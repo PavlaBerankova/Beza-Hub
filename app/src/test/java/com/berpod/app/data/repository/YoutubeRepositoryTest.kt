@@ -41,6 +41,10 @@ private class FakeYoutubeDao : YoutubeDao {
     }
     override fun observeVideos(): Flow<List<VideoWithChannel>> = emptyFlow()
     override fun observeVideo(videoId: Long): Flow<VideoWithChannel?> = emptyFlow()
+    override fun observeNewVideos(): Flow<List<VideoWithChannel>> = emptyFlow()
+    override suspend fun markChannelSeen(channelId: Long) {
+        videos.replaceAll { if (it.feedId == channelId) it.copy(hiddenFromNew = true) else it }
+    }
     override suspend fun setWatched(videoId: Long, watchedAtMs: Long?) {}
     override suspend fun updatePosition(videoId: Long, positionMs: Long) {}
     override suspend fun updateDuration(videoId: Long, durationMs: Long) {}

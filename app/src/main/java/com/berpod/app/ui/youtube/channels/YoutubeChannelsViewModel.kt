@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.berpod.app.data.local.YoutubeChannelEntity
 import com.berpod.app.data.remote.normalizeChannelUrl
+import com.berpod.app.data.repository.VideoQueueRepository
 import com.berpod.app.data.repository.YoutubeRepository
 import com.berpod.app.data.local.TagEntity
 import com.berpod.app.ui.common.AddFeedController
@@ -30,7 +31,7 @@ data class YoutubeChannelsUiState(
     val channels: List<YoutubeChannelEntity> = emptyList(),
     /** Whether any channel exists at all, independent of the filter. */
     val hasAnyChannels: Boolean = false,
-    /** Unwatched video count per channel id, for the grid's badge. */
+    /** New video count per channel id, for the grid's badge. */
     val unreadCounts: Map<Long, Int> = emptyMap(),
     val tags: List<TagEntity> = emptyList(),
     /** null = "Všechny". */
@@ -43,7 +44,10 @@ data class YoutubeChannelsUiState(
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class YoutubeChannelsViewModel(private val repository: YoutubeRepository) : ViewModel() {
+class YoutubeChannelsViewModel(
+    private val repository: YoutubeRepository,
+    private val videoQueueRepository: VideoQueueRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(YoutubeChannelsUiState())
     val uiState: StateFlow<YoutubeChannelsUiState> = _uiState.asStateFlow()
@@ -73,8 +77,10 @@ class YoutubeChannelsViewModel(private val repository: YoutubeRepository) : View
         }
             .onEach { channels -> _uiState.update { it.copy(channels = channels) } }
             .launchIn(viewModelScope)
-        repository.observeVideos()
-            .map { videos -> videos.filter { it.video.watchedAtMs == null }.groupingBy { it.video.feedId }.eachCount() }
+        // The badge counts what Nové shows for the channel; a queued video has been picked and no longer counts.
+        combine(repository.observeNewVideos(), videoQueueRepository.observeQueuedVideoIds()) { videos, queued ->
+            videos.filter { it.video.id !in queued }.groupingBy { it.video.feedId }.eachCount()
+        }
             .onEach { counts -> _uiState.update { it.copy(unreadCounts = counts) } }
             .launchIn(viewModelScope)
         repository.observeTagsInUse()
@@ -148,9 +154,9 @@ class YoutubeChannelsViewModel(private val repository: YoutubeRepository) : View
     fun onDismissDeleteTag() = _uiState.update { it.copy(deletingTag = null) }
 
     companion object {
-        fun factory(repository: YoutubeRepository) = object : ViewModelProvider.Factory {
+        fun factory(repository: YoutubeRepository, videoQueueRepository: VideoQueueRepository) = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T = YoutubeChannelsViewModel(repository) as T
+            override fun <T : ViewModel> create(modelClass: Class<T>): T = YoutubeChannelsViewModel(repository, videoQueueRepository) as T
         }
     }
 }

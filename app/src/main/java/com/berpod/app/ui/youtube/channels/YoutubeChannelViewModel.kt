@@ -9,6 +9,8 @@ import com.berpod.app.data.repository.YoutubeRepository
 import com.berpod.app.ui.youtube.WatchedUndo
 import com.berpod.app.ui.youtube.markWatched
 import com.berpod.app.ui.youtube.undoMarkWatched
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -46,6 +48,12 @@ class YoutubeChannelViewModel(
         videoQueueRepository.observeQueuedVideoIds()
             .onEach { ids -> _uiState.update { it.copy(queuedVideoIds = ids) } }
             .launchIn(viewModelScope)
+    }
+
+    /** Leaving the page for good: the new videos shown here have been seen. Outlives the view model's own scope. */
+    override fun onCleared() {
+        @OptIn(DelicateCoroutinesApi::class)
+        GlobalScope.launch { runCatching { youtubeRepository.markChannelSeen(channelId) } }
     }
 
     fun onAddToQueue(videoId: Long) {

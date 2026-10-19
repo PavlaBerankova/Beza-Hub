@@ -7,6 +7,12 @@ import androidx.room.Query
 import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 
+/** What counts as "new" for a channel, as for podcasts: published up to a week before the channel was added, or later. */
+private const val NEW_GRACE_MS = 7L * 24 * 60 * 60 * 1000
+
+/** Undated videos fetched by the first sync right after adding count as back catalogue, not as new. */
+private const val FIRST_SYNC_MS = 60_000L
+
 @Dao
 interface YoutubeDao {
 
@@ -51,6 +57,36 @@ interface YoutubeDao {
         """
     )
     fun observeVideos(): Flow<List<VideoWithChannel>>
+
+    /** The new videos: unwatched, not hidden, and not part of the channel's back catalogue. */
+    @Query(
+        """
+        SELECT youtube_videos.*, youtube_channels.title AS channelTitle, youtube_channels.thumbnailUrl AS channelThumbnailUrl
+        FROM youtube_videos
+        INNER JOIN youtube_channels ON youtube_channels.id = youtube_videos.feedId
+        WHERE youtube_videos.watchedAtMs IS NULL
+          AND youtube_videos.hiddenFromNew = 0
+          AND (
+            youtube_videos.pubDateMillis >= youtube_channels.dateAdded - $NEW_GRACE_MS
+            OR (youtube_videos.pubDateMillis IS NULL AND youtube_videos.dateFetched > youtube_channels.dateAdded + $FIRST_SYNC_MS)
+          )
+        ORDER BY youtube_videos.pubDateMillis IS NULL, youtube_videos.pubDateMillis DESC, youtube_videos.id DESC
+        """
+    )
+    fun observeNewVideos(): Flow<List<VideoWithChannel>>
+
+    /** The channel's page was seen: its videos that count as new stop counting (same rule as the list above). */
+    @Query(
+        """
+        UPDATE youtube_videos SET hiddenFromNew = 1
+        WHERE feedId = :channelId AND watchedAtMs IS NULL AND hiddenFromNew = 0
+          AND (
+            pubDateMillis >= (SELECT dateAdded FROM youtube_channels WHERE id = :channelId) - $NEW_GRACE_MS
+            OR (pubDateMillis IS NULL AND dateFetched > (SELECT dateAdded FROM youtube_channels WHERE id = :channelId) + $FIRST_SYNC_MS)
+          )
+        """
+    )
+    suspend fun markChannelSeen(channelId: Long)
 
     @Query(
         """

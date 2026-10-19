@@ -53,7 +53,9 @@ data class YoutubeVideoEntity(
     val durationMs: Long? = null,
     val lastPositionMs: Long = 0L,
     /** When finished or marked "zhlédnuto"; null = not watched. */
-    val watchedAtMs: Long? = null
+    val watchedAtMs: Long? = null,
+    /** Taken out of "new" without being watched: its channel's page was left after it was seen. */
+    val hiddenFromNew: Boolean = false
 )
 
 /** Categories for channels; a set of their own, apart from podcast and article tags. */

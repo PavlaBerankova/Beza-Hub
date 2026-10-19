@@ -23,6 +23,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.berpod.app.R
+import androidx.compose.ui.res.stringResource
 import com.berpod.app.data.local.YoutubeVideoEntity
 import com.berpod.app.ui.dot.DotIcon
 import com.berpod.app.ui.dot.DotIcons
@@ -43,6 +45,8 @@ fun CompactVideoRow(
     whenLabel: String?,
     onClick: () -> Unit,
     showDivider: Boolean = true,
+    /** Shows the "Nové" label after the date (an unwatched, recent video the user has not seen yet). */
+    isNew: Boolean = false,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
     val c = DotTheme.colors
@@ -67,13 +71,25 @@ fun CompactVideoRow(
                 }
             }
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(
-                    listOfNotNull(channelTitle, whenLabel).joinToString(" · ").upperCs(),
-                    style = DotType.meta.copy(fontSize = 10.sp, fontWeight = FontWeight.W600),
-                    color = c.textMuted,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        listOfNotNull(channelTitle, whenLabel).joinToString(" · ").upperCs(),
+                        style = DotType.meta.copy(fontSize = 10.sp, fontWeight = FontWeight.W600),
+                        color = c.textMuted,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+                    if (isNew) {
+                        Text(
+                            stringResource(R.string.badge_new_video).upperCs(),
+                            style = DotType.label.copy(fontSize = 10.sp, fontWeight = FontWeight.W700, letterSpacing = 1.sp),
+                            color = c.onAccent,
+                            maxLines = 1,
+                            modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(c.accent).padding(horizontal = 8.dp, vertical = 3.dp)
+                        )
+                    }
+                }
                 Text(video.title, style = DotType.episodeTitle, color = c.text, maxLines = 3, overflow = TextOverflow.Ellipsis)
                 remainingVideoText(video)?.let {
                     Text(it.upperCs(), style = DotType.chip.copy(fontWeight = FontWeight.W700), color = c.accent, maxLines = 1)
