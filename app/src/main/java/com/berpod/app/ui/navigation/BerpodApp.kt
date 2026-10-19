@@ -194,6 +194,16 @@ fun BerpodApp(container: AppContainer) {
             }
         ) { paddingValues ->
             val openEpisode: (Long) -> Unit = { id -> navController.navigate(Screen.EpisodeDetail.createRoute(id)) }
+            // Podcasty › Fronta, from wherever the user is (the player, a podcast's page).
+            val openQueue: () -> Unit = {
+                podcastsSection = PodcastsSection.Queue
+                if (!navController.popBackStack(Screen.Podcasts.route, inclusive = false)) {
+                    navController.navigate(Screen.Podcasts.route) {
+                        popUpTo(navController.graph.startDestinationId)
+                        launchSingleTop = true
+                    }
+                }
+            }
             val openVideo: (Long) -> Unit = { id -> navController.navigate(Screen.YoutubeVideo.createRoute(id)) }
             NavHost(
                 navController = navController,
@@ -295,7 +305,8 @@ fun BerpodApp(container: AppContainer) {
                             feedId
                         ),
                         onBack = { navController.popBackStack() },
-                        onEpisodeClick = openEpisode
+                        onEpisodeClick = openEpisode,
+                        onOpenQueue = openQueue
                     )
                 }
                 composable(
@@ -332,15 +343,7 @@ fun BerpodApp(container: AppContainer) {
                         // From the player, so "back" comes home to it.
                         onOpenPodcast = { feedId -> navController.navigate(Screen.PodcastEpisodes.createRoute(feedId)) },
                         onOpenEpisode = openEpisode,
-                        onOpenQueue = {
-                            podcastsSection = PodcastsSection.Queue
-                            if (!navController.popBackStack(Screen.Podcasts.route, inclusive = false)) {
-                                navController.navigate(Screen.Podcasts.route) {
-                                    popUpTo(navController.graph.startDestinationId)
-                                    launchSingleTop = true
-                                }
-                            }
-                        }
+                        onOpenQueue = openQueue
                     )
                 }
                 composable(

@@ -273,4 +273,11 @@
     <string name="tag_editor_hint">Pořadí změníte přetažením za úchyt. Štítky se v řádku seřadí stejně.</string>
     <string name="action_drag_to_reorder">Přetáhnout</string>
     <string name="action_more_options">Další možnosti</string>
+    <string name="action_open_queue">Přejít do fronty</string>
+    <string name="in_browser_button">V prohlížeči</string>
+    <string name="action_open_in_youtube">Otevřít v aplikaci YouTube</string>
+    <string name="choose_browser">Otevřít v prohlížeči</string>
+    <string name="status_not_watched">Nezhlédnuto</string>
+    <string name="watched_undo_hint">Klepnutím vrátíte zpět</string>
+    <string name="video_label">Video</string>
 </resources>

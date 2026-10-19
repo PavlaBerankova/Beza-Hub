@@ -31,6 +31,12 @@ data class VideoDetailUiState(
     val snackbarMessage: String? = null
 )
 
+/**
+ * Whether a video plays inside the app (the embedded player). Switched off for now: the detail only shows the video's
+ * page and opens it in the YouTube app or in a browser. Everything for the embedded player stays in the code.
+ */
+const val IN_APP_VIDEO_PLAYBACK = false
+
 class VideoDetailViewModel(
     private val youtubeRepository: YoutubeRepository,
     private val videoQueueRepository: VideoQueueRepository,
@@ -51,7 +57,7 @@ class VideoDetailViewModel(
         youtubeRepository.observeVideo(videoId)
             .onEach { item ->
                 _uiState.update { it.copy(isLoaded = true, item = item, isWatched = item?.video?.watchedAtMs != null).withPlayback() }
-                if (!autoPlayed && item != null) {
+                if (IN_APP_VIDEO_PLAYBACK && !autoPlayed && item != null) {
                     autoPlayed = true
                     playbackRepository.play(item.video)
                 }

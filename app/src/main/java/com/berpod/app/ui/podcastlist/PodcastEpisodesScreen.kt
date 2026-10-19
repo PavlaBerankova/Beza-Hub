@@ -63,7 +63,7 @@ import com.berpod.app.ui.theme.LocalDarkTheme
 import com.berpod.app.ui.theme.DotType
 
 @Composable
-fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: () -> Unit, onEpisodeClick: (Long) -> Unit) {
+fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: () -> Unit, onEpisodeClick: (Long) -> Unit, onOpenQueue: () -> Unit) {
     val viewModel: PodcastEpisodesViewModel = viewModel(factory = viewModelFactory)
     val uiState by viewModel.uiState.collectAsState()
     val tagAssignState by viewModel.tagAssignment.state.collectAsState()
@@ -163,6 +163,7 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                         onBack = onBack,
                         onTagClick = viewModel::onOpenTagDialog,
                         onRefresh = viewModel::onRefresh,
+                        onOpenQueue = onOpenQueue,
                         menu = menu,
                         episodeCount = uiState.episodes.size,
                         frequency = frequency,
@@ -239,6 +240,7 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.weight(1f).padding(horizontal = 4.dp)
                         )
+                        DotIconButton(DotIcons.QueueList, stringResource(R.string.action_open_queue), onOpenQueue)
                         DotIconButton(DotIcons.Tag, stringResource(R.string.action_manage_tags), viewModel::onOpenTagDialog)
                         if (uiState.isRefreshing) {
                             Box(Modifier.size(44.dp), contentAlignment = Alignment.Center) {
