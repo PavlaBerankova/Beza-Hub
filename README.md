@@ -22,7 +22,7 @@ Design a logika jsou ale plně moje. Vzhled, rozložení obrazovek, barvy, chov�
 - **Štítky**: podcasty se dají třídit do vlastních kategorií a podle nich filtrovat.
 - **Fronta**: přetahováním řazená fronta k poslechu, přepínání nejnovější/nejstarší, filtr podle štítku.
 - **Řádek epizody** (podle Apple Podcasts): malá obálka, datum, název, tlačítko přehrát s časem, který zbývá, a vpravo menu **⋯** se vším, co se s epizodou dá dělat: stáhnout, přidat do fronty nebo odebrat z fronty, označit jako přehranou nebo nepřehranou, otevřít detail epizody nebo podcastu.
-- **Nové**: epizody, které jste ještě neslyšela, s filtrem období (dnes, týden, 14 dní, měsíc). Epizodu lze z Nových jen odebrat (menu ⋯ → *Odebrat z nových*), aniž by se označila jako přehraná.
+- **Nové epizody**: zvlášť záložka není, nové epizody poznáte podle odznaku s počtem na obálce podcastu a podle štítku *NOVÁ* u epizody v detailu podcastu. Při přidání podcastu se jeho starší epizody za nové nepočítají. Epizodu lze z nových odebrat (menu ⋯ → *Odebrat z nových*), aniž by se označila jako přehraná.
 - **Detail podcastu**: přepínání filtru *vše / nepřehrané / přehrané* a řazení jedním klepnutím; v menu hromadné označení epizod jako přehrané nebo nepřehrané, úprava adresy RSS a smazání podcastu.
 - **Detail epizody**: popis, **kapitoly** z popisku (klepnutím se skočí na místo v epizodě), sdílení.
 - **Přehrávač**: minipřehrávač i celá obrazovka, přehrávání na pozadí a z notifikace, posun o 15 s zpět a o 30 s vpřed, rychlost, **časovač spánku**, po spuštění aplikace se hned obnoví naposledy puštěná epizoda tam, kde jsem skončila.
