@@ -125,6 +125,12 @@
     <string name="articles_empty">Zatím žádné zdroje</string>
     <string name="articles_empty_subtitle">Přidejte web nebo RSS tlačítkem +</string>
     <string name="articles_filter_empty">V této kategorii nejsou žádné články</string>
+    <string name="articles_period_all">Všechny články</string>
+    <string name="articles_period_today">Dnešní články</string>
+    <string name="articles_period_week">Za posledních 7 dní</string>
+    <string name="articles_period_month">Za poslední měsíc</string>
+    <string name="articles_period_empty">V tomto období nejsou žádné články</string>
+    <string name="articles_period_empty_hint">Zvolte delší období</string>
     <string name="delete_source_title">Smazat zdroj</string>
     <string name="delete_source_message">Zdroj „%1$s“ zmizí i se všemi svými články.</string>
     <string name="action_delete_source">Smazat zdroj %1$s</string>

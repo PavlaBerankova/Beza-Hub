@@ -10,6 +10,8 @@ import com.berpod.app.ui.common.AddFeedController
 import com.berpod.app.ui.common.TagEditorController
 import com.berpod.app.ui.common.filterByPodcastIds
 import com.berpod.app.ui.common.resolveSelectedTagId
+import com.berpod.app.ui.newepisodes.NewPeriod
+import com.berpod.app.ui.newepisodes.filterByPeriod
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,6 +36,8 @@ data class ArticlesUiState(
     /** Categories some source has, as tags so the shared chip row can show them. */
     val tags: List<TagEntity> = emptyList(),
     val selectedTagId: Long? = null,
+    /** How far back the list reaches; the filter button steps through it. */
+    val period: NewPeriod = NewPeriod.All,
     val isRefreshing: Boolean = false,
     val renamingTag: TagEntity? = null,
     val renameError: String? = null,
@@ -48,6 +52,7 @@ class ArticlesViewModel(private val repository: ArticleRepository) : ViewModel()
     val uiState: StateFlow<ArticlesUiState> = _uiState.asStateFlow()
 
     private val selectedTagId = MutableStateFlow<Long?>(null)
+    private val period = MutableStateFlow(NewPeriod.All)
 
     /** The editor of all categories (add, rename, delete, reorder), opened from the title row's menu. */
     val tagEditor = TagEditorController(
@@ -72,8 +77,8 @@ class ArticlesViewModel(private val repository: ArticleRepository) : ViewModel()
         val taggedFeedIds = selectedTagId.flatMapLatest { tagId ->
             if (tagId == null) flowOf(null) else repository.observeFeedIdsWithTag(tagId).map { it.toSet() }
         }
-        combine(repository.observeArticles(), taggedFeedIds) { articles, feedIds ->
-            filterByPodcastIds(articles, feedIds) { it.article.feedId }
+        combine(repository.observeArticles(), taggedFeedIds, period) { articles, feedIds, selectedPeriod ->
+            filterByPeriod(filterByPodcastIds(articles, feedIds) { it.article.feedId }, selectedPeriod, System.currentTimeMillis()) { it.article.pubDateMillis }
         }
             .onEach { visible ->
                 val (unread, read) = unreadFirst(visible) { it.article.readAtMs == null }
@@ -114,6 +119,12 @@ class ArticlesViewModel(private val repository: ArticleRepository) : ViewModel()
     fun onSelectTag(tagId: Long?) {
         selectedTagId.value = tagId
         _uiState.update { it.copy(selectedTagId = tagId) }
+    }
+
+    fun onCyclePeriod() {
+        val next = nextArticlePeriod(period.value)
+        period.value = next
+        _uiState.update { it.copy(period = next) }
     }
 
     fun onToggleRead(item: ArticleWithFeed) {

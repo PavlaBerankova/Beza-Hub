@@ -19,6 +19,9 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.foundation.layout.offset
+import com.berpod.app.ui.dot.DotFilterButton
+import com.berpod.app.ui.newepisodes.NewPeriod
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -164,11 +167,32 @@ fun ArticlesScreen(
                     )
                 }
             }
+            if (uiState.hasAnySource) {
+                // "[VŠECHNY ČLÁNKY ⌄] ———": each tap steps through how far back the list reaches.
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // DotFilterButton pads its start; pulled back so the label lines up with the page edge.
+                    DotFilterButton(
+                        stringResource(uiState.period.articleTitleRes()),
+                        highlighted = uiState.period != NewPeriod.All,
+                        onClick = viewModel::onCyclePeriod,
+                        modifier = Modifier.offset(x = (-10).dp)
+                    )
+                    HorizontalDivider(modifier = Modifier.weight(1f), color = c.divider)
+                }
+            }
             when {
                 !uiState.hasAnySource -> EmptyState(
                     icon = DotIcons.Articles,
                     title = stringResource(R.string.articles_empty),
                     subtitle = stringResource(R.string.articles_empty_subtitle)
+                )
+                uiState.unreadArticles.isEmpty() && uiState.readArticles.isEmpty() && uiState.period != NewPeriod.All -> EmptyState(
+                    icon = DotIcons.Articles,
+                    title = stringResource(R.string.articles_period_empty),
+                    subtitle = stringResource(R.string.articles_period_empty_hint)
                 )
                 uiState.unreadArticles.isEmpty() && uiState.readArticles.isEmpty() -> EmptyState(
                     icon = DotIcons.Tag,
