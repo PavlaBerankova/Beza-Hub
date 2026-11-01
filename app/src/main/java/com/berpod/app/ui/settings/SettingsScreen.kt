@@ -70,6 +70,13 @@ fun SettingsScreen(downloadSettings: DownloadSettings, downloadRepository: Downl
             val wifiOnly by downloadSettings.wifiOnly.collectAsState()
             val deleteAfterPlayed by downloadSettings.deleteAfterPlayed.collectAsState()
             val storage by downloadRepository.storage.collectAsState(DownloadStorage(0, 0))
+            val autoOnQueue by downloadSettings.autoDownloadOnQueue.collectAsState()
+            SettingsSwitchRow(
+                title = stringResource(R.string.settings_downloads_auto),
+                hint = stringResource(R.string.settings_downloads_auto_hint),
+                checked = autoOnQueue,
+                onCheckedChange = downloadSettings::setAutoDownloadOnQueue
+            )
             SettingsSwitchRow(
                 title = stringResource(R.string.settings_downloads_wifi),
                 hint = stringResource(R.string.settings_downloads_wifi_hint),

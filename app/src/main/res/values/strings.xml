@@ -260,6 +260,8 @@
     <string name="settings_downloads">Stahování</string>
     <string name="settings_downloads_wifi">Stahovat jen přes Wi-Fi</string>
     <string name="settings_downloads_wifi_hint">Na mobilních datech se epizody nestáhnou.</string>
+    <string name="settings_downloads_auto">Stahovat po přidání do fronty</string>
+    <string name="settings_downloads_auto_hint">Epizoda se po přidání do fronty sama stáhne (podle volby Wi-Fi níže).</string>
     <string name="settings_downloads_delete">Smazat po dohrání</string>
     <string name="settings_downloads_delete_hint">Stažená epizoda se po přehrání odstraní z telefonu.</string>
     <string name="settings_downloads_stored">Staženo v telefonu</string>

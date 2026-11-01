@@ -77,7 +77,10 @@ class DefaultAppContainer(context: Context) : AppContainer {
     }
 
     override val queueRepository: QueueRepository by lazy {
-        QueueRepository(database.queueDao())
+        QueueRepository(
+            database.queueDao(),
+            onAdded = { id -> if (downloadSettings.autoDownloadOnQueue.value) downloadRepository.download(id) }
+        )
     }
 
 

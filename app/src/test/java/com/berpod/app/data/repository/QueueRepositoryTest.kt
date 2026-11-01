@@ -167,4 +167,40 @@ class QueueRepositoryTest {
         assertEquals(listOf(1001L, 1002L, 1003L), dao.episodeOrder())
         assertEquals(null, repository.removeEpisode(9999))
     }
+
+    @Test
+    fun `addToQueue calls the hook once with the episode id`() = runTest {
+        val added = mutableListOf<Long>()
+        val repository = QueueRepository(queueOf(1), onAdded = { added += it })
+
+        assertEquals(true, repository.addToQueue(555).isSuccess)
+        assertEquals(listOf(555L), added)
+    }
+
+    @Test
+    fun `addToQueue of an already queued episode fails and does not call the hook`() = runTest {
+        val added = mutableListOf<Long>()
+        val repository = QueueRepository(queueOf(1), onAdded = { added += it })
+
+        assertEquals(true, repository.addToQueue(1001).isFailure)
+        assertEquals(emptyList<Long>(), added)
+    }
+
+    @Test
+    fun `a throwing hook does not fail addToQueue`() = runTest {
+        val dao = queueOf(1)
+        val repository = QueueRepository(dao, onAdded = { throw IllegalStateException("no storage") })
+
+        assertEquals(true, repository.addToQueue(555).isSuccess)
+        assertEquals(listOf(1001L, 555L), dao.episodeOrder())
+    }
+
+    @Test
+    fun `queueAtFront does not call the hook`() = runTest {
+        val added = mutableListOf<Long>()
+        val repository = QueueRepository(queueOf(1), onAdded = { added += it })
+
+        repository.queueAtFront(555)
+        assertEquals(emptyList<Long>(), added)
+    }
 }

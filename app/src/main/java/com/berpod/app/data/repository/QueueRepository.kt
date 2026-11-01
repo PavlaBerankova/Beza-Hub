@@ -7,7 +7,14 @@ import com.berpod.app.data.local.RemovedQueueEntry
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class QueueRepository(private val queueDao: QueueDao) {
+/**
+ * [onAdded] runs after an episode was added with [addToQueue] (not when it only jumps to the front to be played);
+ * a failure in it never fails the add.
+ */
+class QueueRepository(
+    private val queueDao: QueueDao,
+    private val onAdded: suspend (episodeId: Long) -> Unit = {}
+) {
 
     fun observeQueue(): Flow<List<QueueItemWithEpisode>> = queueDao.observeQueue()
 
@@ -15,6 +22,7 @@ class QueueRepository(private val queueDao: QueueDao) {
         require(!queueDao.isQueued(episodeId)) { "Epizoda už je ve frontě" }
         val nextPosition = queueDao.getMaxPosition() + 1
         queueDao.insert(QueueEntryEntity(episodeId = episodeId, position = nextPosition, dateAdded = System.currentTimeMillis()))
+        runCatching { onAdded(episodeId) }
     }
 
     fun observeQueuedEpisodeIds(): Flow<Set<Long>> = queueDao.observeQueuedEpisodeIds().map { it.toSet() }
