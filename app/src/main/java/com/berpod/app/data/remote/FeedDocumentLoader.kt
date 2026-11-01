@@ -9,6 +9,9 @@ import java.net.HttpURLConnection
 import java.net.URI
 import java.nio.charset.Charset
 
+/** The server sent more than the app is willing to read as a feed. */
+class ResponseTooLargeException : IOException("Odpověď je příliš velká")
+
 /** A downloaded feed: the address it really came from (after redirects) and its XML. */
 data class FeedDocument(val url: String, val text: String)
 
@@ -64,7 +67,7 @@ class FeedDocumentLoader {
         while (true) {
             val read = input.read(buffer)
             if (read < 0) break
-            if (out.size() + read > limit) throw IOException("Odpověď je příliš velká")
+            if (out.size() + read > limit) throw ResponseTooLargeException()
             out.write(buffer, 0, read)
         }
         return out.toByteArray()

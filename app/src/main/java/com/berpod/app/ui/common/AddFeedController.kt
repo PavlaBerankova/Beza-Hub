@@ -1,6 +1,7 @@
 package com.berpod.app.ui.common
 
 import com.berpod.app.data.local.TagEntity
+import com.berpod.app.data.remote.ResponseTooLargeException
 import com.berpod.app.data.remote.normalizeSourceUrl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -21,6 +22,7 @@ import java.net.UnknownHostException
 fun feedLookupMessage(error: Throwable): String = when (error) {
     is UnknownHostException -> "Adresa neexistuje nebo není dostupná"
     is SocketTimeoutException -> "Server neodpovídá"
+    is ResponseTooLargeException -> "Odpověď serveru je příliš velká na to, aby šlo o RSS zdroj"
     is IOException -> "Nepodařilo se připojit k serveru"
     else -> error.message?.takeIf { it.isNotBlank() } ?: "Nepodařilo se načíst"
 }

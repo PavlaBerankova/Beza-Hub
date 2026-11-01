@@ -1,5 +1,6 @@
 package com.berpod.app.ui.common
 
+import com.berpod.app.data.remote.ResponseTooLargeException
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.io.IOException
@@ -16,6 +17,10 @@ class FeedLookupMessageTest {
         )
         assertEquals("Server neodpovídá", feedLookupMessage(SocketTimeoutException("timeout")))
         assertEquals("Nepodařilo se připojit k serveru", feedLookupMessage(IOException("broken pipe")))
+        assertEquals(
+            "Odpověď serveru je příliš velká na to, aby šlo o RSS zdroj",
+            feedLookupMessage(ResponseTooLargeException())
+        )
     }
 
     @Test
