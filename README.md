@@ -23,17 +23,17 @@ Design a logika jsou ale plně moje. Vzhled, rozložení obrazovek, barvy, chov�
 - **Fronta**: přetahováním řazená fronta k poslechu, přepínání nejnovější/nejstarší, filtr podle štítku.
 - **Řádek epizody** (podle Apple Podcasts): malá obálka, datum, název, tlačítko přehrát s časem, který zbývá, a vpravo menu **⋯** se vším, co se s epizodou dá dělat: stáhnout, přidat do fronty nebo odebrat z fronty, označit jako přehranou nebo nepřehranou, otevřít detail epizody nebo podcastu.
 - **Nové epizody**: zvlášť záložka není, nové epizody poznáte podle odznaku s počtem na obálce podcastu a podle štítku *NOVÁ* u epizody v detailu podcastu. Při přidání podcastu se jeho starší epizody za nové nepočítají. Epizodu lze z nových odebrat (menu ⋯ → *Odebrat z nových*), aniž by se označila jako přehraná.
-- **Detail podcastu**: přepínání filtru *vše / nepřehrané / přehrané* a řazení jedním klepnutím; v menu hromadné označení epizod jako přehrané nebo nepřehrané, úprava adresy RSS a smazání podcastu.
+- **Detail podcastu**: přepínání filtru *vše / nepřehrané / přehrané* a řazení jedním klepnutím; v menu hromadné označení epizod jako přehrané nebo nepřehrané, úprava adresy RSS, smazání podcastu a **vlastní odkaz** s vlastním názvem (např. na správu placeného předplatného), který se otevře v prohlížeči.
 - **Detail epizody**: popis, **kapitoly** z popisku (klepnutím se skočí na místo v epizodě), sdílení.
 - **Přehrávač**: minipřehrávač i celá obrazovka, přehrávání na pozadí a z notifikace, posun o 15 s zpět a o 30 s vpřed, rychlost, **časovač spánku**, po spuštění aplikace se hned obnoví naposledy puštěná epizoda tam, kde jsem skončila.
-- **Stahování pro offline poslech**: tlačítkem v detailu epizody, v menu ⋯ u epizody nebo swipem doleva ve frontě; stahuje se na pozadí a umí pokračovat po přerušení. Výchozí je jen přes Wi-Fi a po dohrání se epizoda sama smaže (obojí jde v nastavení změnit).
+- **Stahování pro offline poslech**: tlačítkem v detailu epizody, v menu ⋯ u epizody nebo swipem doleva ve frontě; stahuje se na pozadí a umí pokračovat po přerušení. Epizoda se **stáhne sama i při přidání do fronty**. Výchozí je stahovat jen přes Wi-Fi a po dohrání epizodu automaticky smazat (všechno jde v nastavení vypnout).
 - **Gesta**: swipe doprava označí epizodu jako přehranou, swipe doleva ve frontě ji stáhne.
 
 ### YouTube
 Kanály, nová videa, fronta videí a přehrávání přímo v aplikaci. Sledují se přes RSS, takže není potřeba žádný účet ani API klíč.
 
 ### Články
-Odběr RSS zdrojů blogů a webů, seznam článků a čtečka s upraveným zobrazením.
+Odběr RSS zdrojů blogů a webů, seznam článků, **filtr podle data** (dnes / týden / měsíc, jedním klepnutím, kombinuje se se štítky) a čtečka s upraveným zobrazením.
 
 ### Nastavení a vzhled
 - Světlý a tmavý režim (dokud ho nepřepnu, řídí se telefonem).
