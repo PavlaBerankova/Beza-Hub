@@ -40,19 +40,19 @@ class ArticleFeedLoader(
     }
 
     private fun toFeed(feedUrl: String, channel: RssChannel): ParsedArticleFeed {
-        val siteUrl = channel.link?.takeIf { it.isNotBlank() }
+        val siteUrl = webUrlOrNull(channel.link)
         return ParsedArticleFeed(
             feedUrl = feedUrl,
             title = channel.title?.trim()?.takeIf { it.isNotEmpty() } ?: siteUrl?.let(::hostOf) ?: hostOf(feedUrl),
             siteUrl = siteUrl,
-            imageUrl = channel.image?.url,
+            imageUrl = webUrlOrNull(channel.image?.url),
             articles = channel.items.mapNotNull(::toArticle)
         )
     }
 
     private fun toArticle(item: RssItem): ParsedArticle? {
         val title = item.title?.trim()?.takeIf { it.isNotEmpty() } ?: return null
-        val link = item.link?.trim()?.takeIf { it.isNotEmpty() }
+        val link = webUrlOrNull(item.link)
         return ParsedArticle(
             guid = item.guid?.takeIf { it.isNotBlank() } ?: link ?: "fallback:${(title + item.pubDate.orEmpty()).hashCode()}",
             title = title,

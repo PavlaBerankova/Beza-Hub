@@ -49,6 +49,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalUriHandler
+import com.berpod.app.data.remote.webUrlOrNull
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.customActions
@@ -136,7 +137,7 @@ fun VideoQueueScreen(viewModelFactory: ViewModelProvider.Factory, onVideoClick: 
                             .height(50.dp)
                             .clip(RoundedCornerShape(14.dp))
                             .border(1.dp, c.outline, RoundedCornerShape(14.dp))
-                            .clickable { uriHandler.openUri(first.video.videoUrl) },
+                            .clickable { webUrlOrNull(first.video.videoUrl)?.let(uriHandler::openUri) },
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
                     ) {

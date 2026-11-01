@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalUriHandler
+import com.berpod.app.data.remote.webUrlOrNull
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
@@ -61,7 +62,7 @@ fun ArticleReaderScreen(
     val uiState by viewModel.uiState.collectAsState()
     val c = DotTheme.colors
     val uriHandler = LocalUriHandler.current
-    val link = uiState.item?.article?.link
+    val link = webUrlOrNull(uiState.item?.article?.link)
 
     Column(
         modifier = Modifier

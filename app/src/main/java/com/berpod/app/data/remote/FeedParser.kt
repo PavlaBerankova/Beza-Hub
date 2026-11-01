@@ -70,7 +70,7 @@ class FeedParser(
     private suspend fun toParsedMeta(document: FeedDocument): ParsedFeedMeta {
         val channel = rssParser.parse(document.text)
         val title = channel.title?.takeIf { it.isNotBlank() } ?: document.url
-        val imageUrl = channel.image?.url ?: channel.itunesChannelData?.image
+        val imageUrl = webUrlOrNull(channel.image?.url ?: channel.itunesChannelData?.image)
         val description = channel.description?.takeIf { it.isNotBlank() }
             ?: channel.itunesChannelData?.summary
         val episodes = channel.items.mapNotNull(::toParsedEpisode)
@@ -80,7 +80,7 @@ class FeedParser(
 
     private fun toParsedEpisode(item: RssItem): ParsedEpisode? {
         val title = item.title?.takeIf { it.isNotBlank() } ?: return null
-        val audioUrl = (item.audio ?: item.rawEnclosure?.url)?.takeIf { it.isNotBlank() } ?: return null
+        val audioUrl = webUrlOrNull(item.audio ?: item.rawEnclosure?.url) ?: return null
         val guid = item.guid?.takeIf { it.isNotBlank() }
             ?: item.link?.takeIf { it.isNotBlank() }
             ?: "fallback:${(title + item.pubDate.orEmpty()).hashCode()}"
@@ -91,7 +91,7 @@ class FeedParser(
             pubDateMillis = item.pubDate?.let(::parseFeedDateMillis),
             durationSeconds = item.itunesItemData?.duration?.let(::parseItunesDuration),
             description = item.description?.takeIf { it.isNotBlank() } ?: item.itunesItemData?.summary,
-            imageUrl = item.image ?: item.itunesItemData?.image,
+            imageUrl = webUrlOrNull(item.image ?: item.itunesItemData?.image),
             episodeNumber = item.itunesItemData?.episode?.trim()?.toIntOrNull(),
             fileSizeBytes = item.rawEnclosure?.length?.takeIf { it > 0 }
         )

@@ -14,6 +14,9 @@ fun normalizeChannelUrl(raw: String): String? {
     return normalizeSourceUrl(trimmed)
 }
 
+/** What a YouTube video id looks like; it ends up in the player's JavaScript, so nothing else may pass. */
+private val youtubeIdPattern = Regex("[A-Za-z0-9_-]{6,20}")
+
 data class ParsedYoutubeVideo(
     val guid: String,
     val title: String,
@@ -58,21 +61,21 @@ class YoutubeChannelLoader(
             channelId = channelId,
             title = channel.title?.trim()?.takeIf { it.isNotEmpty() } ?: hostOf(feedUrl),
             channelUrl = channelId?.let { "https://www.youtube.com/channel/$it" },
-            thumbnailUrl = channel.image?.url,
+            thumbnailUrl = webUrlOrNull(channel.image?.url),
             videos = videos
         )
     }
 
     private fun toVideo(item: RssItem): ParsedYoutubeVideo? {
         val data = item.youtubeItemData ?: return null
-        val videoId = data.videoId?.takeIf { it.isNotBlank() } ?: return null
+        val videoId = data.videoId?.trim()?.takeIf { youtubeIdPattern.matches(it) } ?: return null
         val title = (data.title ?: item.title)?.trim()?.takeIf { it.isNotEmpty() } ?: return null
         return ParsedYoutubeVideo(
             guid = item.guid?.takeIf { it.isNotBlank() } ?: videoId,
             title = title,
             videoId = videoId,
-            videoUrl = data.videoUrl?.takeIf { it.isNotBlank() } ?: "https://www.youtube.com/watch?v=$videoId",
-            thumbnailUrl = data.thumbnailUrl,
+            videoUrl = webUrlOrNull(data.videoUrl) ?: "https://www.youtube.com/watch?v=$videoId",
+            thumbnailUrl = webUrlOrNull(data.thumbnailUrl),
             description = data.description?.takeIf { it.isNotBlank() },
             pubDateMillis = item.pubDate?.let(::parseFeedDateMillis)
         )

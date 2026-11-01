@@ -2,6 +2,9 @@ package com.berpod.app.data.remote
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URI
 import java.nio.charset.Charset
@@ -27,7 +30,8 @@ class FeedDocumentLoader {
 
     /** GET with redirects followed across http/https (HttpURLConnection alone won't switch protocols). */
     private suspend fun download(url: String): FeedDocument = withContext(Dispatchers.IO) {
-        var current = url
+        require(isWebUrl(url)) { "Adresa musí začínat http:// nebo https://" }
+        var current = url.trim()
         repeat(5) {
             val connection = (URI(current).toURL().openConnection() as HttpURLConnection).apply {
                 instanceFollowRedirects = false
@@ -40,17 +44,30 @@ class FeedDocumentLoader {
                 val code = connection.responseCode
                 if (code in 300..399) {
                     val location = connection.getHeaderField("Location") ?: throw IllegalStateException("Přesměrování bez adresy")
-                    current = URI(current).resolve(location).toString()
+                    current = redirectTarget(current, location)
                     return@repeat
                 }
                 require(code in 200..299) { "Server odpověděl chybou $code" }
-                val bytes = connection.inputStream.use { it.readBytes() }
+                val bytes = connection.inputStream.use { readLimited(it, MAX_FEED_BYTES) }
                 return@withContext FeedDocument(current, decode(bytes, connection.contentType))
             } finally {
                 connection.disconnect()
             }
         }
         throw IllegalStateException("Příliš mnoho přesměrování")
+    }
+
+    /** Reads the whole stream, but gives up beyond [limit] bytes so a hostile server can't fill the memory. */
+    private fun readLimited(input: InputStream, limit: Int): ByteArray {
+        val out = ByteArrayOutputStream()
+        val buffer = ByteArray(16 * 1024)
+        while (true) {
+            val read = input.read(buffer)
+            if (read < 0) break
+            if (out.size() + read > limit) throw IOException("Odpověď je příliš velká")
+            out.write(buffer, 0, read)
+        }
+        return out.toByteArray()
     }
 
     private fun decode(bytes: ByteArray, contentType: String?): String {
@@ -60,4 +77,7 @@ class FeedDocumentLoader {
         return String(bytes, charset)
     }
 
+    private companion object {
+        const val MAX_FEED_BYTES = 20 * 1024 * 1024
+    }
 }
