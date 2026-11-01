@@ -52,6 +52,11 @@ class PodcastRepository(
     }
 
     /** Resolves and adds in one step. */
+    /** Saves the podcast's custom link; a null [url] removes it (and its title). */
+    suspend fun setLink(feedId: Long, title: String?, url: String?) {
+        if (url == null) dao.updateLink(feedId, null, null) else dao.updateLink(feedId, title, url)
+    }
+
     /** Deletes the podcast; its episodes, queue entries, tags and download rows go with it (cascading deletes). */
     suspend fun deleteFeed(feedId: Long) {
         dao.getById(feedId)?.let { dao.delete(it) }

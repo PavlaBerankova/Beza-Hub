@@ -62,6 +62,11 @@ class PodcastMenuActions(
     val onMarkAllPlayed: () -> Unit,
     val onMarkAllUnplayed: () -> Unit,
     val onEditRss: () -> Unit,
+    /** The custom link's name, or null while the podcast has none. */
+    val linkLabel: String?,
+    val onOpenLink: () -> Unit,
+    val onEditLink: () -> Unit,
+    val onRemoveLink: () -> Unit,
     val onDelete: () -> Unit
 )
 
@@ -76,6 +81,25 @@ fun PodcastMoreMenu(actions: PodcastMenuActions) {
                 text = { Text(stringResource(R.string.action_edit_rss)) },
                 onClick = { expanded = false; actions.onEditRss() }
             )
+            if (actions.linkLabel == null) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.action_add_link)) },
+                    onClick = { expanded = false; actions.onEditLink() }
+                )
+            } else {
+                DropdownMenuItem(
+                    text = { Text(actions.linkLabel, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                    onClick = { expanded = false; actions.onOpenLink() }
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.action_edit_link)) },
+                    onClick = { expanded = false; actions.onEditLink() }
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.action_remove_link)) },
+                    onClick = { expanded = false; actions.onRemoveLink() }
+                )
+            }
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.action_mark_all_played)) },
                 enabled = actions.hasUnplayed,

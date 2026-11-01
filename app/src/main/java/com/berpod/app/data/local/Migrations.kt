@@ -196,3 +196,11 @@ val MIGRATION_13_14 = object : Migration(13, 14) {
         }
     }
 }
+
+/** Podcasts can carry one custom link (e.g. to manage a paid subscription) with a name of its own. */
+val MIGRATION_14_15 = object : Migration(14, 15) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `podcast_feeds` ADD COLUMN `linkTitle` TEXT")
+        db.execSQL("ALTER TABLE `podcast_feeds` ADD COLUMN `linkUrl` TEXT")
+    }
+}

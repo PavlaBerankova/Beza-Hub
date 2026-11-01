@@ -28,6 +28,10 @@ private class FakeDao : PodcastFeedDao {
         state.value = state.value.map { if (it.id == feedId) it.copy(rssUrl = rssUrl) else it }
     }
 
+    override suspend fun updateLink(feedId: Long, title: String?, url: String?) {
+        state.value = state.value.map { if (it.id == feedId) it.copy(linkTitle = title, linkUrl = url) else it }
+    }
+
     override suspend fun insert(feed: PodcastFeedEntity): Long {
         val withId = feed.copy(id = nextId++)
         state.value = state.value + withId
@@ -149,6 +153,21 @@ class PodcastRepositoryTest {
 
         assertEquals("https://example.com/fixed.xml", dao.getById(id)?.rssUrl)
         assertEquals("Fake Podcast", dao.getById(id)?.title)
+    }
+
+    @Test
+    fun `setLink saves a titled link and a null url removes both`() = runTest {
+        val dao = FakeDao()
+        val repository = PodcastRepository(dao, FakeFeedFetcher())
+        val id = repository.addFeed("https://example.com/feed.xml").getOrThrow()
+
+        repository.setLink(id, "Forendors – předplatné", "https://forendors.cz/x")
+        assertEquals("Forendors – předplatné", dao.getById(id)?.linkTitle)
+        assertEquals("https://forendors.cz/x", dao.getById(id)?.linkUrl)
+
+        repository.setLink(id, "ignored", null)
+        assertEquals(null, dao.getById(id)?.linkTitle)
+        assertEquals(null, dao.getById(id)?.linkUrl)
     }
 
     @Test

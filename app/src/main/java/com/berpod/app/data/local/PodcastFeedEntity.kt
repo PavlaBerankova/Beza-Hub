@@ -16,5 +16,8 @@ data class PodcastFeedEntity(
     val description: String?,
     val dateAdded: Long,
     val lastFetchedAt: Long?,
-    val author: String? = null
+    val author: String? = null,
+    /** The user's own link for this podcast (e.g. its paid-subscription page) and what it is called. */
+    val linkTitle: String? = null,
+    val linkUrl: String? = null
 )

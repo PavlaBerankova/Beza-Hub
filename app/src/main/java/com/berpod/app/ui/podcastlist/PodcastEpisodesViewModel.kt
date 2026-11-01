@@ -41,6 +41,11 @@ data class PodcastEpisodesUiState(
     val isEditingRss: Boolean = false,
     val isSavingRss: Boolean = false,
     val rssError: String? = null,
+    /** The podcast's custom link, if it has one; [isEditingLink] is the add/edit dialog, [linkError] why the last save was refused. */
+    val feedLinkTitle: String? = null,
+    val feedLinkUrl: String? = null,
+    val isEditingLink: Boolean = false,
+    val linkError: String? = null,
     /** Names of the tags this podcast carries, alphabetical. */
     val feedTags: List<String> = emptyList(),
     val episodes: List<EpisodeEntity> = emptyList(),
@@ -83,7 +88,9 @@ class PodcastEpisodesViewModel(
                         feedTitle = feed?.title.orEmpty(),
                         feedImageUrl = feed?.imageUrl,
                         feedAuthor = feed?.author,
-                        feedRssUrl = feed?.rssUrl.orEmpty()
+                        feedRssUrl = feed?.rssUrl.orEmpty(),
+                        feedLinkTitle = feed?.linkTitle,
+                        feedLinkUrl = feed?.linkUrl
                     )
                 }
             }
@@ -172,6 +179,33 @@ class PodcastEpisodesViewModel(
             downloadRepository.removeDownloadsOf(ids)
             podcastRepository.deleteFeed(feedId)
             _uiState.update { it.copy(isDeleted = true) }
+        }
+    }
+
+    fun onEditLink() {
+        _uiState.update { it.copy(isEditingLink = true, linkError = null) }
+    }
+
+    fun onEditLinkDismissed() {
+        _uiState.update { it.copy(isEditingLink = false, linkError = null) }
+    }
+
+    fun onSaveLink(title: String, rawUrl: String) {
+        val url = normalizeLinkUrl(rawUrl)
+        if (url == null) {
+            _uiState.update { it.copy(linkError = "Zadejte platnou webovou adresu") }
+            return
+        }
+        viewModelScope.launch {
+            podcastRepository.setLink(feedId, title.trim().ifBlank { null }, url)
+            _uiState.update { it.copy(isEditingLink = false, linkError = null, snackbarMessage = "Odkaz uložen") }
+        }
+    }
+
+    fun onRemoveLink() {
+        viewModelScope.launch {
+            podcastRepository.setLink(feedId, null, null)
+            _uiState.update { it.copy(snackbarMessage = "Odkaz odebrán") }
         }
     }
 

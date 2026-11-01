@@ -202,6 +202,13 @@
     <string name="action_edit_rss">Upravit RSS</string>
     <string name="edit_rss_title">Upravit RSS adresu</string>
     <string name="edit_rss_label">RSS adresa</string>
+    <string name="action_add_link">Přidat vlastní odkaz</string>
+    <string name="action_edit_link">Upravit odkaz</string>
+    <string name="action_remove_link">Odebrat odkaz</string>
+    <string name="edit_link_title">Vlastní odkaz</string>
+    <string name="edit_link_name_label">Název odkazu</string>
+    <string name="edit_link_name_hint">např. Forendors – předplatné</string>
+    <string name="edit_link_url_label">Adresa</string>
     <string name="edit_rss_checking">Ověřuji…</string>
     <string name="shown_all">Všechny epizody</string>
     <string name="shown_unplayed">Nepřehrané</string>

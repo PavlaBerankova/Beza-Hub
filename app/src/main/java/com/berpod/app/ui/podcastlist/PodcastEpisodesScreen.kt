@@ -39,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -106,12 +107,17 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
     }
     val frequency = remember(uiState.episodes) { publishingFrequency(uiState.episodes.map { it.pubDateMillis }) }
     val blockColor: Color? = headerBlockColor()
+    val uriHandler = LocalUriHandler.current
     val menu = PodcastMenuActions(
         hasUnplayed = uiState.episodes.any { it.playedAtMs == null },
         hasPlayed = uiState.episodes.any { it.playedAtMs != null },
         onMarkAllPlayed = { viewModel.onRequestMarkAll(true) },
         onMarkAllUnplayed = { viewModel.onRequestMarkAll(false) },
         onEditRss = viewModel::onEditRss,
+        linkLabel = uiState.feedLinkUrl?.let { linkLabel(uiState.feedLinkTitle, it) },
+        onOpenLink = { uiState.feedLinkUrl?.let(uriHandler::openUri) },
+        onEditLink = viewModel::onEditLink,
+        onRemoveLink = viewModel::onRemoveLink,
         onDelete = viewModel::onRequestDelete
     )
 
@@ -270,6 +276,16 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                 errorMessage = uiState.rssError,
                 onSave = viewModel::onSaveRss,
                 onDismiss = viewModel::onEditRssDismissed
+            )
+        }
+
+        if (uiState.isEditingLink) {
+            EditLinkDialog(
+                initialTitle = uiState.feedLinkTitle.orEmpty(),
+                initialUrl = uiState.feedLinkUrl.orEmpty(),
+                errorMessage = uiState.linkError,
+                onSave = viewModel::onSaveLink,
+                onDismiss = viewModel::onEditLinkDismissed
             )
         }
 
