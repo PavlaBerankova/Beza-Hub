@@ -1,5 +1,6 @@
 package com.berpod.app.data.repository
 
+import com.berpod.app.data.remote.webUrlOrNull
 import android.content.ComponentName
 import android.content.Context
 import android.net.Uri
@@ -198,12 +199,12 @@ class PlaybackRepository(
         MediaItem.Builder()
             .setMediaId(episode.id.toString())
             // The offline copy when there is one, the stream otherwise.
-            .setUri(downloadRepository.localFileFor(episode.id)?.let { Uri.fromFile(it).toString() } ?: episode.audioUrl)
+            .setUri(downloadRepository.localFileFor(episode.id)?.let { Uri.fromFile(it).toString() } ?: webUrlOrNull(episode.audioUrl))
             .setMediaMetadata(
                 MediaMetadata.Builder()
                     .setTitle(episode.title)
                     .setArtist(podcastTitle)
-                    .setArtworkUri((episode.imageUrl ?: podcastImageUrl)?.let(Uri::parse))
+                    .setArtworkUri(webUrlOrNull(episode.imageUrl ?: podcastImageUrl)?.let(Uri::parse))
                     // Known before the player is ready, so a restored (paused) episode can show its progress bar.
                     .setDurationMs(episode.durationSeconds?.takeIf { it > 0 }?.let { it * 1000L })
                     .build()

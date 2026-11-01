@@ -23,6 +23,7 @@ class PlaybackService : MediaSessionService() {
         )
 
         mediaSession = MediaSession.Builder(this, player)
+            .setCallback(OwnAndSystemControllersOnly(packageName))
             .setSessionActivity(sessionActivityIntent)
             .build()
     }
@@ -37,4 +38,17 @@ class PlaybackService : MediaSessionService() {
         }
         super.onDestroy()
     }
+}
+
+/**
+ * The service must be exported for the system (notification, lock screen, Bluetooth), but any other app
+ * could otherwise bind to it and play, pause or skip. Only the app itself and system-trusted controllers get in.
+ */
+private class OwnAndSystemControllersOnly(private val ownPackage: String) : MediaSession.Callback {
+    override fun onConnect(session: MediaSession, controller: MediaSession.ControllerInfo): MediaSession.ConnectionResult =
+        if (controller.packageName == ownPackage || controller.isTrusted) {
+            MediaSession.ConnectionResult.AcceptedResultBuilder(session).build()
+        } else {
+            MediaSession.ConnectionResult.reject()
+        }
 }
