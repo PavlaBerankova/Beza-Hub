@@ -57,6 +57,10 @@ class EpisodeDownloader(
                 val body = response.body
                 val total = totalFromContentRange(response.header("Content-Range"))
                     ?: body.contentLength().takeIf { it >= 0 }?.let { it + offset }
+                // Refuse what can't fit (or is absurdly big) before writing a byte.
+                if (total != null && (total > MAX_EPISODE_BYTES || total - offset > dir.usableSpace - MIN_FREE_BYTES)) {
+                    return@withContext DownloadOutcome.Failed
+                }
                 downloadDao.updateProgress(episodeId, offset, total)
 
                 var written = offset
@@ -73,6 +77,11 @@ class EpisodeDownloader(
                             val now = System.currentTimeMillis()
                             if (now - lastReportAt >= REPORT_INTERVAL_MS) {
                                 lastReportAt = now
+                                // A server with no (or a lying) length must not fill the disk or run forever.
+                                if (written > MAX_EPISODE_BYTES || dir.usableSpace < MIN_FREE_BYTES) {
+                                    part.delete()
+                                    return@withContext DownloadOutcome.Failed
+                                }
                                 // The row vanishing means the user cancelled.
                                 if (downloadDao.get(episodeId) == null) {
                                     part.delete()
@@ -103,5 +112,6 @@ class EpisodeDownloader(
         const val BUFFER_SIZE = 32 * 1024
         const val REPORT_INTERVAL_MS = 500L
         const val MIN_FREE_BYTES = 2L * 1024 * 1024
+        const val MAX_EPISODE_BYTES = 2L * 1024 * 1024 * 1024
     }
 }
