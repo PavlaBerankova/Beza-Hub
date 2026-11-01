@@ -202,10 +202,9 @@ fun ArticlesScreen(
                 else -> {
                     val now = rememberNowMillis()
                     LazyColumn(state = listState, contentPadding = PaddingValues(bottom = 96.dp)) {
-                        itemsIndexed(uiState.unreadArticles, key = { _, it -> it.article.id }) { index, item ->
+                        itemsIndexed(uiState.unreadArticles, key = { _, it -> it.article.id }) { _, item ->
                             MarkPlayedSwipe(onToggle = { toggleRead(item) }) {
-                                // The last row's divider would double up with the separator (or dangle at the end).
-                                ArticleRow(item, now, showDivider = index < uiState.unreadArticles.lastIndex) {
+                                ArticleRow(item, now) {
                                     onArticleClick(item.article.id, uiState.selectedTagId)
                                 }
                             }
@@ -219,9 +218,9 @@ fun ArticlesScreen(
                                 )
                             }
                         }
-                        itemsIndexed(uiState.readArticles, key = { _, it -> it.article.id }) { index, item ->
+                        itemsIndexed(uiState.readArticles, key = { _, it -> it.article.id }) { _, item ->
                             MarkPlayedSwipe(onToggle = { toggleRead(item) }) {
-                                ArticleRow(item, now, showDivider = index < uiState.readArticles.lastIndex) {
+                                ArticleRow(item, now) {
                                     onArticleClick(item.article.id, uiState.selectedTagId)
                                 }
                             }
@@ -243,7 +242,7 @@ fun ArticlesScreen(
 }
 
 @Composable
-private fun ArticleRow(item: ArticleWithFeed, nowMillis: Long, showDivider: Boolean, onClick: () -> Unit) {
+private fun ArticleRow(item: ArticleWithFeed, nowMillis: Long, onClick: () -> Unit) {
     val c = DotTheme.colors
     val unread = item.article.readAtMs == null
     Column(
@@ -272,6 +271,5 @@ private fun ArticleRow(item: ArticleWithFeed, nowMillis: Long, showDivider: Bool
                 color = if (unread) c.text else c.textMuted
             )
         }
-        if (showDivider) HorizontalDivider(color = c.divider)
     }
 }
