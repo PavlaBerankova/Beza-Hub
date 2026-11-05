@@ -49,6 +49,7 @@
     <string name="action_pause">Pozastavit</string>
 
     <string name="filter_all">Vše</string>
+    <string name="filter_new">Nové</string>
     <string name="tag_filter_empty">Žádné podcasty s tímto štítkem</string>
     <string name="tag_filter_empty_subtitle">Štítek přiřadíte dlouhým stiskem obálky</string>
     <string name="tag_name_label">Název štítku</string>

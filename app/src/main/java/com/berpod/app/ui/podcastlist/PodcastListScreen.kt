@@ -92,19 +92,22 @@ fun PodcastListScreen(viewModelFactory: ViewModelProvider.Factory, onPodcastClic
         }
     ) { paddingValues ->
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            if (uiState.tags.isNotEmpty()) {
+            if (uiState.hasAnyPodcasts) {
                 TagChipRow(
                     tags = uiState.tags,
                     selectedTagId = uiState.selectedTagId,
                     onSelect = viewModel::onSelectTag,
+                    onSelectNew = if (uiState.hasNewEpisodes) viewModel::onSelectNew else null,
+                    newSelected = uiState.showNewOnly,
                     onRenameRequest = viewModel::onRequestRenameTag,
                     onDeleteRequest = viewModel::onRequestDeleteTag
                 )
             }
             if (uiState.hasAnyPodcasts) {
-                val tagName = uiState.tags.firstOrNull { it.id == uiState.selectedTagId }?.name
+                val tagName = if (uiState.showNewOnly) stringResource(R.string.filter_new)
+                else uiState.tags.firstOrNull { it.id == uiState.selectedTagId }?.name
                 SectionSeparator(
-                    left = subscriptionCountText(uiState.feeds.size),
+                    left = subscriptionCountText(uiState.shownFeeds.size),
                     right = tagName,
                     modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 16.dp)
                 )
@@ -115,7 +118,7 @@ fun PodcastListScreen(viewModelFactory: ViewModelProvider.Factory, onPodcastClic
                     title = stringResource(R.string.empty_state_title),
                     subtitle = stringResource(R.string.empty_state_subtitle)
                 )
-                uiState.feeds.isEmpty() -> EmptyState(
+                uiState.shownFeeds.isEmpty() -> EmptyState(
                     icon = DotIcons.Tag,
                     title = stringResource(R.string.tag_filter_empty),
                     subtitle = stringResource(R.string.tag_filter_empty_subtitle)
@@ -126,7 +129,7 @@ fun PodcastListScreen(viewModelFactory: ViewModelProvider.Factory, onPodcastClic
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(uiState.feeds, key = { it.id }) { feed ->
+                    items(uiState.shownFeeds, key = { it.id }) { feed ->
                         PodcastGridItem(
                             feed = feed,
                             newCount = uiState.newCounts[feed.id] ?: 0,

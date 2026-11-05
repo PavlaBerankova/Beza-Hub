@@ -42,13 +42,21 @@ fun TagChipRow(
     selectedTagId: Long?,
     onSelect: (Long?) -> Unit,
     onRenameRequest: ((TagEntity) -> Unit)? = null,
-    onDeleteRequest: ((TagEntity) -> Unit)? = null
+    onDeleteRequest: ((TagEntity) -> Unit)? = null,
+    /** Offers a "Nové" chip right after "Vše"; it is exclusive with the tags, so [selectedTagId] is null while it is on. */
+    onSelectNew: (() -> Unit)? = null,
+    newSelected: Boolean = false
 ) {
     val hasMenu = onRenameRequest != null || onDeleteRequest != null
     val listState = rememberLazyListState()
-    // "Vše" is item 0, the tags follow. A selection that has scrolled out of sight (or a row that starts at the
+    // "Vše" is item 0, "Nové" (when offered) item 1, the tags follow. A selection that has scrolled out of sight (or a row that starts at the
     // left again after leaving the screen) is brought back into view, so the highlighted chip is always visible.
-    val selectedIndex = if (selectedTagId == null) 0 else (tags.indexOfFirst { it.id == selectedTagId } + 1).coerceAtLeast(0)
+    val tagsStart = if (onSelectNew != null) 2 else 1
+    val selectedIndex = when {
+        newSelected -> 1
+        selectedTagId == null -> 0
+        else -> (tags.indexOfFirst { it.id == selectedTagId } + tagsStart).coerceAtLeast(0)
+    }
     var placed by remember { mutableStateOf(false) }
     LaunchedEffect(selectedIndex, tags.size) {
         val info = listState.layoutInfo
@@ -71,9 +79,18 @@ fun TagChipRow(
         item(key = "all") {
             DotChip(
                 label = stringResource(R.string.filter_all),
-                selected = selectedTagId == null,
+                selected = selectedTagId == null && !newSelected,
                 onClick = { onSelect(null) }
             )
+        }
+        if (onSelectNew != null) {
+            item(key = "new") {
+                DotChip(
+                    label = stringResource(R.string.filter_new),
+                    selected = newSelected,
+                    onClick = onSelectNew
+                )
+            }
         }
         items(tags, key = { it.id }) { tag ->
             var isMenuOpen by remember { mutableStateOf(false) }

@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.berpod.app.data.local.PodcastFeedEntity
 import com.berpod.app.data.local.TagEntity
 import com.berpod.app.data.repository.EpisodeRepository
+import com.berpod.app.data.repository.STARTUP_REFRESH_MIN_AGE_MS
 import com.berpod.app.data.repository.PodcastRepository
 import com.berpod.app.data.repository.QueueRepository
 import com.berpod.app.ui.newepisodes.newEpisodeCounts
@@ -33,8 +34,10 @@ data class PodcastListUiState(
     /** Whether any podcast exists at all, independent of the filter. */
     val hasAnyPodcasts: Boolean = false,
     val tags: List<TagEntity> = emptyList(),
-    /** null = "Všechny". */
+    /** null = "Všechny" (or "Nové", see [showNewOnly]). */
     val selectedTagId: Long? = null,
+    /** The "Nové" filter: only podcasts with a new episode. Exclusive with a selected tag. */
+    val showNewOnly: Boolean = false,
     val renamingTag: TagEntity? = null,
     val renameError: String? = null,
     val deletingTag: TagEntity? = null,
@@ -46,7 +49,15 @@ data class PodcastListUiState(
     val isRefreshing: Boolean = false,
     /** Why the last button-triggered refresh was not clean; shown once. */
     val refreshMessage: String? = null
-)
+) {
+    /** Whether any podcast has a new episode; the "Nové" chip is only offered then. */
+    val hasNewEpisodes: Boolean
+        get() = newCounts.values.any { it > 0 }
+
+    /** [feeds] as the filters leave them. */
+    val shownFeeds: List<PodcastFeedEntity>
+        get() = if (showNewOnly) feeds.filter { (newCounts[it.id] ?: 0) > 0 } else feeds
+}
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PodcastListViewModel(
@@ -96,7 +107,10 @@ class PodcastListViewModel(
             newEpisodeCounts(episodes, queued.toSet())
         }
             .flowOn(Dispatchers.Default)
-            .onEach { counts -> _uiState.update { it.copy(newCounts = counts) } }
+            .onEach { counts ->
+                // Nothing new left: the "Nové" chip disappears, so a filter on it falls back to "Vše".
+                _uiState.update { it.copy(newCounts = counts, showNewOnly = it.showNewOnly && counts.any { (_, n) -> n > 0 }) }
+            }
             .launchIn(viewModelScope)
         selectedTagId
             .flatMapLatest { tagId -> tagRepository.observeFeeds(tagId) }
@@ -122,7 +136,7 @@ class PodcastListViewModel(
         if (_uiState.value.isRefreshing) return
         _uiState.update { it.copy(isRefreshing = true) }
         viewModelScope.launch {
-            val result = episodeRepository.refreshAllFeeds()
+            val result = episodeRepository.refreshAllFeeds(skipCheckedWithinMs = if (announce) 0 else STARTUP_REFRESH_MIN_AGE_MS)
             val message = if (!announce) null else result.fold(
                 onSuccess = { failed -> if (failed > 0) "Aktualizace dokončena, $failed zdrojů se nepodařilo načíst" else null },
                 onFailure = { error -> error.message ?: "Aktualizace selhala" }
@@ -133,7 +147,12 @@ class PodcastListViewModel(
 
     fun onSelectTag(tagId: Long?) {
         selectedTagId.value = tagId
-        _uiState.update { it.copy(selectedTagId = tagId) }
+        _uiState.update { it.copy(selectedTagId = tagId, showNewOnly = false) }
+    }
+
+    fun onSelectNew() {
+        selectedTagId.value = null
+        _uiState.update { it.copy(selectedTagId = null, showNewOnly = true) }
     }
 
     fun onOpenTagDialog(feed: PodcastFeedEntity) =
