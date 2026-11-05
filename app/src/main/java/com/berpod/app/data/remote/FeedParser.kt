@@ -52,8 +52,18 @@ fun parseFeedDateMillis(raw: String): Long? {
     return null
 }
 
+/** The result of asking for a feed that may not have changed. */
+sealed interface FeedFetchResult {
+    data class Changed(val meta: ParsedFeedMeta, val validators: FeedValidators) : FeedFetchResult
+    data object NotModified : FeedFetchResult
+}
+
 interface FeedFetcher {
     suspend fun fetchAndParse(url: String): ParsedFeedMeta
+
+    /** Fetches the feed unless the server says it is unchanged since [known]. Fetchers without validators always fetch. */
+    suspend fun fetchIfChanged(url: String, known: FeedValidators?): FeedFetchResult =
+        FeedFetchResult.Changed(fetchAndParse(url), FeedValidators())
 }
 
 class FeedParser(
@@ -66,6 +76,15 @@ class FeedParser(
         // Parsing a feed of thousands of episodes is real work: keep it off the main thread.
         return withContext(Dispatchers.Default) { toParsedMeta(document) }
     }
+
+    override suspend fun fetchIfChanged(url: String, known: FeedValidators?): FeedFetchResult =
+        when (val load = documentLoader.resolveIfChanged(url, known)) {
+            is FeedLoad.NotModified -> FeedFetchResult.NotModified
+            is FeedLoad.Fresh -> FeedFetchResult.Changed(
+                withContext(Dispatchers.Default) { toParsedMeta(load.document) },
+                load.document.validators
+            )
+        }
 
     private suspend fun toParsedMeta(document: FeedDocument): ParsedFeedMeta {
         val channel = rssParser.parse(document.text)

@@ -31,7 +31,12 @@ interface PodcastFeedDao {
     @Query("SELECT EXISTS(SELECT 1 FROM podcast_feeds WHERE rssUrl = :rssUrl AND id != :feedId)")
     suspend fun existsByUrlExcept(rssUrl: String, feedId: Long): Boolean
 
-    @Query("UPDATE podcast_feeds SET rssUrl = :rssUrl WHERE id = :feedId")
+    /** Records a successful refresh; the validators belong to the feed version that was just stored. */
+    @Query("UPDATE podcast_feeds SET lastFetchedAt = :at, etag = :etag, lastModified = :lastModified WHERE id = :feedId")
+    suspend fun markFetched(feedId: Long, at: Long, etag: String?, lastModified: String?)
+
+    /** A new address is a different feed: validators of the old one must not be sent to it. */
+    @Query("UPDATE podcast_feeds SET rssUrl = :rssUrl, etag = NULL, lastModified = NULL WHERE id = :feedId")
     suspend fun updateRssUrl(feedId: Long, rssUrl: String)
 
     @Query("UPDATE podcast_feeds SET linkTitle = :title, linkUrl = :url WHERE id = :feedId")

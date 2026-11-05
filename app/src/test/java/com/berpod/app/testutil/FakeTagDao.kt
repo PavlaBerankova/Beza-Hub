@@ -55,6 +55,9 @@ class FakePodcastFeedDao(initial: List<PodcastFeedEntity> = emptyList()) : Podca
     override suspend fun updateRssUrl(feedId: Long, rssUrl: String) {
         feeds.value = feeds.value.map { if (it.id == feedId) it.copy(rssUrl = rssUrl) else it }
     }
+    override suspend fun markFetched(feedId: Long, at: Long, etag: String?, lastModified: String?) {
+        feeds.value = feeds.value.map { if (it.id == feedId) it.copy(lastFetchedAt = at, etag = etag, lastModified = lastModified) else it }
+    }
     override suspend fun updateLink(feedId: Long, title: String?, url: String?) {
         feeds.value = feeds.value.map { if (it.id == feedId) it.copy(linkTitle = title, linkUrl = url) else it }
     }

@@ -21,7 +21,7 @@ import androidx.room.RoomDatabase
         VideoQueueEntryEntity::class,
         EpisodeDownloadEntity::class
     ],
-    version = 15,
+    version = 16,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {

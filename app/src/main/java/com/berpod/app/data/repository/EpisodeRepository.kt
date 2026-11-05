@@ -5,7 +5,10 @@ import com.berpod.app.data.local.EpisodeEntity
 import com.berpod.app.data.local.EpisodeWithFeed
 import com.berpod.app.data.local.PodcastFeedDao
 import com.berpod.app.data.local.PodcastFeedEntity
+import com.berpod.app.data.remote.FeedFetchResult
 import com.berpod.app.data.remote.FeedFetcher
+import com.berpod.app.data.remote.FeedValidators
+import com.berpod.app.data.remote.ParsedFeedMeta
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -14,6 +17,9 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 
 private const val PARALLEL_SYNCS = 4
+
+/** Opening the app does not re-check podcasts that were checked less than this long ago. */
+const val STARTUP_REFRESH_MIN_AGE_MS = 5L * 60 * 1000
 
 class EpisodeRepository(
     private val episodeDao: EpisodeDao,
@@ -52,10 +58,24 @@ class EpisodeRepository(
     fun observeEpisodesForFeed(feedId: Long): Flow<List<EpisodeEntity>> = episodeDao.observeEpisodesForFeed(feedId)
 
     suspend fun syncEpisodesForFeed(feed: PodcastFeedEntity): Result<Unit> = runCatching {
-        val meta = feedFetcher.fetchAndParse(feed.rssUrl)
+        val known = FeedValidators(feed.etag, feed.lastModified)
+        when (val fetched = feedFetcher.fetchIfChanged(feed.rssUrl, known)) {
+            // Nothing new on the server: only note that the feed was checked.
+            is FeedFetchResult.NotModified ->
+                podcastFeedDao.markFetched(feed.id, System.currentTimeMillis(), feed.etag, feed.lastModified)
+            is FeedFetchResult.Changed -> {
+                storeEpisodes(feed, fetched.meta)
+                podcastFeedDao.markFetched(feed.id, System.currentTimeMillis(), fetched.validators.etag, fetched.validators.lastModified)
+            }
+        }
+    }
+
+    private suspend fun storeEpisodes(feed: PodcastFeedEntity, meta: ParsedFeedMeta) {
         // Fills the author for podcasts added before it was stored; a missing author never erases one.
         meta.author?.let { podcastFeedDao.updateAuthor(feed.id, it) }
         val now = System.currentTimeMillis()
+        // Read before the insert: it tells which episodes were stored earlier and what they hold.
+        val stored = episodeDao.numbersAndSizesForFeed(feed.id).associateBy { it.guid }
         episodeDao.insertAll(
             meta.episodes.map { ep ->
                 EpisodeEntity(
@@ -73,10 +93,11 @@ class EpisodeRepository(
                 )
             }
         )
-        // Episodes stored before the number and size were kept get them on the next refresh.
-        meta.episodes.filter { it.episodeNumber != null || it.fileSizeBytes != null }.forEach { ep ->
-            episodeDao.updateNumberAndSize(feed.id, ep.guid, ep.episodeNumber, ep.fileSizeBytes)
-        }
+        // Episodes stored before the number and size were kept get them now; only those that differ are written.
+        meta.episodes
+            .filter { it.episodeNumber != null || it.fileSizeBytes != null }
+            .filter { ep -> stored[ep.guid]?.let { it.episodeNumber != ep.episodeNumber || it.fileSizeBytes != ep.fileSizeBytes } == true }
+            .forEach { ep -> episodeDao.updateNumberAndSize(feed.id, ep.guid, ep.episodeNumber, ep.fileSizeBytes) }
     }
 
     suspend fun syncEpisodesForFeedId(feedId: Long): Result<Unit> = runCatching {
@@ -85,10 +106,13 @@ class EpisodeRepository(
     }
 
     // TODO: no background/WorkManager sync in this iteration — manual refresh only.
-    suspend fun refreshAllFeeds(): Result<Int> = runCatching {
+    /** [skipCheckedWithinMs]: podcasts successfully checked that recently are left alone (0 = refresh them all). */
+    suspend fun refreshAllFeeds(skipCheckedWithinMs: Long = 0): Result<Int> = runCatching {
         val limit = Semaphore(PARALLEL_SYNCS)
+        val now = System.currentTimeMillis()
         coroutineScope {
             podcastFeedDao.getAll()
+                .filter { feed -> feed.lastFetchedAt?.let { now - it >= skipCheckedWithinMs } ?: true }
                 .map { feed -> async { limit.withPermit { syncEpisodesForFeed(feed).isFailure } } }
                 .awaitAll()
                 .count { failed -> failed }

@@ -15,6 +15,9 @@ private const val NEW_GRACE_MS = 7L * 24 * 60 * 60 * 1000
 /** Undated episodes fetched by the first sync right after adding count as back catalogue, not as new. */
 private const val FIRST_SYNC_MS = 60_000L
 
+/** What is stored about an episode's number and file size, to tell which ones a refresh really changes. */
+data class EpisodeNumberAndSize(val guid: String, val episodeNumber: Int?, val fileSizeBytes: Long?)
+
 @Dao
 interface EpisodeDao {
 
@@ -77,6 +80,9 @@ interface EpisodeDao {
         """
     )
     suspend fun updateNumberAndSize(feedId: Long, guid: String, episodeNumber: Int?, fileSizeBytes: Long?)
+
+    @Query("SELECT guid, episodeNumber, fileSizeBytes FROM episodes WHERE feedId = :feedId")
+    suspend fun numbersAndSizesForFeed(feedId: Long): List<EpisodeNumberAndSize>
 
     @Query("UPDATE episodes SET hiddenFromNew = :hidden WHERE id = :episodeId")
     suspend fun setHiddenFromNew(episodeId: Long, hidden: Boolean)

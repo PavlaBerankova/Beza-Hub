@@ -204,3 +204,11 @@ val MIGRATION_14_15 = object : Migration(14, 15) {
         db.execSQL("ALTER TABLE `podcast_feeds` ADD COLUMN `linkUrl` TEXT")
     }
 }
+
+/** Podcasts remember the feed's ETag / Last-Modified so an unchanged feed need not be downloaded again. */
+val MIGRATION_15_16 = object : Migration(15, 16) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `podcast_feeds` ADD COLUMN `etag` TEXT")
+        db.execSQL("ALTER TABLE `podcast_feeds` ADD COLUMN `lastModified` TEXT")
+    }
+}

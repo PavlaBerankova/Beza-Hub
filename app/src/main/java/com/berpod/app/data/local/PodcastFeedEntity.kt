@@ -19,5 +19,8 @@ data class PodcastFeedEntity(
     val author: String? = null,
     /** The user's own link for this podcast (e.g. its paid-subscription page) and what it is called. */
     val linkTitle: String? = null,
-    val linkUrl: String? = null
+    val linkUrl: String? = null,
+    /** `ETag` / `Last-Modified` of the feed as last downloaded, so the next refresh can skip it if unchanged. */
+    val etag: String? = null,
+    val lastModified: String? = null
 )
