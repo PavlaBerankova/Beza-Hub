@@ -89,7 +89,7 @@ fun DotSegmented(options: List<String>, selectedIndex: Int, onSelect: (Int) -> U
 /** Tag chip: outlined, or accent-filled with a check when selected. */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun DotChip(label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier, onLongClick: (() -> Unit)? = null) {
+fun DotChip(label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier, onLongClick: (() -> Unit)? = null, accentBorder: Boolean = false) {
     val c = DotTheme.colors
     val shape = RoundedCornerShape(10.dp)
     Row(
@@ -97,7 +97,7 @@ fun DotChip(label: String, selected: Boolean, onClick: () -> Unit, modifier: Mod
             .minimumInteractiveComponentSize()
             .height(38.dp)
             .clip(shape)
-            .then(if (selected) Modifier.background(c.accent) else Modifier.border(1.dp, c.outline, shape))
+            .then(if (selected) Modifier.background(c.accent) else Modifier.border(if (accentBorder) 1.5.dp else 1.dp, if (accentBorder) c.accent else c.outline, shape))
             .combinedClickable(onClick = onClick, onLongClick = onLongClick)
             .semantics { this.selected = selected; role = Role.Tab }
             .padding(horizontal = 14.dp),

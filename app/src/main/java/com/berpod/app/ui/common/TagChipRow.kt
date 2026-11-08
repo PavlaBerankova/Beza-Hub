@@ -88,7 +88,9 @@ fun TagChipRow(
                 DotChip(
                     label = stringResource(R.string.filter_new),
                     selected = newSelected,
-                    onClick = onSelectNew
+                    onClick = onSelectNew,
+                    // Only offered while there are new episodes, so it is worth catching the eye.
+                    accentBorder = true
                 )
             }
         }
