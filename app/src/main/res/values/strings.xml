@@ -216,6 +216,8 @@
     <string name="shown_played">Přehrané</string>
     <string name="filter_everything">Vše</string>
     <string name="sort_oldest">Nejstarší</string>
+    <string name="sort_date_added">Nově přidané</string>
+    <string name="sort_alphabetical">Od A do Z</string>
     <string name="filter_unplayed">Nepřehrané</string>
     <string name="filter_played">Přehrané</string>
     <string name="episodes_view_title">Řazení a filtr</string>

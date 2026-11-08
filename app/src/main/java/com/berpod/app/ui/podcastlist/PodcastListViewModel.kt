@@ -1,5 +1,6 @@
 package com.berpod.app.ui.podcastlist
 
+import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -48,7 +49,8 @@ data class PodcastListUiState(
     /** All podcasts are being refreshed, by the button or when the app opened. */
     val isRefreshing: Boolean = false,
     /** Why the last button-triggered refresh was not clean; shown once. */
-    val refreshMessage: String? = null
+    val refreshMessage: String? = null,
+    val sort: PodcastSort = PodcastSort.DateAdded
 ) {
     /** Whether any podcast has a new episode; the "Nové" chip is only offered then. */
     val hasNewEpisodes: Boolean
@@ -56,7 +58,7 @@ data class PodcastListUiState(
 
     /** [feeds] as the filters leave them. */
     val shownFeeds: List<PodcastFeedEntity>
-        get() = if (showNewOnly) feeds.filter { (newCounts[it.id] ?: 0) > 0 } else feeds
+        get() = sortedPodcasts(if (showNewOnly) feeds.filter { (newCounts[it.id] ?: 0) > 0 } else feeds, sort)
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -64,10 +66,12 @@ class PodcastListViewModel(
     private val repository: PodcastRepository,
     private val episodeRepository: EpisodeRepository,
     private val tagRepository: TagRepository,
-    private val queueRepository: QueueRepository
+    private val queueRepository: QueueRepository,
+    /** Where the chosen sort order is remembered between launches. */
+    private val prefs: SharedPreferences
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(PodcastListUiState())
+    private val _uiState = MutableStateFlow(PodcastListUiState(sort = savedSort()))
     val uiState: StateFlow<PodcastListUiState> = _uiState.asStateFlow()
 
     val tagAssignment = TagAssignmentController(tagRepository, viewModelScope)
@@ -150,6 +154,15 @@ class PodcastListViewModel(
         _uiState.update { it.copy(selectedTagId = tagId, showNewOnly = false) }
     }
 
+    fun onToggleSort() {
+        val next = if (_uiState.value.sort == PodcastSort.DateAdded) PodcastSort.Alphabetical else PodcastSort.DateAdded
+        prefs.edit().putString(SORT_KEY, next.name).apply()
+        _uiState.update { it.copy(sort = next) }
+    }
+
+    private fun savedSort(): PodcastSort =
+        PodcastSort.entries.firstOrNull { it.name == prefs.getString(SORT_KEY, null) } ?: PodcastSort.DateAdded
+
     fun onSelectNew() {
         selectedTagId.value = null
         _uiState.update { it.copy(selectedTagId = null, showNewOnly = true) }
@@ -191,15 +204,18 @@ class PodcastListViewModel(
     }
 
     companion object {
+        private const val SORT_KEY = "podcast_sort"
+
         fun factory(
             repository: PodcastRepository,
             episodeRepository: EpisodeRepository,
             tagRepository: TagRepository,
-            queueRepository: QueueRepository
+            queueRepository: QueueRepository,
+            prefs: SharedPreferences
         ) = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return PodcastListViewModel(repository, episodeRepository, tagRepository, queueRepository) as T
+                return PodcastListViewModel(repository, episodeRepository, tagRepository, queueRepository, prefs) as T
             }
         }
     }

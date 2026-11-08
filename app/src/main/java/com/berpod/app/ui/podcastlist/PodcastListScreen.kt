@@ -18,6 +18,12 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.text.style.TextOverflow
+import com.berpod.app.ui.dot.DotFilterButton
+import com.berpod.app.ui.dot.upperCs
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarHost
@@ -50,7 +56,6 @@ import com.berpod.app.ui.common.RenameTagDialog
 import com.berpod.app.ui.common.TagPickerSheet
 import com.berpod.app.ui.common.podcastTagTexts
 import com.berpod.app.ui.common.TagChipRow
-import com.berpod.app.ui.dot.SectionSeparator
 import com.berpod.app.ui.dot.subscriptionCountText
 import com.berpod.app.ui.dot.CoverImage
 import com.berpod.app.ui.dot.DotIconButton
@@ -106,10 +111,12 @@ fun PodcastListScreen(viewModelFactory: ViewModelProvider.Factory, onPodcastClic
             if (uiState.hasAnyPodcasts) {
                 val tagName = if (uiState.showNewOnly) stringResource(R.string.filter_new)
                 else uiState.tags.firstOrNull { it.id == uiState.selectedTagId }?.name
-                SectionSeparator(
-                    left = subscriptionCountText(uiState.shownFeeds.size),
-                    right = tagName,
-                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 16.dp)
+                PodcastInfoRow(
+                    count = subscriptionCountText(uiState.shownFeeds.size),
+                    tagName = tagName,
+                    sort = uiState.sort,
+                    onToggleSort = viewModel::onToggleSort,
+                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 8.dp)
                 )
             }
             when {
@@ -173,6 +180,36 @@ fun PodcastListScreen(viewModelFactory: ViewModelProvider.Factory, onPodcastClic
         }
         addPodcastState?.let { AddPodcastSheet(it, viewModel.addPodcast) }
     }
+}
+
+/** "[PŘIDÁNO ⌄] ——— ŠTÍTEK 12 ODBĚRŮ": the sort toggle, the active filter and the list's size. */
+@Composable
+private fun PodcastInfoRow(
+    count: String,
+    tagName: String?,
+    sort: PodcastSort,
+    onToggleSort: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val c = DotTheme.colors
+    Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        DotFilterButton(
+            label = stringResource(sort.labelRes()),
+            highlighted = false,
+            onClick = onToggleSort,
+            flipped = sort == PodcastSort.Alphabetical,
+            // The button's own start padding would push it in from the screen's edge.
+            modifier = Modifier.offset(x = (-10).dp)
+        )
+        HorizontalDivider(modifier = Modifier.weight(1f), color = c.divider)
+        if (tagName != null) Text(tagName.upperCs(), style = DotType.label, color = c.textMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(count.upperCs(), style = DotType.label, color = c.textMuted)
+    }
+}
+
+private fun PodcastSort.labelRes() = when (this) {
+    PodcastSort.DateAdded -> R.string.sort_date_added
+    PodcastSort.Alphabetical -> R.string.sort_alphabetical
 }
 
 @OptIn(ExperimentalFoundationApi::class)

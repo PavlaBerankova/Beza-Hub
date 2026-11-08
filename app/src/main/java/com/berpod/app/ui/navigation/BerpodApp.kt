@@ -217,7 +217,8 @@ fun BerpodApp(container: AppContainer) {
                             container.podcastRepository,
                             container.episodeRepository,
                             container.tagRepository,
-                            container.queueRepository
+                            container.queueRepository,
+                            LocalContext.current.getSharedPreferences("podcastList", Context.MODE_PRIVATE)
                         ),
                         queueFactory = QueueViewModel.factory(
                             container.queueRepository,
