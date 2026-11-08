@@ -35,6 +35,9 @@ data class PodcastEpisodesUiState(
     val feedRssUrl: String = "",
     val episodeSort: EpisodeSort = EpisodeSort.NewestFirst,
     val episodeFilter: EpisodeFilter = EpisodeFilter.All,
+    /** The search field under the header is open; [searchQuery] is what was typed (matched in titles and descriptions). */
+    val isSearching: Boolean = false,
+    val searchQuery: String = "",
     /** Set while the "mark all" confirmation is up: true to mark played, false to mark unplayed. */
     val confirmMarkAllPlayed: Boolean? = null,
     /** The edit-RSS dialog is open; [rssError] is why the last save was refused. */
@@ -152,6 +155,11 @@ class PodcastEpisodesViewModel(
 
     /** Newest first ↔ oldest first. */
     fun onToggleSort() = _uiState.update { it.copy(episodeSort = nextEpisodeSort(it.episodeSort)) }
+
+    /** Opens the search field, or closes it (forgetting the query) when it is already open. */
+    fun onToggleSearch() = _uiState.update { if (it.isSearching) it.copy(isSearching = false, searchQuery = "") else it.copy(isSearching = true) }
+
+    fun onSearchQueryChange(query: String) = _uiState.update { it.copy(searchQuery = query) }
 
     fun onRequestMarkAll(played: Boolean) = _uiState.update { it.copy(confirmMarkAllPlayed = played) }
 

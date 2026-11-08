@@ -274,7 +274,7 @@ private fun PlayerContent(viewModel: PlayerViewModel, onBack: () -> Unit, onOpen
                     }
                 }
             }
-            OptionButton(DotIcons.QueueList, null, active = false, onClick = onOpenQueue, modifier = Modifier.weight(1f), description = stringResource(R.string.queue))
+            OptionButton(DotIcons.QueuePlay, null, active = false, onClick = onOpenQueue, modifier = Modifier.weight(1f), description = stringResource(R.string.queue))
             // Where the episode and its podcast can be read about.
             Box(Modifier.weight(1f)) {
                 var detailOpen by remember { mutableStateOf(false) }

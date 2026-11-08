@@ -101,15 +101,18 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
 
     val listState = rememberLazyListState()
     // The header carries its own action row; a compact bar with the title appears once it scrolls away.
+    // Opening the search (also from the compact bar) goes back to the top, where its field sits under the header and nothing covers it.
+    LaunchedEffect(uiState.isSearching) { if (uiState.isSearching) listState.animateScrollToItem(0) }
     val showCompactBar by remember { derivedStateOf { listState.firstVisibleItemIndex > 0 } }
     val now = rememberNowMillis()
-    val visibleEpisodes = remember(uiState.episodes, uiState.episodeSort, uiState.episodeFilter) {
-        applyEpisodeView(uiState.episodes, uiState.episodeSort, uiState.episodeFilter)
+    val visibleEpisodes = remember(uiState.episodes, uiState.episodeSort, uiState.episodeFilter, uiState.searchQuery) {
+        applyEpisodeView(uiState.episodes, uiState.episodeSort, uiState.episodeFilter, uiState.searchQuery)
     }
     val frequency = remember(uiState.episodes) { publishingFrequency(uiState.episodes.map { it.pubDateMillis }) }
     val blockColor: Color? = headerBlockColor()
     val uriHandler = LocalUriHandler.current
     val menu = PodcastMenuActions(
+        onManageTags = viewModel::onOpenTagDialog,
         hasUnplayed = uiState.episodes.any { it.playedAtMs == null },
         hasPlayed = uiState.episodes.any { it.playedAtMs != null },
         onMarkAllPlayed = { viewModel.onRequestMarkAll(true) },
@@ -170,10 +173,11 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                         playButton = playButton,
                         isRefreshing = uiState.isRefreshing,
                         onBack = onBack,
-                        onTagClick = viewModel::onOpenTagDialog,
                         onRefresh = viewModel::onRefresh,
                         onOpenQueue = onOpenQueue,
                         menu = menu,
+                        isSearching = uiState.isSearching,
+                        onSearchClick = viewModel::onToggleSearch,
                         episodeCount = uiState.episodes.size,
                         frequency = frequency,
                         sort = uiState.episodeSort,
@@ -182,6 +186,15 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                         onSortClick = viewModel::onToggleSort,
                         blockColor = blockColor
                     )
+                }
+                if (uiState.isSearching) {
+                    item(key = "search") {
+                        EpisodeSearchField(
+                            query = uiState.searchQuery,
+                            onQueryChange = viewModel::onSearchQueryChange,
+                            onClose = viewModel::onToggleSearch
+                        )
+                    }
                 }
                 if (uiState.episodes.isEmpty()) {
                     item(key = "empty") {
@@ -198,8 +211,8 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                         Column(modifier = Modifier.fillMaxWidth().padding(top = 48.dp)) {
                             EmptyState(
                                 icon = DotIcons.Podcasts,
-                                title = stringResource(R.string.episodes_filtered_empty),
-                                subtitle = stringResource(R.string.episodes_filtered_empty_hint)
+                                title = stringResource(if (uiState.searchQuery.isBlank()) R.string.episodes_filtered_empty else R.string.episodes_search_empty),
+                                subtitle = stringResource(if (uiState.searchQuery.isBlank()) R.string.episodes_filtered_empty_hint else R.string.episodes_search_empty_hint)
                             )
                         }
                     }
@@ -249,15 +262,8 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.weight(1f).padding(horizontal = 4.dp)
                         )
-                        DotIconButton(DotIcons.QueueList, stringResource(R.string.action_open_queue), onOpenQueue)
-                        DotIconButton(DotIcons.Tag, stringResource(R.string.action_manage_tags), viewModel::onOpenTagDialog)
-                        if (uiState.isRefreshing) {
-                            Box(Modifier.size(44.dp), contentAlignment = Alignment.Center) {
-                                CircularProgressIndicator(Modifier.size(22.dp), color = c.accent, strokeWidth = 2.dp)
-                            }
-                        } else {
-                            DotIconButton(DotIcons.Refresh, stringResource(R.string.action_refresh), viewModel::onRefresh)
-                        }
+                        DotIconButton(DotIcons.Search, stringResource(R.string.action_search_episodes), viewModel::onToggleSearch, accentBorder = uiState.isSearching)
+                        DotIconButton(DotIcons.QueuePlay, stringResource(R.string.action_open_queue), onOpenQueue)
                         PodcastMoreMenu(menu)
                     }
                     HorizontalDivider(color = c.divider)

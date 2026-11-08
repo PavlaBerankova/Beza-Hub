@@ -225,6 +225,11 @@
     <string name="episodes_view_title">Řazení a filtr</string>
     <string name="episodes_sort_label">Řazení</string>
     <string name="episodes_show_label">Zobrazit</string>
+    <string name="action_search_episodes">Hledat v epizodách</string>
+    <string name="action_close_search">Zavřít hledání</string>
+    <string name="episodes_search_hint">Název nebo popis epizody</string>
+    <string name="episodes_search_empty">Nic nenalezeno</string>
+    <string name="episodes_search_empty_hint">Zkuste jiné slovo nebo jeho část</string>
     <string name="episodes_filtered_empty">Žádné epizody neodpovídají filtru</string>
     <string name="episodes_filtered_empty_hint">Změňte řazení nebo filtr</string>
     <string name="menu_mark_played">Označit jako přehrané</string>

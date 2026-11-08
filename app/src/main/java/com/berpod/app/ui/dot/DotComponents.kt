@@ -168,6 +168,26 @@ fun DotPrimaryButton(label: String, icon: DotIconSpec?, onClick: () -> Unit, mod
     }
 }
 
+/** Outlined button of the primary button's height with an icon and an uppercase label, as wide as they need. */
+@Composable
+fun DotOutlinedButton(label: String, icon: DotIconSpec, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val c = DotTheme.colors
+    val shape = RoundedCornerShape(14.dp)
+    Row(
+        modifier = modifier
+            .height(54.dp)
+            .clip(shape)
+            .border(1.dp, c.outline, shape)
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        DotIcon(icon, 20.dp)
+        Text(label.upperCs(), style = DotType.button, color = c.text, maxLines = 1)
+    }
+}
+
 /** "——— LABEL ———": a section label centred between two rules. */
 @Composable
 fun CenteredSeparator(label: String, modifier: Modifier = Modifier) {

@@ -119,12 +119,12 @@ fun nextEpisodeSort(sort: EpisodeSort): EpisodeSort = EpisodeSort.entries[(sort.
  * The episodes as the podcast page lists them. [episodes] comes newest first; undated ones always stay at the end,
  * whichever way the list is sorted.
  */
-fun applyEpisodeView(episodes: List<EpisodeEntity>, sort: EpisodeSort, filter: EpisodeFilter): List<EpisodeEntity> {
+fun applyEpisodeView(episodes: List<EpisodeEntity>, sort: EpisodeSort, filter: EpisodeFilter, query: String = ""): List<EpisodeEntity> {
     val shown = when (filter) {
         EpisodeFilter.All -> episodes
         EpisodeFilter.Unplayed -> episodes.filter { it.playedAtMs == null }
         EpisodeFilter.Played -> episodes.filter { it.playedAtMs != null }
-    }
+    }.let { list -> if (query.isBlank()) list else list.filter { episodeMatches(it, query) } }
     if (sort == EpisodeSort.NewestFirst) return shown
     val (dated, undated) = shown.partition { it.pubDateMillis != null }
     return dated.sortedBy { it.pubDateMillis } + undated

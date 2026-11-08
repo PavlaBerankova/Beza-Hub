@@ -46,6 +46,7 @@ import com.berpod.app.ui.articles.czechCount
 import com.berpod.app.ui.dot.CoverImage
 import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIconSpec
+import com.berpod.app.ui.dot.DotOutlinedButton
 import com.berpod.app.ui.dot.DotIcon
 import com.berpod.app.ui.dot.DotIcons
 import com.berpod.app.ui.dot.DotPrimaryButton
@@ -59,6 +60,8 @@ data class HeaderPlayButton(val label: String, val icon: DotIconSpec, val onClic
 
 /** What the three-dots menu can do: change the feed's address, mark the whole podcast played or unplayed (each only while it would change something), or delete it. */
 class PodcastMenuActions(
+    /** Opens the tag picker of this podcast. */
+    val onManageTags: () -> Unit,
     val hasUnplayed: Boolean,
     val hasPlayed: Boolean,
     val onMarkAllPlayed: () -> Unit,
@@ -82,6 +85,10 @@ fun PodcastMoreMenu(actions: PodcastMenuActions) {
     Box {
         DotIconButton(DotIcons.More, stringResource(R.string.action_more), { expanded = true })
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.action_manage_tags)) },
+                onClick = { expanded = false; actions.onManageTags() }
+            )
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.action_edit_rss)) },
                 onClick = { expanded = false; actions.onEditRss() }
@@ -132,23 +139,22 @@ fun PodcastMoreMenu(actions: PodcastMenuActions) {
     }
 }
 
-/** Round-the-header action row: back, then the tag, refresh and three-dots buttons (the feed's address is edited from the menu). */
+/** Round-the-header action row: back, then the search, refresh and three-dots buttons (tags and the feed's address are in the menu). */
 @Composable
 fun PodcastActionsRow(
     isRefreshing: Boolean,
     onBack: () -> Unit,
-    onTagClick: () -> Unit,
     onRefresh: () -> Unit,
-    onOpenQueue: () -> Unit,
     menu: PodcastMenuActions,
+    isSearching: Boolean,
+    onSearchClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val c = DotTheme.colors
     Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         DotIconButton(DotIcons.Back, stringResource(R.string.action_back), onBack)
         Spacer(Modifier.weight(1f))
-        DotIconButton(DotIcons.QueueList, stringResource(R.string.action_open_queue), onOpenQueue)
-        DotIconButton(DotIcons.Tag, stringResource(R.string.action_manage_tags), onTagClick)
+        DotIconButton(DotIcons.Search, stringResource(R.string.action_search_episodes), onSearchClick, accentBorder = isSearching)
         if (isRefreshing) {
             Box(Modifier.size(44.dp), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(Modifier.size(22.dp), color = c.accent, strokeWidth = 2.dp)
@@ -173,10 +179,12 @@ fun PodcastHeader(
     playButton: HeaderPlayButton?,
     isRefreshing: Boolean,
     onBack: () -> Unit,
-    onTagClick: () -> Unit,
     onRefresh: () -> Unit,
+    /** The queue button beside the play button. */
     onOpenQueue: () -> Unit,
     menu: PodcastMenuActions,
+    isSearching: Boolean,
+    onSearchClick: () -> Unit,
     episodeCount: Int,
     /** "každý pátek"…; null when it can't be told. */
     frequency: String?,
@@ -203,7 +211,7 @@ fun PodcastHeader(
             .padding(top = 16.dp, bottom = 20.dp),
         verticalArrangement = Arrangement.spacedBy(22.dp)
     ) {
-        PodcastActionsRow(isRefreshing, onBack, onTagClick, onRefresh, onOpenQueue, menu)
+        PodcastActionsRow(isRefreshing, onBack, onRefresh, menu, isSearching, onSearchClick)
         Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
             CoverImage(imageUrl, 130.dp, 18.dp)
             // Centred beside the cover while it's short; a long title grows the column instead of being cut.
@@ -232,7 +240,10 @@ fun PodcastHeader(
                 }
             }
         }
-        if (playButton != null) DotPrimaryButton(playButton.label, playButton.icon, playButton.onClick)
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+            if (playButton != null) DotPrimaryButton(playButton.label, playButton.icon, playButton.onClick, modifier = Modifier.weight(1f))
+            DotOutlinedButton(stringResource(R.string.queue), DotIcons.QueuePlay, onOpenQueue)
+        }
         // "37 EPIZOD · KAŽDÝ PÁTEK", centred under the button
         Text(
             listOfNotNull(czechCount(episodeCount, "epizoda", "epizody", "epizod"), frequency?.upperCs()).joinToString(" · "),
