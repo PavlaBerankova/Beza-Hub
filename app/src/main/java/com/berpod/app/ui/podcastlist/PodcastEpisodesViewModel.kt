@@ -44,6 +44,8 @@ data class PodcastEpisodesUiState(
     /** The podcast's custom link, if it has one; [isEditingLink] is the add/edit dialog, [linkError] why the last save was refused. */
     val feedLinkTitle: String? = null,
     val feedLinkUrl: String? = null,
+    /** The user pays a subscription for this podcast. */
+    val hasPaidSubscription: Boolean = false,
     val isEditingLink: Boolean = false,
     val linkError: String? = null,
     /** Names of the tags this podcast carries, alphabetical. */
@@ -90,7 +92,8 @@ class PodcastEpisodesViewModel(
                         feedAuthor = feed?.author,
                         feedRssUrl = feed?.rssUrl.orEmpty(),
                         feedLinkTitle = feed?.linkTitle,
-                        feedLinkUrl = feed?.linkUrl
+                        feedLinkUrl = feed?.linkUrl,
+                        hasPaidSubscription = feed?.hasPaidSubscription ?: false
                     )
                 }
             }
@@ -200,6 +203,11 @@ class PodcastEpisodesViewModel(
             podcastRepository.setLink(feedId, title.trim().ifBlank { null }, url)
             _uiState.update { it.copy(isEditingLink = false, linkError = null, snackbarMessage = "Odkaz uložen") }
         }
+    }
+
+    fun onTogglePaidSubscription() {
+        val paid = !_uiState.value.hasPaidSubscription
+        viewModelScope.launch { podcastRepository.setPaidSubscription(feedId, paid) }
     }
 
     fun onRemoveLink() {

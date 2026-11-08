@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.material3.Text
@@ -45,6 +46,7 @@ import com.berpod.app.ui.articles.czechCount
 import com.berpod.app.ui.dot.CoverImage
 import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIconSpec
+import com.berpod.app.ui.dot.DotIcon
 import com.berpod.app.ui.dot.DotIcons
 import com.berpod.app.ui.dot.DotPrimaryButton
 import com.berpod.app.ui.dot.upperCs
@@ -62,6 +64,9 @@ class PodcastMenuActions(
     val onMarkAllPlayed: () -> Unit,
     val onMarkAllUnplayed: () -> Unit,
     val onEditRss: () -> Unit,
+    /** Whether the user pays a subscription for the podcast, and the toggle for it. */
+    val hasPaidSubscription: Boolean,
+    val onTogglePaidSubscription: () -> Unit,
     /** The custom link's name, or null while the podcast has none. */
     val linkLabel: String?,
     val onOpenLink: () -> Unit,
@@ -80,6 +85,15 @@ fun PodcastMoreMenu(actions: PodcastMenuActions) {
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.action_edit_rss)) },
                 onClick = { expanded = false; actions.onEditRss() }
+            )
+            DropdownMenuItem(
+                text = {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(stringResource(R.string.action_paid_subscription))
+                        if (actions.hasPaidSubscription) DotIcon(DotIcons.Check, 18.dp, monochrome = LocalContentColor.current)
+                    }
+                },
+                onClick = { expanded = false; actions.onTogglePaidSubscription() }
             )
             if (actions.linkLabel == null) {
                 DropdownMenuItem(

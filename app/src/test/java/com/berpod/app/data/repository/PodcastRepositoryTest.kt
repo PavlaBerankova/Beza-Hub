@@ -35,6 +35,10 @@ private class FakeDao : PodcastFeedDao {
         state.value = state.value.map { if (it.id == feedId) it.copy(linkTitle = title, linkUrl = url) else it }
     }
 
+    override suspend fun updatePaidSubscription(feedId: Long, paid: Boolean) {
+        state.value = state.value.map { if (it.id == feedId) it.copy(hasPaidSubscription = paid) else it }
+    }
+
     override suspend fun insert(feed: PodcastFeedEntity): Long {
         val withId = feed.copy(id = nextId++)
         state.value = state.value + withId
@@ -156,6 +160,20 @@ class PodcastRepositoryTest {
 
         assertEquals("https://example.com/fixed.xml", dao.getById(id)?.rssUrl)
         assertEquals("Fake Podcast", dao.getById(id)?.title)
+    }
+
+    @Test
+    fun `setPaidSubscription marks and unmarks a podcast`() = runTest {
+        val dao = FakeDao()
+        val repository = PodcastRepository(dao, FakeFeedFetcher())
+        val id = repository.addFeed("https://example.com/feed.xml").getOrThrow()
+        assertEquals(false, dao.getById(id)?.hasPaidSubscription)
+
+        repository.setPaidSubscription(id, true)
+        assertEquals(true, dao.getById(id)?.hasPaidSubscription)
+
+        repository.setPaidSubscription(id, false)
+        assertEquals(false, dao.getById(id)?.hasPaidSubscription)
     }
 
     @Test

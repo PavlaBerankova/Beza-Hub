@@ -60,6 +60,7 @@ import com.berpod.app.ui.dot.subscriptionCountText
 import com.berpod.app.ui.dot.CoverImage
 import com.berpod.app.ui.dot.DotIconButton
 import com.berpod.app.ui.dot.DotIcons
+import androidx.compose.foundation.layout.size
 import com.berpod.app.ui.theme.DotTheme
 
 
@@ -215,7 +216,8 @@ private fun PodcastSort.labelRes() = when (this) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun PodcastGridItem(feed: PodcastFeedEntity, newCount: Int, onClick: () -> Unit, onLongClick: () -> Unit) {
-    val description = if (newCount > 0) "${feed.title}, ${stringResource(R.string.badge_new_count_description, newCount)}" else feed.title
+    val newDescription = if (newCount > 0) "${feed.title}, ${stringResource(R.string.badge_new_count_description, newCount)}" else feed.title
+    val description = if (feed.hasPaidSubscription) "$newDescription, ${stringResource(R.string.paid_subscription_description)}" else newDescription
     // The badge sits on the cover's corner and sticks out of it, so only the cover itself is clipped.
     Box(modifier = Modifier.semantics { contentDescription = description }) {
         CoverImage(
@@ -226,8 +228,15 @@ private fun PodcastGridItem(feed: PodcastFeedEntity, newCount: Int, onClick: () 
                 .clip(RoundedCornerShape(14.dp))
                 .combinedClickable(onClick = onClick, onLongClick = onLongClick)
         )
+        if (feed.hasPaidSubscription) PaidSubscriptionFrame(Modifier.matchParentSize())
         if (newCount > 0) NewCountBadge(newCount, Modifier.align(Alignment.TopEnd).offset(x = 6.dp, y = (-6).dp))
     }
+}
+
+/** An accent-coloured frame just inside the cover's edge, following its rounding: the user pays a subscription for this podcast. */
+@Composable
+private fun PaidSubscriptionFrame(modifier: Modifier = Modifier) {
+    Box(modifier = modifier.clearAndSetSemantics {}.border(1.5.dp, DotTheme.colors.accent, RoundedCornerShape(14.dp)))
 }
 
 /** The number of new episodes, in a small squared accent badge on the cover's corner (99+ when it is more). */

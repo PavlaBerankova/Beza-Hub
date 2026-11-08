@@ -57,6 +57,9 @@ class PodcastRepository(
         if (url == null) dao.updateLink(feedId, null, null) else dao.updateLink(feedId, title, url)
     }
 
+    /** Marks or unmarks that the user pays a subscription for the podcast. */
+    suspend fun setPaidSubscription(feedId: Long, paid: Boolean) = dao.updatePaidSubscription(feedId, paid)
+
     /** Deletes the podcast; its episodes, queue entries, tags and download rows go with it (cascading deletes). */
     suspend fun deleteFeed(feedId: Long) {
         dao.getById(feedId)?.let { dao.delete(it) }

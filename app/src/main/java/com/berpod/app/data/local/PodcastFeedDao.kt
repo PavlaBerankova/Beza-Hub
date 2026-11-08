@@ -42,6 +42,9 @@ interface PodcastFeedDao {
     @Query("UPDATE podcast_feeds SET linkTitle = :title, linkUrl = :url WHERE id = :feedId")
     suspend fun updateLink(feedId: Long, title: String?, url: String?)
 
+    @Query("UPDATE podcast_feeds SET hasPaidSubscription = :paid WHERE id = :feedId")
+    suspend fun updatePaidSubscription(feedId: Long, paid: Boolean)
+
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(feed: PodcastFeedEntity): Long
 

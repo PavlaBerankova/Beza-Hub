@@ -115,6 +115,8 @@ fun PodcastEpisodesScreen(viewModelFactory: ViewModelProvider.Factory, onBack: (
         onMarkAllPlayed = { viewModel.onRequestMarkAll(true) },
         onMarkAllUnplayed = { viewModel.onRequestMarkAll(false) },
         onEditRss = viewModel::onEditRss,
+        hasPaidSubscription = uiState.hasPaidSubscription,
+        onTogglePaidSubscription = viewModel::onTogglePaidSubscription,
         linkLabel = uiState.feedLinkUrl?.let { linkLabel(uiState.feedLinkTitle, it) },
         onOpenLink = { webUrlOrNull(uiState.feedLinkUrl)?.let(uriHandler::openUri) },
         onEditLink = viewModel::onEditLink,

@@ -1,5 +1,6 @@
 package com.berpod.app.data.local
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
@@ -22,5 +23,7 @@ data class PodcastFeedEntity(
     val linkUrl: String? = null,
     /** `ETag` / `Last-Modified` of the feed as last downloaded, so the next refresh can skip it if unchanged. */
     val etag: String? = null,
-    val lastModified: String? = null
+    val lastModified: String? = null,
+    /** The user marked that they pay for a subscription to this podcast. */
+    @ColumnInfo(defaultValue = "0") val hasPaidSubscription: Boolean = false
 )
